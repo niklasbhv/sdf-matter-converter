@@ -32,3 +32,10 @@
 *.out
 *.app
 
+# CMake Debug Build
+
+/cmake-build-debug
+
+# IntelliJ Idea folder
+
+/.idea
