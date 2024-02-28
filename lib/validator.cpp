@@ -1,14 +1,17 @@
 //
 // Created by Niklas on 26.02.2024.
 //
+#include <nlohmann/json.hpp>
+#include <fstream>
 
-int loadJsonFile()
-{
-    return 0;
-}
+using json = nlohmann::json;
 
-int loadXmlFile()
+int loadFile(const char* path)
 {
+    //TODO: Path given is only to the folder
+    std::ifstream f(path);
+    //TODO: Check if this can fail (and how)
+    json data = json::parse(f);
     return 0;
 }
 

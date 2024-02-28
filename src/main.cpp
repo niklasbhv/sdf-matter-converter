@@ -7,25 +7,6 @@
 
 using json = nlohmann::json;
 
-int readJsonFile(const std::string& path)
-{
-    //TODO: Path given is only to the folder
-    std::ifstream f(path);
-    //TODO: Check if this can fail (and how)
-    json data = json::parse(f);
-    return 0;
-}
-
-int readXmlFile(const char *path)
-{
-    pugi::xml_document doc;
-    //TODO: Path given is only to the folder
-    pugi::xml_parse_result result = doc.load_file(path);
-    if (!result)
-        return -1;
-    return 0;
-}
-
 int main(int argc, char *argv[]) {
     argparse::ArgumentParser program("sdf-matter-converter");
 
@@ -73,7 +54,7 @@ int main(int argc, char *argv[]) {
         }
 
         auto path = program.get<const char>("-path");
-        int result = readXmlFile(&path);
+        //int result = readXmlFile(&path);
     }
     if(program["--convert-to-matter"] == true)
     {
@@ -84,7 +65,7 @@ int main(int argc, char *argv[]) {
         }
 
         auto path = program.get<std::string>("-path");
-        int result = readJsonFile(path);
+        //int result = readJsonFile(path);
     }
 
     return 0;
