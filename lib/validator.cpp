@@ -2,7 +2,17 @@
 // Created by Niklas on 26.02.2024.
 //
 
-int ValidateSDF()
+int loadJsonFile()
+{
+    return 0;
+}
+
+int loadXmlFile()
+{
+    return 0;
+}
+
+int validateSdf()
 {
     return 0;
 }

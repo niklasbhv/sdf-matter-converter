@@ -6,12 +6,22 @@
 
 using json = nlohmann::json;
 
-int ConvertSdfToMatter(const json& sdf_model, const json& sdf_mapping)
+int loadJsonFile()
 {
     return 0;
 }
 
-int ConvertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
+int loadXmlFile()
+{
+    return 0;
+}
+
+int convertSdfToMatter(const json& sdf_model, const json& sdf_mapping)
+{
+    return 0;
+}
+
+int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
 {
     return 0;
 }
