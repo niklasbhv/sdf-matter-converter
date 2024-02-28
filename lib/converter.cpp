@@ -7,6 +7,70 @@
 
 using json = nlohmann::json;
 
+//
+// Definitions for Matter
+//
+
+struct attributeType {
+
+};
+
+struct commandType {
+
+};
+
+struct eventType {
+
+};
+
+struct clusterType {
+
+    attributeType attributes[10];
+    commandType commands[10];
+    eventType events[10];
+};
+
+struct deviceType {
+    std::string name;
+    std::string domain;
+    std::string typeName;
+    int profileId;
+    int deviceId;
+    // TODO: Channels is currently missing
+    clusterType clusters[10];
+
+};
+
+//
+// Definitions for SDF
+//
+
+struct definitionType {
+
+};
+
+struct namespaceType {
+    std::map<std::string, std::string> namespaces;
+    std::string defaultNamespace;
+};
+
+struct infoBlockType{
+    std::string title;
+    std::string description;
+    std::string version;
+    std::string modified;
+    std::string copyright;
+    std::string license;
+    std::string features;
+    std::string $comment;
+};
+
+struct sdfModelType{
+    infoBlockType infoBlock;
+    namespaceType namespaceBlock;
+    definitionType definitionBlock;
+};
+
 int loadJsonFile(const char* path)
 {
     //TODO: Path given is only to the folder
@@ -26,12 +90,58 @@ int loadXmlFile(const char* path)
     return 0;
 }
 
-int convertSdfToMatter(const json& sdf_model, const json& sdf_mapping)
+//
+// Functions responsible for the Matter -> SDF conversion
+//
+
+int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
 {
     return 0;
 }
 
-int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
+//
+// Functions responsible for the SDF -> Matter conversion
+//
+
+clusterType mapSdfObject(const json& sdf_model)
 {
+    return clusterType {};
+}
+
+int mapSdfThing()
+{
+    return 0;
+}
+
+int parseDefinitionBlock(const json& sdf_model, deviceType& matter_device)
+{
+    //TODO: Change this loop to go through all sdfObjects
+    for (int i = 0; i < 10 ;i++)  {
+        matter_device.clusters[i] = mapSdfObject(sdf_model);
+    }
+    return 0;
+}
+
+int parseNamespaceBlock()
+{
+    return 0;
+}
+
+int parseInfoBlock(const json& sdf_model, deviceType& matter_device)
+{
+    matter_device.name = "";
+    matter_device.domain = "SDF";
+    //matter_device.typeName = sdf_model.infoBlock.title;
+    matter_device.profileId = 0;
+    matter_device.deviceId = 0;
+    return 0;
+}
+
+int convertSdfToMatter(const json& sdf_model, const json& sdf_mapping)
+{
+    deviceType matter_device = {};
+    parseInfoBlock(sdf_model, matter_device);
+    parseNamespaceBlock();
+    parseDefinitionBlock(sdf_model, matter_device);
     return 0;
 }

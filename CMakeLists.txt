@@ -16,5 +16,6 @@ CPMAddPackage("gh:nlohmann/json@3.11.3")
 CPMAddPackage("gh:zeux/pugixml@1.14")
 CPMAddPackage("gh:p-ranav/argparse@3.0")
 CPMAddPackage("gh:apache/xerces-c@3.2.5")
+# CPMAddPackage("gh:pboettch/json-schema-validator@2.3.0")
 
 target_link_libraries(sdf_matter_converter nlohmann_json::nlohmann_json pugixml::pugixml argparse::argparse xerces-c)
