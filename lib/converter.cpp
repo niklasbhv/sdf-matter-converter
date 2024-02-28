@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <pugixml.hpp>
 #include <fstream>
+#include <list>
 
 using json = nlohmann::json;
 
@@ -60,20 +61,20 @@ struct sdfDataType {
     bool nullable;
     std::string contentFormat;
     std::string sdfType;
-    // sdfChoice
+    std::map<std::string, sdfDataType> sdfChoice;
     // std::string enum[];
 };
 
 struct sdfEventType {
     sdfCommonType commonQualities;
-    // sdfOutputData
+    std::map<std::string, sdfDataType> sdfOutputData;
     // sdfData
 };
 
 struct sdfActionType {
     sdfCommonType commonQualities;
-    // sdfInputData
-    // sdfOutputData
+    std::map<std::string, sdfDataType> sdfInputData;
+    std::map<std::string, sdfDataType> sdfOutputData;
     // sdfData
 };
 
@@ -87,12 +88,12 @@ struct sdfPropertyType {
 
 struct sdfObjectType {
     sdfCommonType commonQualities;
-    sdfPropertyType sdfProperty;
-    // sdfAction
-    // sdfEvent
-    // sdfData
-    // minItems
-    // maxItems
+    std::list<sdfPropertyType> sdfProperty;
+    std::list<sdfActionType> sdfAction;
+    std::list<sdfEventType> sdfEvent;
+    std::list<sdfDataType> sdfData;
+    int minItems;
+    int maxItems;
 };
 
 struct sdfThingType {
