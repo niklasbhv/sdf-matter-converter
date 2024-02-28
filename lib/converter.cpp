@@ -44,6 +44,69 @@ struct deviceType {
 //
 // Definitions for SDF
 //
+// TODO: A lot of these qualities are n-ary, but currently in most cases only one object is possible
+
+struct sdfCommonType {
+    std::string description;
+    std::string label;
+    std::string $comment;
+    // sdfRef
+    // sdfRequired
+};
+
+struct sdfDataType {
+    sdfCommonType commonQualities;
+    std::string unit;
+    bool nullable;
+    std::string contentFormat;
+    std::string sdfType;
+    // sdfChoice
+    // std::string enum[];
+};
+
+struct sdfEventType {
+    sdfCommonType commonQualities;
+    // sdfOutputData
+    // sdfData
+};
+
+struct sdfActionType {
+    sdfCommonType commonQualities;
+    // sdfInputData
+    // sdfOutputData
+    // sdfData
+};
+
+// TODO:: Currently these default to false, check if there should be a default
+struct sdfPropertyType {
+    sdfDataType dataQualities;
+    bool readable = false;
+    bool writable = false;
+    bool observable = false;
+};
+
+struct sdfObjectType {
+    sdfCommonType commonQualities;
+    sdfPropertyType sdfProperty;
+    // sdfAction
+    // sdfEvent
+    // sdfData
+    // minItems
+    // maxItems
+};
+
+struct sdfThingType {
+    sdfCommonType commonQualities;
+    // sdfThing
+    sdfObjectType sdfObject;
+    sdfPropertyType sdfProperty;
+    sdfActionType sdfAction;
+    sdfEventType sdfEvent;
+    sdfDataType sdfData;
+    int minItems;
+    int maxItems;
+
+};
 
 struct definitionType {
 
@@ -105,6 +168,7 @@ int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_doc
 
 clusterType mapSdfObject(const json& sdf_model)
 {
+
     return clusterType {};
 }
 
@@ -115,9 +179,13 @@ int mapSdfThing()
 
 int parseDefinitionBlock(const json& sdf_model, deviceType& matter_device)
 {
-    //TODO: Change this loop to go through all sdfObjects
-    for (int i = 0; i < 10 ;i++)  {
-        matter_device.clusters[i] = mapSdfObject(sdf_model);
+    //TODO: Look for another solution excluding the usage of an index
+    int i = 0;
+    for (auto& elem : sdf_model.items())  {
+        if(elem.key() == "sdfObject"){
+            matter_device.clusters[i] = mapSdfObject(elem.value());
+            i++;
+        }
     }
     return 0;
 }
