@@ -35,9 +35,6 @@ int main(int argc, char *argv[]) {
     program.add_argument("--convert-to-matter")
         .help("Convert from SDF to Matter");
 
-    program.add_argument("--bridge-mode")
-        .help("Indicate that the converter is used to generate a cluster for usage with a matter bridge");
-
     program.add_argument("-o", "-output")
         .required()
         .help("Specify the output file");

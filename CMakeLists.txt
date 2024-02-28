@@ -3,9 +3,9 @@ project(sdf_matter_converter)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(sdf_matter_converter main.cpp
-        converter.cpp
-        validator.cpp)
+add_executable(sdf_matter_converter src/main.cpp
+        lib/converter.cpp
+        lib/validator.cpp)
 
 # add dependencies
 include(cmake/CPM.cmake)
