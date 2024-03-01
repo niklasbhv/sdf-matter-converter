@@ -135,12 +135,12 @@ struct sdfModelType{
     definitionType definitionBlock;
 };
 
-int loadJsonFile(const char* path)
+int loadJsonFile(const char* path, json& json_file)
 {
     //TODO: Path given is only to the folder
     std::ifstream f(path);
     //TODO: Check if this can fail (and how)
-    json data = json::parse(f);
+    json_file = json::parse(f);
     return 0;
 }
 
@@ -180,13 +180,24 @@ int mapSdfThing()
 
 int parseDefinitionBlock(const json& sdf_model, deviceType& matter_device)
 {
-    //TODO: Look for another solution excluding the usage of an index
-    int i = 0;
-    for (auto& elem : sdf_model.items())  {
-        if(elem.key() == "sdfObject"){
-            matter_device.clusters[i] = mapSdfObject(elem.value());
+    //! Does the SDF-Model contain a sdfThing?
+    if(sdf_model.contains("sdfThing")){
+
+    }
+    //! If not, does the SDF-Model contain a sdfObject
+    else if(sdf_model.contains("sdfObject")){
+        //TODO: Look for another solution excluding the usage of an index
+        int i = 0;
+        //TODO: Does this break after we leave sdfObject?
+        for (auto sdf_object_it = sdf_model.find("sdfObject"); sdf_object_it != sdf_model.end(); sdf_object_it++) {
+            matter_device.clusters[i] = mapSdfObject(*sdf_object_it);
             i++;
         }
+    }
+    //! If no sdfThing and no sdfObject is present, there's something wrong
+    //TODO: Do we eben have to check this?
+    else {
+        return -1;
     }
     return 0;
 }

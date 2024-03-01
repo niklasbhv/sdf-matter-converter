@@ -1,8 +1,0 @@
-//
-// Created by niklas on 28.02.24.
-//
-
-#ifndef SDF_MATTER_CONVERTER_CONVERTER_H
-#define SDF_MATTER_CONVERTER_CONVERTER_H
-
-#endif //SDF_MATTER_CONVERTER_CONVERTER_H

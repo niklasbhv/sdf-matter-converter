@@ -15,8 +15,9 @@ int loadFile(const char* path)
     return 0;
 }
 
-int validateSdf()
+int validateSdf(const char* path, const char* schema)
 {
+
     return 0;
 }
 

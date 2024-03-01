@@ -4,6 +4,7 @@
 //TODO: Currently using Pugixml for performance und footprint, might make validation optional (Xerces) to safe resources
 #include <pugixml.hpp>
 #include <argparse/argparse.hpp>
+#include <converter.h>
 
 using json = nlohmann::json;
 
@@ -68,5 +69,12 @@ int main(int argc, char *argv[]) {
         //int result = readJsonFile(path);
     }
 
+    if(program["--validate-sdf"] == true)
+    {
+
+    }
+    json json_file;
+    loadJsonFile("sdfobject-onoff.sdf.json", json_file);
+    convertSdfToMatter(json_file, json_file);
     return 0;
 }

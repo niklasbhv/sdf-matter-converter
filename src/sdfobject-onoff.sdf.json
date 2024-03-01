@@ -1,0 +1,123 @@
+{
+  "info": {
+    "title": "Example SDF model for the ZCL OnOff cluster", 
+    "version": "2021-03-05", 
+    "copyright": "Copyright (c) 2019-2021, Zigbee Alliance All rights reserved.", 
+    "license": "https://github.com/one-data-model/oneDM/blob/master/LICENSE"
+  }, 
+  "namespace": {
+    "pg": "https://onedm.org/playground/#"
+  }, 
+  "defaultNamespace": "pg", 
+  "sdfObject": {
+    "OnOff": {
+      "label": "OnOff", 
+      "sdfRequired": [
+        "#/sdfObject/OnOff/sdfProperty/OnOff", 
+        "#/sdfObject/OnOff/sdfAction/On",
+        "#/sdfObject/OnOff/sdfAction/Off",
+        "#/sdfObject/OnOff/sdfAction/Toggle"
+      ],
+      "sdfProperty": {
+        "OnOff": {
+          "label": "OnOff", 
+          "type": "boolean",
+          "default": false
+        }, 
+        "GlobalSceneControl": {
+          "label": "GlobalSceneControl", 
+          "type": "boolean",
+          "default": true
+        }, 
+        "OnTime": {
+          "sdfRef": "#/sdfObject/OnOff/sdfData/TransitionTimeData", 
+          "label": "OnTime", 
+          "default": 0
+        }, 
+        "OffWaitTime": {
+          "sdfRef": "#/sdfObject/OnOff/sdfData/TransitionTimeData", 
+          "label": "OffWaitTime", 
+          "default": 0
+        }, 
+        "StartUpOnOff": {
+          "sdfRef": "#/sdfObject/OnOff/sdfData/StartUpOnOffMode", 
+          "label": "StartUpOnOff"
+        }
+      }, 
+      "sdfAction": {
+        "Off": {
+          "label": "Off" 
+        }, 
+        "On": {
+          "label": "On"
+        }, 
+        "Toggle": {
+          "label": "Toggle"
+        }, 
+        "OffWithEffect": {
+          "label": "OffWithEffect",
+          "sdfInputData": {
+            "type": "object",
+            "properties": {
+              "EffectIdentifier": {
+                "label": "EffectIdentifier", 
+                "sdfChoice": {
+                  "DelayedAllOff": {},
+                  "DyingLight": {}
+                }
+             }, 
+              "EffectVariant": {
+                "label": "EffectVariant", 
+                "type": "integer"
+              }  
+            }
+          }
+        },
+        "OnWithRecallGlobalScene": {
+          "label": "OnWithRecallGlobalScene"
+        }, 
+        "OnWithTimedOff": {
+          "label": "OnWithTimedOff", 
+          "sdfInputData": {
+            "type": "object",
+            "properties": {
+              "OnOffControl": {
+                "description": "implemented as a bitmap, modeled as an array of unique string items",
+                "type": "array",
+                "uniqueItems": true,
+                "items" : {
+                  "sdfChoice": {
+                    "AcceptOnlyWhenOn": {}
+                  } 
+                }
+              },
+              "OnTime": {
+                "sdfRef": "#/sdfObject/OnOff/sdfData/TransitionTimeData"
+              }, 
+              "OffWaitTime": {
+                "sdfRef": "#/sdfObject/OnOff/sdfData/TransitionTimeData"
+              }  
+            }
+          }
+        }
+      }, 
+      "sdfData": {
+        "TransitionTimeData": {
+          "type": "number", 
+          "minimum": 0, 
+          "maximum": 6553.5, 
+          "multipleOf": 0.1,
+          "unit": "s"
+        },
+        "StartUpOnOffMode": {
+          "sdfChoice": {
+            "SetOnOffTo0": {},
+            "SetOnOffTo1": {},
+            "TogglePreviousOnOff": {},
+            "SetPreviousOnOff": {}
+          }
+        }
+      }
+    }
+  }
+}
