@@ -23,7 +23,7 @@ struct enumType{
     std::string name;
     std::string type;
     std::string cluster;
-    std::list<std::map<std::string, std::string>> items;
+    std::map<std::string, std::string> items;
 };
 
 struct eventType {
@@ -178,6 +178,24 @@ int loadXmlFile(const char* path, const pugi::xml_document& xml_file)
 //
 // Functions responsible for the Matter -> SDF conversion
 //
+
+int mapBitmap(pugi::xml_node& bitmap_type_node, bitmapType& bitmap)
+{
+    return 0;
+}
+
+//TODO: Currently a workaround as enum is a occupied identifier
+int mapEnum(pugi::xml_node& enum_type_node, enumType& enm)
+{
+    enm.name = enum_type_node.attribute("name").value();
+    enm.type = enum_type_node.attribute("type").value();
+    enm.cluster = enum_type_node.child("cluster").attribute("code").value();
+    for (pugi::xml_node item_node : enum_type_node.children("item"))
+    {
+        enm.items.insert({item_node.attribute("name").value(), item_node.attribute("value").value()});
+    }
+    return 0;
+}
 
 int mapEvent()
 {
