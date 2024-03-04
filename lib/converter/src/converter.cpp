@@ -12,7 +12,7 @@ using json = nlohmann::json;
 // Definitions for Matter
 //
 
-struct attributeType {
+struct eventType {
 
 };
 
@@ -20,12 +20,19 @@ struct commandType {
 
 };
 
-struct eventType {
+struct attributeType {
 
 };
 
 struct clusterType {
-
+    std::string name;
+    //TODO: Can this be solved like this?
+    std::string server;
+    std::string client;
+    std::string domain;
+    std::string code;
+    std::string define;
+    std::string description;
     attributeType attributes[10];
     commandType commands[10];
     eventType events[10];
@@ -35,10 +42,10 @@ struct deviceType {
     std::string name;
     std::string domain;
     std::string typeName;
-    int profileId;
-    int deviceId;
+    std::string profileId;
+    std::string deviceId;
     // TODO: Channels is currently missing
-    clusterType clusters[10];
+    std::list<clusterType> clusters;
 
 };
 
@@ -158,8 +165,56 @@ int loadXmlFile(const char* path, const pugi::xml_document& xml_file)
 // Functions responsible for the Matter -> SDF conversion
 //
 
+int mapEvent()
+{
+    return 0;
+}
+
+int mapCommand()
+{
+    return 0;
+}
+
+int mapAttribute()
+{
+    return 0;
+}
+
+int mapCluster(const pugi::xml_document& cluster_xml)
+{
+    return 0;
+}
+
+int mapDevice(const pugi::xml_document& device_xml)
+{
+    deviceType device;
+    //! Iterate through all deviceType children
+    for (pugi::xml_node device_type_node: device_xml.children("configurator")){
+        device.name = device_type_node.child("name").value();
+        device.domain = device_type_node.child("domain").value();
+        device.typeName = device_type_node.child("typeName").value();
+        device.profileId = device_type_node.child("profileId").value();
+        device.deviceId = device_type_node.child("deviceId").value();
+        //! Iterate through all clusters children
+        for (pugi::xml_node cluster_node: device_type_node.children("clusters"))
+        {
+            clusterType cluster;
+            //TODO: Which of these do we need to keep? Consider round tripping
+            cluster.name = cluster_node.child("include").attribute("cluster").value();
+            cluster.client = cluster_node.child("include").attribute("client").value();
+            cluster.server = cluster_node.child("include").attribute("server").value();
+            //cluster_node.child("include").attribute("clientLocked").value();
+            //cluster_node.child("include").attribute("serverLocked").value();
+            device.clusters.push_back(cluster);
+        }
+    }
+    return 0;
+}
+
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
 {
+    mapDevice(device_xml);
+    mapCluster(cluster_xml);
     return 0;
 }
 
@@ -184,14 +239,11 @@ int parseDefinitionBlock(const json& sdf_model, deviceType& matter_device)
     if(sdf_model.contains("sdfThing")){
 
     }
-    //! If not, does the SDF-Model contain a sdfObject
+    //! If not, does the SDF-Model contain a sdfObject?
     else if(sdf_model.contains("sdfObject")){
-        //TODO: Look for another solution excluding the usage of an index
-        int i = 0;
         //TODO: Does this break after we leave sdfObject?
         for (auto sdf_object_it = sdf_model.find("sdfObject"); sdf_object_it != sdf_model.end(); sdf_object_it++) {
-            matter_device.clusters[i] = mapSdfObject(*sdf_object_it);
-            i++;
+            matter_device.clusters.push_back(mapSdfObject(*sdf_object_it));
         }
     }
     //! If no sdfThing and no sdfObject is present, there's something wrong
@@ -212,8 +264,8 @@ int parseInfoBlock(const json& sdf_model, deviceType& matter_device)
     matter_device.name = "";
     matter_device.domain = "SDF";
     //matter_device.typeName = sdf_model.infoBlock.title;
-    matter_device.profileId = 0;
-    matter_device.deviceId = 0;
+    matter_device.profileId = "0";
+    matter_device.deviceId = "0";
     return 0;
 }
 
