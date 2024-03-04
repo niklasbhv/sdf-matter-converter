@@ -56,37 +56,35 @@ int main(int argc, char *argv[]) {
         std::exit(1);
     }
 
-    if(program["--convert-to-sdf"] == true)
+    if(program.is_used("--convert-to-sdf"))
     {
-        if(!(program["-device-xml"] == true and program["-cluster-xml"] == true))
+        if(!(program.is_used("-device-xml") and program.is_used("-cluster-xml")))
         {
             std::cerr << "Device XML or Cluster XML missing as an input argument" << std::endl;
             std::exit(1);
         }
 
-        auto path_device_xml = program.get<const char>("-device-xml");
+        auto path_device_xml = program.get<std::string>("-device-xml");
         pugi::xml_document device_xml;
-        loadXmlFile(&path_device_xml, device_xml);
-        auto path_cluster_xml = program.get<const char>("-cluster-xml");
+        loadXmlFile(path_device_xml.c_str(), device_xml);
+        auto path_cluster_xml = program.get<std::string>("-cluster-xml");
         pugi::xml_document cluster_xml;
-        loadXmlFile(&path_cluster_xml, device_xml);
+        loadXmlFile(path_cluster_xml.c_str(), device_xml);
         convertMatterToSdf(device_xml, cluster_xml);
-
     }
-    if(program["--convert-to-matter"] == true)
+    if(program.is_used("--convert-to-matter"))
     {
-        if(!(program["-sdf-model"] == true and program["-sdf-mapping"] == true))
+        if(!(program.is_used("-sdf-model") and program.is_used("-sdf-mapping")))
         {
             std::cerr << "SDF Model or SDF Mapping missing as an input argument" << std::endl;
             std::exit(1);
         }
-
-        auto path_sdf_model = program.get<const char>("-sdf-model");
+        auto path_sdf_model = program.get<std::string>("-sdf-model");
         json sdf_model;
-        loadJsonFile(&path_sdf_model, sdf_model);
-        auto path_sdf_mapping = program.get<const char>("-sdf-mapping");
+        loadJsonFile(path_sdf_model.c_str(), sdf_model);
+        auto path_sdf_mapping = program.get<std::string>("-sdf-mapping");
         json sdf_mapping;
-        loadJsonFile(&path_sdf_mapping, sdf_mapping);
+        loadJsonFile(path_sdf_mapping.c_str(), sdf_mapping);
         convertSdfToMatter(sdf_model, sdf_mapping);
     }
 
