@@ -12,10 +12,20 @@ int main(int argc, char *argv[]) {
     argparse::ArgumentParser program("sdf-matter-converter");
 
     program.add_argument("--convert-to-sdf")
-        .help("Convert from Matter to SDF");
+        .help("Convert from Matter to SDF")
+        .default_value(false);
 
     program.add_argument("--convert-to-matter")
-        .help("Convert from SDF to Matter");
+        .help("Convert from SDF to Matter")
+        .default_value(false);
+
+    program.add_argument("--validate-sdf")
+        .help("Validate the input SDF files against a schema")
+        .default_value(false);
+
+    program.add_argument("--validate-xml")
+        .help("Validate the input XML files against a schema")
+        .default_value(false);
 
     program.add_argument("-o", "-output")
         .required()
@@ -65,16 +75,18 @@ int main(int argc, char *argv[]) {
             std::exit(1);
         }
 
-        auto path = program.get<std::string>("-path");
-        //int result = readJsonFile(path);
+        auto path = program.get<const char>("-path");
+        json sdf_model;
+        loadJsonFile(&path, sdf_model);
+        json sdf_mapping;
+        loadJsonFile(&path, sdf_mapping);
+        convertSdfToMatter(sdf_model, sdf_mapping);
     }
 
     if(program["--validate-sdf"] == true)
     {
 
     }
-    json json_file;
-    loadJsonFile("sdfobject-onoff.sdf.json", json_file);
-    convertSdfToMatter(json_file, json_file);
+
     return 0;
 }
