@@ -144,7 +144,7 @@ int loadJsonFile(const char* path, json& json_file)
     return 0;
 }
 
-int loadXmlFile(const char* path)
+int loadXmlFile(const char* path, const pugi::xml_document& xml_file)
 {
     pugi::xml_document doc;
     //TODO: Path given is only to the folder

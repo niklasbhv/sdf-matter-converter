@@ -64,8 +64,14 @@ int main(int argc, char *argv[]) {
             std::exit(1);
         }
 
-        auto path = program.get<const char>("-path");
-        //int result = readXmlFile(&path);
+        auto path_device_xml = program.get<const char>("-device-xml");
+        pugi::xml_document device_xml;
+        loadXmlFile(&path_device_xml, device_xml);
+        auto path_cluster_xml = program.get<const char>("-cluster-xml");
+        pugi::xml_document cluster_xml;
+        loadXmlFile(&path_cluster_xml, device_xml);
+        convertMatterToSdf(device_xml, cluster_xml);
+
     }
     if(program["--convert-to-matter"] == true)
     {
@@ -75,11 +81,12 @@ int main(int argc, char *argv[]) {
             std::exit(1);
         }
 
-        auto path = program.get<const char>("-path");
+        auto path_sdf_model = program.get<const char>("-sdf-model");
         json sdf_model;
-        loadJsonFile(&path, sdf_model);
+        loadJsonFile(&path_sdf_model, sdf_model);
+        auto path_sdf_mapping = program.get<const char>("-sdf-mapping");
         json sdf_mapping;
-        loadJsonFile(&path, sdf_mapping);
+        loadJsonFile(&path_sdf_mapping, sdf_mapping);
         convertSdfToMatter(sdf_model, sdf_mapping);
     }
 
