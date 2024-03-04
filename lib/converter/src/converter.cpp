@@ -220,31 +220,26 @@ int mapCluster(const pugi::xml_document& cluster_xml)
     return 0;
 }
 
-int mapDevice(const pugi::xml_document& device_xml)
+int mapDevice(const pugi::xml_node& device_type_node, deviceType& device)
 {
-    //TODO: Currently only a single Device is possible, should be multiple
-    deviceType device;
-    //! Iterate through all deviceType children
-    for (pugi::xml_node device_type_node: device_xml.children("configurator")){
-        device.name = device_type_node.child("name").value();
-        device.domain = device_type_node.child("domain").value();
-        device.typeName = device_type_node.child("typeName").value();
-        device.profileId = device_type_node.child("profileId").value();
-        device.deviceId = device_type_node.child("deviceId").value();
-        //! Iterate through all clusters children
-        for (pugi::xml_node cluster_node: device_type_node.children("clusters"))
-        {
-            //TODO: It might be useful to match these to the definitions inside the cluster xml to minimize computation
-            //TODO: On the other hand it could be overhead as we have to iterate through this list
-            clusterType cluster;
-            //TODO: Which of these do we need to keep? Consider round tripping
-            cluster.name = cluster_node.attribute("cluster").value();
-            cluster.client = cluster_node.attribute("client").value();
-            cluster.server = cluster_node.attribute("server").value();
-            //cluster_node.attribute("clientLocked").value();
-            //cluster_node.attribute("serverLocked").value();
-            device.clusters.push_back(cluster);
-        }
+    device.name = device_type_node.child("name").value();
+    device.domain = device_type_node.child("domain").value();
+    device.typeName = device_type_node.child("typeName").value();
+    device.profileId = device_type_node.child("profileId").value();
+    device.deviceId = device_type_node.child("deviceId").value();
+    //! Iterate through all clusters children
+    for (pugi::xml_node cluster_node: device_type_node.children("clusters"))
+    {
+        //TODO: It might be useful to match these to the definitions inside the cluster xml to minimize computation
+        //TODO: On the other hand it could be overhead as we have to iterate through this list
+        clusterType cluster;
+        //TODO: Which of these do we need to keep? Consider round tripping
+        cluster.name = cluster_node.attribute("cluster").value();
+        cluster.client = cluster_node.attribute("client").value();
+        cluster.server = cluster_node.attribute("server").value();
+        //cluster_node.attribute("clientLocked").value();
+        //cluster_node.attribute("serverLocked").value();
+        device.clusters.push_back(cluster);
     }
     return 0;
 }
@@ -252,7 +247,15 @@ int mapDevice(const pugi::xml_document& device_xml)
 //TODO: This only works if we can store multiple cluster definitions inside a single xml file
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
 {
-    mapDevice(device_xml);
+    //TODO: We can initialize this as a fixed size array by using the number of dynamic endpoints
+    std::list<deviceType> devices;
+    //! Iterate through all deviceType children
+    for (pugi::xml_node device_type_node: device_xml.children("configurator")) {
+        deviceType device;
+        mapDevice(device_type_node, device);
+        devices.push_back(device);
+    }
+
     mapCluster(cluster_xml);
     return 0;
 }
