@@ -16,7 +16,7 @@ struct bitmapType{
     std::string name;
     std::string type;
     std::string cluster;
-    std::list<std::map<std::string, std::string>> fields;
+    std::map<std::string, std::string> fields;
 };
 
 struct enumType{
@@ -181,6 +181,14 @@ int loadXmlFile(const char* path, const pugi::xml_document& xml_file)
 
 int mapBitmap(pugi::xml_node& bitmap_type_node, bitmapType& bitmap)
 {
+    bitmap.name = bitmap_type_node.attribute("name").value();
+    bitmap.type = bitmap_type_node.attribute("type").value();
+    bitmap.cluster = bitmap_type_node.child("cluster").attribute("code").value();
+    for (pugi::xml_node field_node : bitmap_type_node.children("field"))
+    {
+        //TODO: Should this be a map?
+        bitmap.fields.insert({field_node.attribute("name").value(), field_node.attribute("mask").value()});
+    }
     return 0;
 }
 
