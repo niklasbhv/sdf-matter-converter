@@ -12,6 +12,20 @@ using json = nlohmann::json;
 // Definitions for Matter
 //
 
+struct bitmapType{
+    std::string name;
+    std::string type;
+    std::string cluster;
+    std::list<std::map<std::string, std::string>> fields;
+};
+
+struct enumType{
+    std::string name;
+    std::string type;
+    std::string cluster;
+    std::list<std::map<std::string, std::string>> items;
+};
+
 struct eventType {
 
 };
@@ -182,11 +196,33 @@ int mapAttribute()
 
 int mapCluster(const pugi::xml_document& cluster_xml)
 {
+    //TODO: We have to iterate through custom type definitions beforehand, below we only iterate trough the clusters
+    //! Iterate through all enum children
+    for (pugi::xml_node enum_node: cluster_xml.child("configurator").children("enum")){
+
+    }
+
+    //! Iterate through all bitmap children
+    for (pugi::xml_node bitmap_node: cluster_xml.child("configurator").children("bitmap")){
+
+    }
+
+    //TODO: Currently only a single Cluster is possible, should be multiple
+    clusterType cluster;
+    //! Iterate through all cluster children
+    for (pugi::xml_node cluster_node: cluster_xml.child("configurator").children("cluster")){
+        cluster.name = cluster_node.child("name").value();
+        cluster.domain = cluster_node.child("domain").value();
+        cluster.code = cluster_node.child("code").value();
+        cluster.define = cluster_node.child("define").value();
+        cluster.description  = cluster_node.child("description").value();
+    }
     return 0;
 }
 
 int mapDevice(const pugi::xml_document& device_xml)
 {
+    //TODO: Currently only a single Device is possible, should be multiple
     deviceType device;
     //! Iterate through all deviceType children
     for (pugi::xml_node device_type_node: device_xml.children("configurator")){
@@ -198,19 +234,22 @@ int mapDevice(const pugi::xml_document& device_xml)
         //! Iterate through all clusters children
         for (pugi::xml_node cluster_node: device_type_node.children("clusters"))
         {
+            //TODO: It might be useful to match these to the definitions inside the cluster xml to minimize computation
+            //TODO: On the other hand it could be overhead as we have to iterate through this list
             clusterType cluster;
             //TODO: Which of these do we need to keep? Consider round tripping
-            cluster.name = cluster_node.child("include").attribute("cluster").value();
-            cluster.client = cluster_node.child("include").attribute("client").value();
-            cluster.server = cluster_node.child("include").attribute("server").value();
-            //cluster_node.child("include").attribute("clientLocked").value();
-            //cluster_node.child("include").attribute("serverLocked").value();
+            cluster.name = cluster_node.attribute("cluster").value();
+            cluster.client = cluster_node.attribute("client").value();
+            cluster.server = cluster_node.attribute("server").value();
+            //cluster_node.attribute("clientLocked").value();
+            //cluster_node.attribute("serverLocked").value();
             device.clusters.push_back(cluster);
         }
     }
     return 0;
 }
 
+//TODO: This only works if we can store multiple cluster definitions inside a single xml file
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
 {
     mapDevice(device_xml);
