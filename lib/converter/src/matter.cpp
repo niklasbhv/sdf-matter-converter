@@ -7,7 +7,8 @@
 #include <list>
 #include <pugixml.hpp>
 
-
+//TODO: Trying to interpret strings as types can fail and should be caught
+//TODO: Many of these are optional, how does the code react to missing attributes?
 
 //
 // Functions responsible for the Matter -> SDF conversion
@@ -39,18 +40,33 @@ int parseEnum(pugi::xml_node& enum_type_node, enumType& enm)
     return 0;
 }
 
-int parseEvent()
+int parseEvent(const pugi::xml_node& eventNode, eventType event)
 {
     return 0;
 }
 
-int parseCommand()
+int parseCommand(const pugi::xml_node& commandNode, commandType command)
 {
+
     return 0;
 }
 
-int parseAttribute()
+int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribute)
 {
+    attribute.side = attribute_node.attribute("side").value();
+    attribute.description = attribute_node.child("decription").value();
+    //attribute.access =
+    //attribute.code = attribute_node.attribute("code").as_int();
+    attribute.define = attribute_node.attribute("define").value();
+    attribute.type = attribute_node.attribute("type").value();
+    attribute.deflt = attribute_node.attribute("default").value();
+    attribute.reportable = attribute_node.attribute("reportable").as_bool();
+    attribute.writable = attribute_node.attribute("writable").as_bool();
+    attribute.optional = attribute_node.attribute("optional").as_bool();
+    attribute.isNullable = attribute_node.attribute("isNullable").as_bool();
+    attribute.min = attribute_node.attribute("min").as_int();
+    attribute.max = attribute_node.attribute("max").as_int();
+    attribute.length = attribute_node.attribute("length").as_int();
     return 0;
 }
 
