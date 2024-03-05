@@ -7,7 +7,11 @@ add_executable(sdf_matter_converter src/main.cpp
         lib/converter/src/converter.cpp
         lib/validator/src/validator.cpp
         lib/converter/include/converter.h
-        lib/validator/include/validator.h)
+        lib/validator/include/validator.h
+        lib/converter/src/sdf.cpp
+        lib/converter/include/sdf.h
+        lib/converter/src/matter.cpp
+        lib/converter/include/matter.h)
 
 # add dependencies
 include(cmake/CPM.cmake)

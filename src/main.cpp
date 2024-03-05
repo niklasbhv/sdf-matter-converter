@@ -70,6 +70,7 @@ int main(int argc, char *argv[]) {
         auto path_cluster_xml = program.get<std::string>("-cluster-xml");
         pugi::xml_document cluster_xml;
         loadXmlFile(path_cluster_xml.c_str(), device_xml);
+        std::cout << "Converting" << std::endl;
         convertMatterToSdf(device_xml, cluster_xml);
     }
     if(program.is_used("--convert-to-matter"))
