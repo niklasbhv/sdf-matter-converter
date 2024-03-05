@@ -8,19 +8,27 @@
 
 using json = nlohmann::json;
 
-
-
-//
-// Functions responsible for the SDF -> Matter conversion
-//
-
-clusterType mapSdfObject(const json& sdf_model)
+int parseSdfEvent(const json& sdf_model)
 {
-
-    return clusterType {};
+    return 0;
 }
 
-int mapSdfThing()
+int parseSdfAction(const json& sdf_model)
+{
+    return 0;
+}
+
+int parseSdfProperty(const json& sdf_model)
+{
+    return 0;
+}
+
+int parseSdfObject(const json& sdf_model)
+{
+    return 0;
+}
+
+int parseSdfThing(const json& sdf_model)
 {
     return 0;
 }
@@ -35,7 +43,7 @@ int parseDefinitionBlock(const json& sdf_model, deviceType& matter_device)
     else if(sdf_model.contains("sdfObject")){
         //TODO: Does this break after we leave sdfObject?
         for (auto sdf_object_it = sdf_model.find("sdfObject"); sdf_object_it != sdf_model.end(); sdf_object_it++) {
-            matter_device.clusters.push_back(mapSdfObject(*sdf_object_it));
+            //matter_device.clusters.push_back(parseSdfObject(*sdf_object_it));
         }
     }
         //! If no sdfThing and no sdfObject is present, there's something wrong
