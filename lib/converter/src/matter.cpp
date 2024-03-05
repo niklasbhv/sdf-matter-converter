@@ -13,7 +13,7 @@
 // Functions responsible for the Matter -> SDF conversion
 //
 
-int mapBitmap(pugi::xml_node& bitmap_type_node, bitmapType& bitmap)
+int parseBitmap(pugi::xml_node& bitmap_type_node, bitmapType& bitmap)
 {
     bitmap.name = bitmap_type_node.attribute("name").value();
     bitmap.type = bitmap_type_node.attribute("type").value();
@@ -27,7 +27,7 @@ int mapBitmap(pugi::xml_node& bitmap_type_node, bitmapType& bitmap)
 }
 
 //TODO: Currently a workaround as enum is a occupied identifier
-int mapEnum(pugi::xml_node& enum_type_node, enumType& enm)
+int parseEnum(pugi::xml_node& enum_type_node, enumType& enm)
 {
     enm.name = enum_type_node.attribute("name").value();
     enm.type = enum_type_node.attribute("type").value();
@@ -39,29 +39,29 @@ int mapEnum(pugi::xml_node& enum_type_node, enumType& enm)
     return 0;
 }
 
-int mapEvent()
+int parseEvent()
 {
     return 0;
 }
 
-int mapCommand()
+int parseCommand()
 {
     return 0;
 }
 
-int mapAttribute()
+int parseAttribute()
 {
     return 0;
 }
 
-int mapCluster(const pugi::xml_document& cluster_xml)
+int parseCluster(const pugi::xml_document& cluster_xml)
 {
     //TODO: We have to iterate through custom type definitions beforehand, below we only iterate trough the clusters
     //! Iterate through all enum children
     std::list<enumType> enums;
     for (pugi::xml_node enum_node: cluster_xml.child("configurator").children("enum")){
         enumType enm;
-        mapEnum(enum_node, enm);
+        parseEnum(enum_node, enm);
         enums.push_back(enm);
     }
 
@@ -69,7 +69,7 @@ int mapCluster(const pugi::xml_document& cluster_xml)
     std::list<bitmapType> bitmaps;
     for (pugi::xml_node bitmap_node: cluster_xml.child("configurator").children("bitmap")){
         bitmapType bitmap;
-        mapBitmap(bitmap_node, bitmap);
+        parseBitmap(bitmap_node, bitmap);
         bitmaps.push_back(bitmap);
     }
 
@@ -86,7 +86,7 @@ int mapCluster(const pugi::xml_document& cluster_xml)
     return 0;
 }
 
-int mapDevice(const pugi::xml_node& device_type_node, deviceType& device)
+int parseDevice(const pugi::xml_node& device_type_node, deviceType& device)
 {
     device.name = device_type_node.child("name").value();
     device.domain = device_type_node.child("domain").value();
