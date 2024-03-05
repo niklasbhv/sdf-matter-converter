@@ -23,16 +23,49 @@ struct enumType{
     std::map<std::string, std::string> items;
 };
 
-struct eventType {
+struct eventFieldType{
+    std::string id;
+    std::string name;
+    std::string type;
+    bool array;
+    int length;
+};
 
+struct eventType {
+    std::string code;
+    std::string name;
+    std::string priority;
+    std::string side;
+    bool optional;
+    std::string description;
+    std::list<eventFieldType> fields;
 };
 
 struct commandType {
+    std::string source;
+    std::string code;
+    std::string name;
+    bool optional;
+    std::string description;
 
 };
 
 struct attributeType {
-
+    std::string side;
+    std::string description;
+    std::map<std::string, std::string> access;
+    std::string code;
+    std::string define;
+    std::string type;
+    std::string deflt; //TODO: Temporary
+    std::string entityType;
+    bool reportable;
+    bool writable;
+    bool optional;
+    bool isNullable;
+    int min;
+    int max;
+    int length;
 };
 
 struct clusterType {
