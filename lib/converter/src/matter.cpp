@@ -53,7 +53,23 @@ int parseEvent(const pugi::xml_node& eventNode, eventType event)
 
 int parseCommand(const pugi::xml_node& commandNode, commandType command)
 {
-
+    //command.description
+    //command.access
+    //command.arg
+    //command.cli = commandNode.attribute("cli").value();
+    command.cliFunctionName = commandNode.attribute("cliFunctionName").value();
+    command.code = commandNode.attribute("code").value();
+    command.disableDefaultResponse = commandNode.attribute("disableDefaultResponse").as_bool();
+    command.functionName = commandNode.attribute("functionName").value();
+    command.group = commandNode.attribute("group").value();
+    command.introducedIn = commandNode.attribute("introducedIn").value();
+    command.noDefaultImplementation = commandNode.attribute("noDefaultImplementation").as_bool();
+    command.manufacturerCode = commandNode.attribute("manufacturerCode").value();
+    command.name = commandNode.attribute("name").value();
+    command.optional = commandNode.attribute("optional").as_bool();
+    command.source = commandNode.attribute("source").value();
+    command.restriction = commandNode.attribute("restriction").value();
+    command.response = commandNode.attribute("response").value();
     return 0;
 }
 
