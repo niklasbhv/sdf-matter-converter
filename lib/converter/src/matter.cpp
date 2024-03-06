@@ -24,7 +24,7 @@ int parseBitmap(pugi::xml_node& bitmap_type_node, bitmapType& bitmap)
     {
         bitmap.fields.push_back(fieldType{
                 field_node.attribute("mask").value(),
-                field_node.attribute("bane").value(),
+                field_node.attribute("name").value(),
                 field_node.attribute("introducedIn").value(),
                 field_node.attribute("fieldId").as_int(),
         });
