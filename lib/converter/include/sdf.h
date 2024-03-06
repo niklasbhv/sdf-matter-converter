@@ -10,6 +10,9 @@
 #include <string>
 #include <map>
 #include <list>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 struct sdfCommonType {
     std::string description;
@@ -97,5 +100,9 @@ struct sdfModelType{
     namespaceType namespaceBlock;
     definitionType definitionBlock;
 };
+
+int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList);
+int parseSdfMapping(const json& sdf_mapping);
+
 
 #endif //SDF_H

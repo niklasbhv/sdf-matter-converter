@@ -33,7 +33,7 @@ int parseSdfThing(const json& sdf_model)
     return 0;
 }
 
-int parseDefinitionBlock(const json& sdf_model, deviceType& matter_device)
+int parseDefinitionBlock(const json& sdf_model)
 {
     //! Does the SDF-Model contain a sdfThing?
     if(sdf_model.contains("sdfThing")){
@@ -54,17 +54,25 @@ int parseDefinitionBlock(const json& sdf_model, deviceType& matter_device)
     return 0;
 }
 
-int parseNamespaceBlock()
+int parseNamespaceBlock(const json& sdf_model)
 {
     return 0;
 }
 
-int parseInfoBlock(const json& sdf_model, deviceType& matter_device)
+int parseInfoBlock(const json& sdf_model)
 {
-    matter_device.name = "";
-    matter_device.domain = "SDF";
-    //matter_device.typeName = sdf_model.infoBlock.title;
-    matter_device.profileId = "0";
-    matter_device.deviceId = "0";
+    return 0;
+}
+
+int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList)
+{
+    parseInfoBlock(sdf_model);
+    parseNamespaceBlock(sdf_model);
+    parseDefinitionBlock(sdf_model);
+    return 0;
+}
+
+int parseSdfMapping(const json& sdf_mapping)
+{
     return 0;
 }
