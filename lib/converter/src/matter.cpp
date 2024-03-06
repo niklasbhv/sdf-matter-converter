@@ -47,7 +47,13 @@ int parseEnum(pugi::xml_node& enum_type_node, enumType& enm)
 
 int parseEvent(const pugi::xml_node& eventNode, eventType event)
 {
-    event.code = eventNode.attribute("").value();
+    //event.description
+    //event.access
+    //event.field
+    event.code = eventNode.attribute("code").value();
+    event.name = eventNode.attribute("name").value();
+    event.side = eventNode.attribute("side").value();
+    event.priority = eventNode.attribute("priority").value();
     return 0;
 }
 
