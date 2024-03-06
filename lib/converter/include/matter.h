@@ -78,35 +78,43 @@ struct commandType {
 };
 
 struct attributeType {
-    std::string side;
-    std::string description;
-    std::map<std::string, std::string> access;
-    std::string code;
-    std::string define;
-    std::string type;
-    std::string deflt; //TODO: Temporary
-    std::string entityType;
-    bool reportable;
-    bool writable;
-    bool optional;
-    bool isNullable;
-    int min;
-    int max;
+    // ref=description can be multiple or none
+    std::list<accessType> access; // min = 0; max = inf
+    std::string code; // zclCode
+    // default
+    std::string define; // required; zclAttributeDefine
+    std::string introducedIn; // zclSpecVersion
     int length;
+    // manufacturerCode // zclCode
+    int max; //TODO: Check anySimpleType
+    int min; //TODO: Check anySimpleType
+    // reportMaxInterval //TODO: Check anySimpleType
+    // reportMinInterval
+    // reportableChange //TODO: Check anySimpleType
+    bool optional; // required
+    std::string side; // required
+    std::string type; // required
+    bool readable;
+    bool writable;
+    bool reportable;
+    bool array;
+    bool isNullable;
 };
 
 struct clusterType {
-    std::string name;
-    //TODO: Can this be solved like this?
-    std::string server;
-    std::string client;
-    std::string domain;
-    std::string code;
-    std::string define;
-    std::string description;
-    attributeType attributes[10];
-    commandType commands[10];
-    eventType events[10];
+    std::string name; //TODO: Check ref
+    std::string domain; //TODO: Check ref
+    std::string description; //TODO: Check ref
+    std::string code; //TODO: Check ref
+    std::string define; //TODO: Check ref
+    std::string server; //TODO: Check ref
+    std::string client; //TODO: Check ref
+    // generateCmdHandlers; min = 0; max = inf
+    // tag; type = tag; min = 0; max = inf
+    //globalAttribute; type = globalAttribute
+    std::list<attributeType> attributes; //min = 0; max = inf
+    std::list<commandType> commands; //min = 0; max = inf
+    std::list<eventType> events; //min = 0; max = inf
 };
 
 struct deviceType {
