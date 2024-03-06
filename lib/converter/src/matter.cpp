@@ -60,12 +60,12 @@ int parseCommand(const pugi::xml_node& commandNode, commandType command)
 int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribute)
 {
     attribute.side = attribute_node.attribute("side").value();
-    attribute.description = attribute_node.child("decription").value();
+    //attribute.description = attribute_node.child("description").value();
     //attribute.access =
     //attribute.code = attribute_node.attribute("code").as_int();
     attribute.define = attribute_node.attribute("define").value();
     attribute.type = attribute_node.attribute("type").value();
-    attribute.deflt = attribute_node.attribute("default").value();
+    //attribute.deflt = attribute_node.attribute("default").value();
     attribute.reportable = attribute_node.attribute("reportable").as_bool();
     attribute.writable = attribute_node.attribute("writable").as_bool();
     attribute.optional = attribute_node.attribute("optional").as_bool();
@@ -76,9 +76,8 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
     return 0;
 }
 
-int parseCluster(const pugi::xml_document& cluster_xml)
+int parseClusters(const pugi::xml_document& cluster_xml)
 {
-    //TODO: We have to iterate through custom type definitions beforehand, below we only iterate trough the clusters
     //! Iterate through all enum children
     std::list<enumType> enums;
     for (pugi::xml_node enum_node: cluster_xml.child("configurator").children("enum")){
@@ -95,39 +94,73 @@ int parseCluster(const pugi::xml_document& cluster_xml)
         bitmaps.push_back(bitmap);
     }
 
-    //TODO: Currently only a single Cluster is possible, should be multiple
-    clusterType cluster;
-    //! Iterate through all cluster children
-    for (pugi::xml_node cluster_node: cluster_xml.child("configurator").children("cluster")){
+    //! Iterate through all clusters children
+    for (pugi::xml_node cluster_node: cluster_xml.child("configurator").children("clusters")) {
+        clusterType cluster;
         cluster.name = cluster_node.child("name").value();
         cluster.domain = cluster_node.child("domain").value();
+        cluster.description = cluster_node.child("description").value();
         cluster.code = cluster_node.child("code").value();
         cluster.define = cluster_node.child("define").value();
-        cluster.description  = cluster_node.child("description").value();
+        // cluster.server
+        // cluster.client
+        // cluster.generateCmdHandlers
+        // cluster.tag
+        // cluster.globalAttribute
+
+        //! Iterate through all attribute children
+        std::list<attributeType> attributeList;
+        for (pugi::xml_node attribute_node: cluster_node.children("attribute")) {
+            attributeType attribute;
+            parseAttribute(attribute_node, attribute);
+            attributeList.push_back(attribute);
+        }
+        cluster.attributes = attributeList;
+
+        //! Iterate through all command children
+        std::list<commandType> commandList;
+        for (pugi::xml_node command_node: cluster_node.children("command")) {
+            commandType command;
+            parseCommand(command_node, command);
+            commandList.push_back(command);
+        }
+        cluster.commands = commandList;
+
+        //! Iterate through all event children
+        std::list<eventType> eventList;
+        for (pugi::xml_node event_node: cluster_node.children("event")) {
+            eventType event;
+            parseEvent(event_node, event);
+            eventList.push_back(event);
+        }
+        cluster.events = eventList;
     }
     return 0;
 }
 
-int parseDevice(const pugi::xml_node& device_type_node, deviceType& device)
+int parseDevices(const pugi::xml_document& device_xml)
 {
-    device.name = device_type_node.child("name").value();
-    device.domain = device_type_node.child("domain").value();
-    device.typeName = device_type_node.child("typeName").value();
-    device.profileId = device_type_node.child("profileId").value();
-    device.deviceId = device_type_node.child("deviceId").value();
-    //! Iterate through all clusters children
-    for (pugi::xml_node cluster_node: device_type_node.children("clusters"))
-    {
-        //TODO: It might be useful to match these to the definitions inside the cluster xml to minimize computation
-        //TODO: On the other hand it could be overhead as we have to iterate through this list
-        clusterType cluster;
-        //TODO: Which of these do we need to keep? Consider round tripping
-        cluster.name = cluster_node.attribute("cluster").value();
-        cluster.client = cluster_node.attribute("client").value();
-        cluster.server = cluster_node.attribute("server").value();
-        //cluster_node.attribute("clientLocked").value();
-        //cluster_node.attribute("serverLocked").value();
-        device.clusters.push_back(cluster);
+    for (pugi::xml_node device_node: device_xml.child("configurator").children("deviceType")) {
+        deviceType device;
+        device.name = device_node.child("name").value();
+        device.domain = device_node.child("domain").value();
+        device.typeName = device_node.child("typeName").value();
+        device.profileId = device_node.child("profileId").value();
+        device.deviceId = device_node.child("deviceId").value();
+
+        //! Iterate through all clusters children
+        for (pugi::xml_node cluster_node: device_node.children("clusters")) {
+            //TODO: It might be useful to match these to the definitions inside the cluster xml to minimize computation
+            //TODO: On the other hand it could be overhead as we have to iterate through this list
+            clusterType cluster;
+            //TODO: Which of these do we need to keep? Consider round tripping
+            cluster.name = cluster_node.attribute("cluster").value();
+            cluster.client = cluster_node.attribute("client").value();
+            cluster.server = cluster_node.attribute("server").value();
+            //cluster_node.attribute("clientLocked").value();
+            //cluster_node.attribute("serverLocked").value();
+            device.clusters.push_back(cluster);
+        }
     }
     return 0;
 }
