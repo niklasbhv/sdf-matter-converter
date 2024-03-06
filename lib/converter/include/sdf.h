@@ -75,10 +75,6 @@ struct sdfThingType {
     int maxItems;
 };
 
-struct definitionType {
-
-};
-
 struct namespaceType {
     std::map<std::string, std::string> namespaces;
     std::string defaultNamespace;
@@ -98,7 +94,8 @@ struct infoBlockType{
 struct sdfModelType{
     infoBlockType infoBlock;
     namespaceType namespaceBlock;
-    definitionType definitionBlock;
+    std::list<sdfThingType> sdfThings;
+    std::list<sdfObjectType> sdfObjects;
 };
 
 int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList);

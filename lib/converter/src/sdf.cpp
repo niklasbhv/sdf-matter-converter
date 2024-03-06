@@ -23,17 +23,12 @@ int parseSdfProperty(const json& sdf_model)
     return 0;
 }
 
-int parseSdfObject(const json& sdf_model)
+int parseSdfObject(const json& sdf_elem, sdfObjectType& sdfObject)
 {
     return 0;
 }
 
-int parseSdfThing(const json& sdf_model)
-{
-    return 0;
-}
-
-int parseDefinitionBlock(const json& definition_json, definitionType& definitionBlock)
+int parseSdfThing(const json& sdf_elem, sdfThingType& sdfThing)
 {
     return 0;
 }
@@ -77,14 +72,23 @@ int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList)
         }
     }
 
-    definitionType definitionBlock;
     //! Does the SDF-Model contain a sdfThing?
     if (sdf_model.contains("sdfThing")){
-        parseDefinitionBlock(sdf_model.at("sdfThing"), definitionBlock);
+        std::list<sdfThingType> sdfThingList;
+        for (auto sdf_elem : sdf_model.at("sdfThing")) {
+            sdfThingType sdfThing;
+            parseSdfThing(sdf_elem, sdfThing);
+        }
+        sdfModel.sdfThings = sdfThingList;
     }
     //! If not, does the SDF-Model contain a sdfObject?
     else if (sdf_model.contains("sdfObject")){
-        parseDefinitionBlock(sdf_model.at("sdfObject"), definitionBlock);
+        std::list<sdfObjectType> sdfObjectList;
+        for (auto sdf_elem : sdf_model.at("sdfObject")) {
+            sdfObjectType sdfObject;
+            parseSdfObject(sdf_elem, sdfObject);
+        }
+        sdfModel.sdfObjects = sdfObjectList;
     }
     else {
         return -1;
