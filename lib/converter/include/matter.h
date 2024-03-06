@@ -8,6 +8,7 @@
 #include <string>
 #include <map>
 #include <list>
+#include "pugixml.hpp"
 
 struct accessType{
     std::string op;
@@ -126,5 +127,8 @@ struct deviceType {
     // TODO: Channels is currently missing
     std::list<clusterType> clusters;
 };
+
+int parseClusters(const pugi::xml_document& cluster_xml);
+int parseDevices(const pugi::xml_document& device_xml);
 
 #endif //MATTER_H
