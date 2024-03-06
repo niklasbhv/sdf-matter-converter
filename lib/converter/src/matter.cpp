@@ -76,7 +76,7 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
     return 0;
 }
 
-int parseClusters(const pugi::xml_document& cluster_xml)
+int parseClusters(const pugi::xml_document& cluster_xml, std::list<clusterType>& clusterList)
 {
     //! Iterate through all enum children
     std::list<enumType> enums;
@@ -134,11 +134,13 @@ int parseClusters(const pugi::xml_document& cluster_xml)
             eventList.push_back(event);
         }
         cluster.events = eventList;
+
+        clusterList.push_back(cluster);
     }
     return 0;
 }
 
-int parseDevices(const pugi::xml_document& device_xml)
+int parseDevices(const pugi::xml_document& device_xml, std::list<deviceType>& deviceList)
 {
     for (pugi::xml_node device_node: device_xml.child("configurator").children("deviceType")) {
         deviceType device;
@@ -161,6 +163,7 @@ int parseDevices(const pugi::xml_document& device_xml)
             //cluster_node.attribute("serverLocked").value();
             device.clusters.push_back(cluster);
         }
+        deviceList.push_back(device);
     }
     return 0;
 }
