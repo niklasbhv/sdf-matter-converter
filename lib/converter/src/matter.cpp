@@ -18,11 +18,16 @@ int parseBitmap(pugi::xml_node& bitmap_type_node, bitmapType& bitmap)
 {
     bitmap.name = bitmap_type_node.attribute("name").value();
     bitmap.type = bitmap_type_node.attribute("type").value();
+    //TODO: This can be 0 or n-ary
     bitmap.cluster = bitmap_type_node.child("cluster").attribute("code").value();
     for (pugi::xml_node field_node : bitmap_type_node.children("field"))
     {
-        //TODO: Should this be a map?
-        bitmap.fields.insert({field_node.attribute("name").value(), field_node.attribute("mask").value()});
+        bitmap.fields.push_back(fieldType{
+                field_node.attribute("mask").value(),
+                field_node.attribute("bane").value(),
+                field_node.attribute("introducedIn").value(),
+                field_node.attribute("fieldId").as_int(),
+        });
     }
     return 0;
 }
@@ -42,6 +47,7 @@ int parseEnum(pugi::xml_node& enum_type_node, enumType& enm)
 
 int parseEvent(const pugi::xml_node& eventNode, eventType event)
 {
+    event.code = eventNode.attribute("").value();
     return 0;
 }
 
