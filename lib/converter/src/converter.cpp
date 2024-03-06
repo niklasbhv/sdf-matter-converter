@@ -43,9 +43,8 @@ int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_doc
 
 int convertSdfToMatter(const json& sdf_model, const json& sdf_mapping)
 {
-    deviceType matter_device = {};
-    //parseInfoBlock(sdf_model, matter_device);
-    //parseNamespaceBlock();
-    //parseDefinitionBlock(sdf_model, matter_device);
+    std::list<sdfModelType> sdfModelList;
+    parseSdfModel(sdf_model, sdfModelList);
+    parseSdfMapping(sdf_mapping);
     return 0;
 }
