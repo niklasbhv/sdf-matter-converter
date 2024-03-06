@@ -95,7 +95,7 @@ int parseClusters(const pugi::xml_document& cluster_xml, std::list<clusterType>&
     }
 
     //! Iterate through all clusters children
-    for (pugi::xml_node cluster_node: cluster_xml.child("configurator").children("clusters")) {
+    for (pugi::xml_node cluster_node: cluster_xml.child("configurator").children("cluster")) {
         clusterType cluster;
         cluster.name = cluster_node.child("name").value();
         cluster.domain = cluster_node.child("domain").value();
