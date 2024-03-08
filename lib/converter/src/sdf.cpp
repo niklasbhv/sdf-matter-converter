@@ -35,7 +35,7 @@ int parseSdfThing(const json& sdf_elem, sdfThingType& sdfThing)
 
 int parseNamespaceBlock(const json& namespace_json, namespaceType& nsp)
 {
-    for (auto nsp_item : namespace_json.items()) {
+    for (const auto& nsp_item : namespace_json.items()) {
         nsp.namespaces.insert({nsp_item.key(), nsp_item.value()});
     }
     return 0;
@@ -43,14 +43,22 @@ int parseNamespaceBlock(const json& namespace_json, namespaceType& nsp)
 
 int parseInfoBlock(const json& info_json, infoBlockType& infoBlock)
 {
-    info_json.at("title").get_to(infoBlock.title);
-    info_json.at("description").get_to(infoBlock.description);
-    info_json.at("version").get_to(infoBlock.version);
-    info_json.at("modified").get_to(infoBlock.modified);
-    info_json.at("copyright").get_to(infoBlock.copyright);
-    info_json.at("license").get_to(infoBlock.license);
-    info_json.at("features").get_to(infoBlock.features);
-    info_json.at("$comment").get_to(infoBlock.$comment);
+    if (info_json.contains("title"))
+        info_json.at("title").get_to(infoBlock.title);
+    if (info_json.contains("description"))
+        info_json.find("description").value().get_to(infoBlock.description);
+    if (info_json.contains("version"))
+        info_json.at("version").get_to(infoBlock.version);
+    if (info_json.contains("modified"))
+        info_json.at("modified").get_to(infoBlock.modified);
+    if (info_json.contains("copyright"))
+        info_json.at("copyright").get_to(infoBlock.copyright);
+    if (info_json.contains("license"))
+        info_json.at("license").get_to(infoBlock.license);
+    if (info_json.contains("features"))
+        info_json.at("features").get_to(infoBlock.features);
+    if (info_json.contains("$comment"))
+        info_json.at("$comment").get_to(infoBlock.$comment);
     return 0;
 }
 
@@ -75,7 +83,7 @@ int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList)
     //! Does the SDF-Model contain a sdfThing?
     if (sdf_model.contains("sdfThing")){
         std::list<sdfThingType> sdfThingList;
-        for (auto sdf_elem : sdf_model.at("sdfThing")) {
+        for (const auto& sdf_elem : sdf_model.at("sdfThing")) {
             sdfThingType sdfThing;
             parseSdfThing(sdf_elem, sdfThing);
         }
@@ -84,7 +92,7 @@ int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList)
     //! If not, does the SDF-Model contain a sdfObject?
     else if (sdf_model.contains("sdfObject")){
         std::list<sdfObjectType> sdfObjectList;
-        for (auto sdf_elem : sdf_model.at("sdfObject")) {
+        for (const auto& sdf_elem : sdf_model.at("sdfObject")) {
             sdfObjectType sdfObject;
             parseSdfObject(sdf_elem, sdfObject);
         }
