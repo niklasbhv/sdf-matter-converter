@@ -45,6 +45,7 @@ int convertSdfToMatter(const json& sdf_model, const json& sdf_mapping)
 {
     std::list<sdfModelType> sdfModelList;
     parseSdfModel(sdf_model, sdfModelList);
-    parseSdfMapping(sdf_mapping);
+    sdfMappingType sdfMapping;
+    parseSdfMapping(sdf_mapping, sdfMapping);
     return 0;
 }

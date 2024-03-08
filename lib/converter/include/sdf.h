@@ -101,8 +101,14 @@ struct sdfModelType{
     std::map<std::string, sdfObjectType> sdfObjects;
 };
 
+struct sdfMappingType{
+    infoBlockType infoBlock;
+    namespaceType namespaceBlock;
+    std::map<std::string, std::string> map;
+};
+
 int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList);
-int parseSdfMapping(const json& sdf_mapping);
+int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping);
 
 
 #endif //SDF_H

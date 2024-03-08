@@ -351,7 +351,23 @@ int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList)
     return 0;
 }
 
-int parseSdfMapping(const json& sdf_mapping)
+int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping)
 {
+    if (sdf_mapping.contains("info")) {
+        infoBlockType infoBlock;
+        parseInfoBlock(sdf_mapping.at("info"), infoBlock);
+        sdfMapping.infoBlock = infoBlock;
+    }
+    if (sdf_mapping.contains("namespace")) {
+        if (sdf_mapping.contains("defaultNamespace")) {
+            namespaceType nsp;
+            parseNamespaceBlock(sdf_mapping.at("namespace"), nsp);
+            sdf_mapping.at("defaultNamespace").get_to(nsp.defaultNamespace);
+            sdfMapping.namespaceBlock = nsp;
+        }
+    }
+    if (sdf_mapping.contains("map")) {
+        //TODO: Currently not sure how to implement different types and custem fields
+    }
     return 0;
 }
