@@ -69,11 +69,11 @@ struct sdfThingType {
     //! It's currently not planed to allow for nested sdfThings as they
     //! wouldn't really be able to be translated into Matter
     // sdfThing
-    sdfObjectType sdfObject;
-    sdfPropertyType sdfProperty;
-    sdfActionType sdfAction;
-    sdfEventType sdfEvent;
-    sdfDataType sdfData;
+    std::map<std::string, sdfObjectType> sdfObject;
+    std::map<std::string, sdfPropertyType> sdfProperty;
+    std::map<std::string, sdfActionType> sdfAction;
+    std::map<std::string, sdfEventType> sdfEvent;
+    std::map<std::string, sdfDataType> sdfData;
     int minItems;
     int maxItems;
 };

@@ -165,6 +165,7 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
             parseSdfProperty(property.value(), sdfProperty);
             sdfPropertyMap.insert({property.key(), sdfProperty});
         }
+        sdfObject.sdfProperty = sdfPropertyMap;
         std::cout << "Property List Size: " << sdfPropertyMap.size() << std::endl;
     }
     if (sdfobject_json.contains("sdfAction")){
@@ -174,6 +175,7 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
             parseSdfAction(action.value(), sdfAction);
             sdfActionMap.insert({action.key(), sdfAction});
         }
+        sdfObject.sdfAction = sdfActionMap;
         std::cout << "Action List Size: " << sdfActionMap.size() << std::endl;
     }
     if (sdfobject_json.contains("sdfEvent")){
@@ -183,6 +185,7 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
             parseSdfEvent(event.value(), sdfEvent);
             sdfEventMap.insert({event.key(), sdfEvent});
         }
+        sdfObject.sdfEvent = sdfEventMap;
         std::cout << "Event List Size: " << sdfEventMap.size() << std::endl;
     }
     if (sdfobject_json.contains("sdfData")){
@@ -192,13 +195,67 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
             parseSdfData(data.value(), sdfData);
             sdfDataMap.insert({data.key(), sdfData});
         }
+        sdfObject.sdfData = sdfDataMap;
         std::cout << "Data List Size: " << sdfDataMap.size() << std::endl;
     }
     return 0;
 }
 
-int parseSdfThing(const json& sdf_elem, sdfThingType& sdfThing)
+int parseSdfThing(const json& sdfthing_json, sdfThingType& sdfThing)
 {
+    sdfCommonType commonQualities;
+    parseCommonQualities(sdfthing_json, commonQualities);
+    sdfThing.commonQualities = commonQualities;
+    if (sdfthing_json.contains("sdfObject")){
+        std::map<std::string, sdfObjectType> sdfObjectMap;
+        for (const auto& object : sdfthing_json.at("sdfProperty").items()) {
+            sdfObjectType sdfObject;
+            parseSdfObject(object.value(), sdfObject);
+            sdfObjectMap.insert({object.key(), sdfObject});
+        }
+        sdfThing.sdfObject = sdfObjectMap;
+        std::cout << "Property List Size: " << sdfObjectMap.size() << std::endl;
+    }
+    if (sdfthing_json.contains("sdfProperty")){
+        std::map<std::string, sdfPropertyType> sdfPropertyMap;
+        for (const auto& property : sdfthing_json.at("sdfProperty").items()) {
+            sdfPropertyType sdfProperty;
+            parseSdfProperty(property.value(), sdfProperty);
+            sdfPropertyMap.insert({property.key(), sdfProperty});
+        }
+        sdfThing.sdfProperty = sdfPropertyMap;
+        std::cout << "Property List Size: " << sdfPropertyMap.size() << std::endl;
+    }
+    if (sdfthing_json.contains("sdfAction")){
+        std::map<std::string, sdfActionType> sdfActionMap;
+        for (const auto& action : sdfthing_json.at("sdfAction").items()) {
+            sdfActionType sdfAction;
+            parseSdfAction(action.value(), sdfAction);
+            sdfActionMap.insert({action.key(), sdfAction});
+        }
+        sdfThing.sdfAction = sdfActionMap;
+        std::cout << "Action List Size: " << sdfActionMap.size() << std::endl;
+    }
+    if (sdfthing_json.contains("sdfEvent")){
+        std::map<std::string, sdfEventType> sdfEventMap;
+        for (const auto& event : sdfthing_json.at("sdfEvent").items()) {
+            sdfEventType sdfEvent;
+            parseSdfEvent(event.value(), sdfEvent);
+            sdfEventMap.insert({event.key(), sdfEvent});
+        }
+        sdfThing.sdfEvent = sdfEventMap;
+        std::cout << "Event List Size: " << sdfEventMap.size() << std::endl;
+    }
+    if (sdfthing_json.contains("sdfData")){
+        std::map<std::string, sdfDataType> sdfDataMap;
+        for (const auto& data : sdfthing_json.at("sdfData").items()) {
+            sdfDataType sdfData;
+            parseSdfData(data.value(), sdfData);
+            sdfDataMap.insert({data.key(), sdfData});
+        }
+        sdfThing.sdfData = sdfDataMap;
+        std::cout << "Data List Size: " << sdfDataMap.size() << std::endl;
+    }
     return 0;
 }
 
