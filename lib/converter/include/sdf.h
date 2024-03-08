@@ -40,9 +40,9 @@ struct sdfEventType {
 
 struct sdfActionType {
     sdfCommonType commonQualities;
-    std::map<std::string, sdfDataType> sdfInputData;
-    std::map<std::string, sdfDataType> sdfOutputData;
-    // sdfData
+    sdfDataType sdfInputData; //TODO: Check if this is sufficient
+    sdfDataType sdfOutputData; //TODO: Check if this is sufficient
+    std::map<std::string, sdfDataType> sdfData; //TODO: Check if this is sufficient
 };
 
 // TODO:: Currently these default to false, check if there should be a default

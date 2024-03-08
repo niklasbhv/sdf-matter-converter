@@ -87,8 +87,29 @@ int parseSdfEvent(const json& sdf_model, sdfEventType& sdfEvent)
     return 0;
 }
 
-int parseSdfAction(const json& sdf_model, sdfActionType& sdfAction)
+int parseSdfAction(const json& sdfaction_json, sdfActionType& sdfAction)
 {
+    sdfCommonType commonQualities;
+    parseCommonQualities(sdfaction_json, commonQualities);
+    sdfAction.commonQualities = commonQualities;
+    if (sdfaction_json.contains("sdfInputData")){
+        sdfDataType sdfInputData;
+        parseSdfData(sdfaction_json.at("sdfInputData"), sdfInputData);
+        sdfAction.sdfInputData = sdfInputData;
+    }
+    if (sdfaction_json.contains("sdfOutputData")){
+        sdfDataType sdfOutputData;
+        parseSdfData(sdfaction_json.at("sdfOutputData"), sdfOutputData);
+        sdfAction.sdfOutputData = sdfOutputData;
+    }
+    if (sdfaction_json.contains("sdfData")){
+        std::map<std::string, sdfDataType> sdfDataMap;
+        for (const auto& data : sdfaction_json.at("sdfData").items()) {
+            sdfDataType sdfData;
+            parseSdfData(data.value(), sdfData);
+            sdfDataMap.insert({data.key(), sdfData});
+        }
+    }
     return 0;
 }
 
