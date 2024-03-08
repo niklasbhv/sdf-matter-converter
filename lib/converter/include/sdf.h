@@ -55,10 +55,10 @@ struct sdfPropertyType {
 
 struct sdfObjectType {
     sdfCommonType commonQualities;
-    std::list<sdfPropertyType> sdfProperty;
-    std::list<sdfActionType> sdfAction;
-    std::list<sdfEventType> sdfEvent;
-    std::list<sdfDataType> sdfData;
+    std::map<std::string, sdfPropertyType> sdfProperty;
+    std::map<std::string, sdfActionType> sdfAction;
+    std::map<std::string, sdfEventType> sdfEvent;
+    std::map<std::string, sdfDataType> sdfData;
     int minItems;
     int maxItems;
 };
