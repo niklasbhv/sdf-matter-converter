@@ -33,12 +33,15 @@ int parseCommonQualities(const json& sdf_elem, sdfCommonType& commonQuality)
 {
     if (sdf_elem.contains("description")){
         sdf_elem.at("description").get_to(commonQuality.description);
+        std::cout << "Common Quality Description: " << commonQuality.description << std::endl;
     }
     if (sdf_elem.contains("label")){
         sdf_elem.at("label").get_to(commonQuality.label);
+        std::cout << "Common Quality Label: " << commonQuality.label << std::endl;
     }
     if (sdf_elem.contains("$comment")){
-        sdf_elem.at("$common").get_to(commonQuality.$comment);
+        sdf_elem.at("$comment").get_to(commonQuality.$comment);
+        std::cout << "Common Quality $Comment: " << commonQuality.$comment << std::endl;
     }
     if (sdf_elem.contains("sdfRef")){
 
@@ -51,7 +54,6 @@ int parseCommonQualities(const json& sdf_elem, sdfCommonType& commonQuality)
 
 int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
 {
-    std::cout << sdfobject_json.size() << std::endl;
     sdfCommonType commonQualities;
     parseCommonQualities(sdfobject_json, commonQualities);
     sdfObject.commonQualities = commonQualities;
@@ -62,6 +64,7 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
             parseSdfProperty(property.value(), sdfProperty);
             sdfPropertyMap.insert({property.key(), sdfProperty});
         }
+        std::cout << "Property List Size: " << sdfPropertyMap.size() << std::endl;
     }
     if (sdfobject_json.contains("sdfAction")){
         std::map<std::string, sdfActionType> sdfActionMap;
@@ -70,6 +73,7 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
             parseSdfAction(action.value(), sdfAction);
             sdfActionMap.insert({action.key(), sdfAction});
         }
+        std::cout << "Action List Size: " << sdfActionMap.size() << std::endl;
     }
     if (sdfobject_json.contains("sdfEvent")){
         std::map<std::string, sdfEventType> sdfEventMap;
@@ -78,6 +82,7 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
             parseSdfEvent(event.value(), sdfEvent);
             sdfEventMap.insert({event.key(), sdfEvent});
         }
+        std::cout << "Event List Size: " << sdfEventMap.size() << std::endl;
     }
     if (sdfobject_json.contains("sdfData")){
         std::map<std::string, sdfDataType> sdfDataMap;
@@ -86,6 +91,7 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
             parseSdfData(data.value(), sdfData);
             sdfDataMap.insert({data.key(), sdfData});
         }
+        std::cout << "Data List Size: " << sdfDataMap.size() << std::endl;
     }
     return 0;
 }
