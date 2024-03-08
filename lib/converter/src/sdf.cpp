@@ -29,7 +29,7 @@ int parseCommonQualities(const json& sdf_elem, sdfCommonType& commonQuality)
     }
     if (sdf_elem.contains("sdfRequired")){
         std::list<std::string> sdfRequired;
-        sdf_elem.at("sdfRequired").get_to(sdfRequired);
+        sdf_elem.at("sdfRequired").get_to(commonQuality.sdfRequired);
         commonQuality.sdfRequired = sdfRequired;
         std::cout << "Common Quality sdfRequired Size: " << commonQuality.sdfRequired.size() << std::endl;
     }
