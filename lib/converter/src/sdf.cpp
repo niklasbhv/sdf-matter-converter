@@ -92,8 +92,23 @@ int parseSdfAction(const json& sdf_model, sdfActionType& sdfAction)
     return 0;
 }
 
-int parseSdfProperty(const json& sdf_model, sdfPropertyType& sdfProperty)
+int parseSdfProperty(const json& sdfproperty_json, sdfPropertyType& sdfProperty)
 {
+    sdfDataType dataQualities;
+    parseSdfData(sdfproperty_json, dataQualities);
+    sdfProperty.dataQualities = dataQualities;
+    if (sdfproperty_json.contains("readable")){
+        sdfproperty_json.at("readable").get_to(sdfProperty.readable);
+        std::cout << "sdfProperty readable: " << sdfProperty.readable << std::endl;
+    }
+    if (sdfproperty_json.contains("writable")){
+        sdfproperty_json.at("writable").get_to(sdfProperty.writable);
+        std::cout << "sdfProperty writable: " << sdfProperty.writable << std::endl;
+    }
+    if (sdfproperty_json.contains("observable")){
+        sdfproperty_json.at("observable").get_to(sdfProperty.observable);
+        std::cout << "sdfProperty observable: " << sdfProperty.observable << std::endl;
+    }
     return 0;
 }
 
