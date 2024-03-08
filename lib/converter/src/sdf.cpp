@@ -5,6 +5,7 @@
 #include "sdf.h"
 #include "matter.h"
 #include <nlohmann/json.hpp>
+#include <iostream>
 
 using json = nlohmann::json;
 
@@ -86,8 +87,10 @@ int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList)
         for (const auto& sdf_elem : sdf_model.at("sdfThing")) {
             sdfThingType sdfThing;
             parseSdfThing(sdf_elem, sdfThing);
+            sdfThingList.push_back(sdfThing);
         }
         sdfModel.sdfThings = sdfThingList;
+        std::cout << "Thing List Size: " << sdfThingList.size() << std::endl;
     }
     //! If not, does the SDF-Model contain a sdfObject?
     else if (sdf_model.contains("sdfObject")){
@@ -95,12 +98,15 @@ int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList)
         for (const auto& sdf_elem : sdf_model.at("sdfObject")) {
             sdfObjectType sdfObject;
             parseSdfObject(sdf_elem, sdfObject);
+            sdfObjectList.push_back(sdfObject);
         }
         sdfModel.sdfObjects = sdfObjectList;
+        std::cout << "Object List Size: " << sdfObjectList.size() << std::endl;
     }
     else {
         return -1;
     }
+    sdfModelList.push_back(sdfModel);
     return 0;
 }
 
