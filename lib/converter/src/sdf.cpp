@@ -32,8 +32,16 @@ int parseCommonQualities(const json& sdf_elem, sdfCommonType& commonQuality)
     return 0;
 }
 
-int parseSdfChoice(const json& sdfchoice_json, std::map<std::string, sdfDataType>)
+//! Function prototype for parseSdfData
+int parseSdfData(const json& sdfdata_json, sdfDataType& sdfData);
+
+int parseSdfChoice(const json& sdfchoice_json, std::map<std::string, sdfDataType> sdfChoiceMap)
 {
+    for (const auto& choice : sdfchoice_json.items()){
+        sdfDataType sdfData;
+        parseSdfData(choice.value(), sdfData);
+        sdfChoiceMap.insert({choice.key(), sdfData});
+    }
     return 0;
 }
 
