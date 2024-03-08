@@ -34,8 +34,8 @@ struct sdfDataType {
 
 struct sdfEventType {
     sdfCommonType commonQualities;
-    std::map<std::string, sdfDataType> sdfOutputData;
-    // sdfData
+    sdfDataType sdfOutputData;
+    std::map<std::string, sdfDataType> sdfData; //TODO: Check if this is sufficient
 };
 
 struct sdfActionType {
