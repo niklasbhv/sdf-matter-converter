@@ -24,8 +24,21 @@ int parseSdfProperty(const json& sdf_model)
     return 0;
 }
 
-int parseSdfObject(const json& sdf_elem, sdfObjectType& sdfObject)
+int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
 {
+    std::cout << sdfobject_json.size() << std::endl;
+    if (sdfobject_json.contains("sdfProperty")){
+
+    }
+    if (sdfobject_json.contains("sdfAction")){
+
+    }
+    if (sdfobject_json.contains("sdfEvent")){
+
+    }
+    if (sdfobject_json.contains("sdfData")){
+
+    }
     return 0;
 }
 
@@ -83,25 +96,25 @@ int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList)
 
     //! Does the SDF-Model contain a sdfThing?
     if (sdf_model.contains("sdfThing")){
-        std::list<sdfThingType> sdfThingList;
-        for (const auto& sdf_elem : sdf_model.at("sdfThing")) {
+        std::map<std::string, sdfThingType>sdfThingMap;
+        for (const auto& sdf_elem : sdf_model.at("sdfThing").items()) {
             sdfThingType sdfThing;
-            parseSdfThing(sdf_elem, sdfThing);
-            sdfThingList.push_back(sdfThing);
+            parseSdfThing(sdf_elem.value(), sdfThing);
+            sdfThingMap.insert({sdf_elem.key(), sdfThing});
         }
-        sdfModel.sdfThings = sdfThingList;
-        std::cout << "Thing List Size: " << sdfThingList.size() << std::endl;
+        sdfModel.sdfThings = sdfThingMap;
+        std::cout << "Thing List Size: " << sdfThingMap.size() << std::endl;
     }
     //! If not, does the SDF-Model contain a sdfObject?
     else if (sdf_model.contains("sdfObject")){
-        std::list<sdfObjectType> sdfObjectList;
-        for (const auto& sdf_elem : sdf_model.at("sdfObject")) {
+        std::map<std::string, sdfObjectType> sdfObjectMap;
+        for (const auto& sdf_elem : sdf_model.at("sdfObject").items()) {
             sdfObjectType sdfObject;
-            parseSdfObject(sdf_elem, sdfObject);
-            sdfObjectList.push_back(sdfObject);
+            parseSdfObject(sdf_elem.value(), sdfObject);
+            sdfObjectMap.insert({sdf_elem.key(), sdfObject});
         }
-        sdfModel.sdfObjects = sdfObjectList;
-        std::cout << "Object List Size: " << sdfObjectList.size() << std::endl;
+        sdfModel.sdfObjects = sdfObjectMap;
+        std::cout << "Object List Size: " << sdfObjectMap.size() << std::endl;
     }
     else {
         return -1;

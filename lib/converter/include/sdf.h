@@ -94,8 +94,8 @@ struct infoBlockType{
 struct sdfModelType{
     infoBlockType infoBlock;
     namespaceType namespaceBlock;
-    std::list<sdfThingType> sdfThings;
-    std::list<sdfObjectType> sdfObjects;
+    std::map<std::string, sdfThingType>sdfThings;
+    std::map<std::string, sdfObjectType> sdfObjects;
 };
 
 int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList);
