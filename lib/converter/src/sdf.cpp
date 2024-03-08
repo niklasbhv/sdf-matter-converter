@@ -198,6 +198,14 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
         sdfObject.sdfData = sdfDataMap;
         std::cout << "Data List Size: " << sdfDataMap.size() << std::endl;
     }
+    if (sdfobject_json.contains("minItems")){
+        sdfobject_json.at("minItems").get_to(sdfObject.minItems);
+        std::cout << "sdfObject minItems: " << sdfObject.minItems << std::endl;
+    }
+    if (sdfobject_json.contains("maxItems")){
+        sdfobject_json.at("maxItems").get_to(sdfObject.maxItems);
+        std::cout << "sdfObject maxItems: " << sdfObject.maxItems << std::endl;
+    }
     return 0;
 }
 
@@ -258,9 +266,11 @@ int parseSdfThing(const json& sdfthing_json, sdfThingType& sdfThing)
     }
     if (sdfthing_json.contains("minItems")){
         sdfthing_json.at("minItems").get_to(sdfThing.minItems);
+        std::cout << "sdfThing minItems: " << sdfThing.minItems << std::endl;
     }
     if (sdfthing_json.contains("maxItems")){
         sdfthing_json.at("maxItems").get_to(sdfThing.maxItems);
+        std::cout << "sdfThing maxItems: " << sdfThing.minItems << std::endl;
     }
     return 0;
 }
