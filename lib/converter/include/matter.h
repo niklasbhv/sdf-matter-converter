@@ -27,6 +27,7 @@ struct fieldType{
 struct bitmapType{
     std::string name; // required
     std::string type; // required
+    //TODO: This gets matched to the cluster code attribute
     std::string cluster; // min = 0; max = inf; name = cluster
     std::list<fieldType> fields; // min = 1; max = inf; ref=field
 };
