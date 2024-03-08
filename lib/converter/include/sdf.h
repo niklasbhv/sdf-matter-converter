@@ -1,11 +1,5 @@
-//
-// Created by niklas on 05.03.24.
-//
-
 #ifndef SDF_H
 #define SDF_H
-
-// TODO: A lot of these qualities are n-ary, but currently in most cases only one object is possible
 
 #include <string>
 #include <map>
@@ -68,7 +62,6 @@ struct sdfThingType {
     sdfCommonType commonQualities;
     //! It's currently not planed to allow for nested sdfThings as they
     //! wouldn't really be able to be translated into Matter
-    // sdfThing
     std::map<std::string, sdfObjectType> sdfObject;
     std::map<std::string, sdfPropertyType> sdfProperty;
     std::map<std::string, sdfActionType> sdfAction;
@@ -83,7 +76,7 @@ struct namespaceType {
     std::string defaultNamespace;
 };
 
-struct infoBlockType{
+struct infoBlockType {
     std::string title;
     std::string description;
     std::string version;
@@ -94,14 +87,14 @@ struct infoBlockType{
     std::string $comment;
 };
 
-struct sdfModelType{
+struct sdfModelType {
     infoBlockType infoBlock;
     namespaceType namespaceBlock;
     std::map<std::string, sdfThingType>sdfThings;
     std::map<std::string, sdfObjectType> sdfObjects;
 };
 
-struct sdfMappingType{
+struct sdfMappingType {
     infoBlockType infoBlock;
     namespaceType namespaceBlock;
     std::map<std::string, std::string> map;
@@ -109,6 +102,5 @@ struct sdfMappingType{
 
 int parseSdfModel(const json& sdf_model, sdfModelType& sdfModel);
 int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping);
-
 
 #endif //SDF_H
