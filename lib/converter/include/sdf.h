@@ -107,7 +107,7 @@ struct sdfMappingType{
     std::map<std::string, std::string> map;
 };
 
-int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList);
+int parseSdfModel(const json& sdf_model, sdfModelType& sdfModel);
 int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping);
 
 

@@ -43,8 +43,8 @@ int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_doc
 
 int convertSdfToMatter(const json& sdf_model, const json& sdf_mapping)
 {
-    std::list<sdfModelType> sdfModelList;
-    parseSdfModel(sdf_model, sdfModelList);
+    sdfModelType sdfModel;
+    parseSdfModel(sdf_model, sdfModel);
     sdfMappingType sdfMapping;
     parseSdfMapping(sdf_mapping, sdfMapping);
     return 0;

@@ -304,9 +304,8 @@ int parseInfoBlock(const json& info_json, infoBlockType& infoBlock)
     return 0;
 }
 
-int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList)
+int parseSdfModel(const json& sdf_model, sdfModelType& sdfModel)
 {
-    sdfModelType sdfModel;
     if (sdf_model.contains("info")) {
         infoBlockType infoBlock;
         parseInfoBlock(sdf_model.at("info"), infoBlock);
@@ -347,7 +346,6 @@ int parseSdfModel(const json& sdf_model, std::list<sdfModelType>& sdfModelList)
     else {
         return -1;
     }
-    sdfModelList.push_back(sdfModel);
     return 0;
 }
 
