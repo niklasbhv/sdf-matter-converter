@@ -18,8 +18,8 @@ struct sdfCommonType {
     std::string description;
     std::string label;
     std::string $comment;
-    // sdfRef
-    // sdfRequired
+    std::string sdfRef;
+    std::list<std::string> sdfRequired;
 };
 
 struct sdfDataType {

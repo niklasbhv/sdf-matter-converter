@@ -24,10 +24,14 @@ int parseCommonQualities(const json& sdf_elem, sdfCommonType& commonQuality)
         std::cout << "Common Quality $Comment: " << commonQuality.$comment << std::endl;
     }
     if (sdf_elem.contains("sdfRef")){
-
+        sdf_elem.at("sdfRef").get_to(commonQuality.sdfRef);
+        std::cout << "Common Quality sdfRef: " << commonQuality.sdfRef << std::endl;
     }
     if (sdf_elem.contains("sdfRequired")){
-
+        std::list<std::string> sdfRequired;
+        sdf_elem.at("sdfRequired").get_to(sdfRequired);
+        commonQuality.sdfRequired = sdfRequired;
+        std::cout << "Common Quality sdfRequired Size: " << commonQuality.sdfRequired.size() << std::endl;
     }
     return 0;
 }
@@ -41,6 +45,7 @@ int parseSdfChoice(const json& sdfchoice_json, std::map<std::string, sdfDataType
         sdfDataType sdfData;
         parseSdfData(choice.value(), sdfData);
         sdfChoiceMap.insert({choice.key(), sdfData});
+        std::cout << "sdfChoice Element: " << choice.key() << std::endl;
     }
     return 0;
 }
@@ -52,15 +57,19 @@ int parseSdfData(const json& sdfdata_json, sdfDataType& sdfData)
     sdfData.commonQualities = commonQualities;
     if (sdfdata_json.contains("unit")){
         sdfdata_json.at("unit").get_to(sdfData.unit);
+        std::cout << "sdfData Unit: " << sdfData.unit << std::endl;
     }
     if (sdfdata_json.contains("nullable")){
         sdfdata_json.at("nullable").get_to(sdfData.nullable);
+        std::cout << "sdfData Nullable: " << sdfData.nullable << std::endl;
     }
     if (sdfdata_json.contains("contentFormat")){
         sdfdata_json.at("contentFormat").get_to(sdfData.contentFormat);
+        std::cout << "sdfData contentFormat: " << sdfData.contentFormat << std::endl;
     }
     if (sdfdata_json.contains("sdfType")){
         sdfdata_json.at("sdfType").get_to(sdfData.sdfType);
+        std::cout << "sdfData sdfType: " << sdfData.sdfType << std::endl;
     }
     if (sdfdata_json.contains("sdfChoice")){
         std::map<std::string, sdfDataType> sdfChoiceMap;
