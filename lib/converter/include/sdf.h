@@ -23,13 +23,14 @@ struct sdfCommonType {
 };
 
 struct sdfDataType {
+    //TODO: Additional fields get pulled from jsonschema
     sdfCommonType commonQualities;
     std::string unit;
     bool nullable;
     std::string contentFormat;
     std::string sdfType;
     std::map<std::string, sdfDataType> sdfChoice;
-    // std::string enum[];
+    std::list<std::string> enm;
 };
 
 struct sdfEventType {
@@ -65,6 +66,8 @@ struct sdfObjectType {
 
 struct sdfThingType {
     sdfCommonType commonQualities;
+    //! It's currently not planed to allow for nested sdfThings as they
+    //! wouldn't really be able to be translated into Matter
     // sdfThing
     sdfObjectType sdfObject;
     sdfPropertyType sdfProperty;

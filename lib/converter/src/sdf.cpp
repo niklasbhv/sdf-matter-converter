@@ -77,7 +77,9 @@ int parseSdfData(const json& sdfdata_json, sdfDataType& sdfData)
         sdfData.sdfChoice = sdfChoiceMap;
     }
     if (sdfdata_json.contains("enum")){
-
+        std::list<std::string> enumList;
+        sdfdata_json.at("enum").get_to(enumList);
+        sdfData.enm = enumList;
     }
     return 0;
 }
