@@ -9,26 +9,6 @@
 
 using json = nlohmann::json;
 
-int parseSdfData(const json& sdf_model, sdfDataType& sdfData)
-{
-    return 0;
-}
-
-int parseSdfEvent(const json& sdf_model, sdfEventType& sdfEvent)
-{
-    return 0;
-}
-
-int parseSdfAction(const json& sdf_model, sdfActionType& sdfAction)
-{
-    return 0;
-}
-
-int parseSdfProperty(const json& sdf_model, sdfPropertyType& sdfProperty)
-{
-    return 0;
-}
-
 int parseCommonQualities(const json& sdf_elem, sdfCommonType& commonQuality)
 {
     if (sdf_elem.contains("description")){
@@ -49,6 +29,54 @@ int parseCommonQualities(const json& sdf_elem, sdfCommonType& commonQuality)
     if (sdf_elem.contains("sdfRequired")){
 
     }
+    return 0;
+}
+
+int parseSdfChoice(const json& sdfchoice_json, std::map<std::string, sdfDataType>)
+{
+    return 0;
+}
+
+int parseSdfData(const json& sdfdata_json, sdfDataType& sdfData)
+{
+    sdfCommonType commonQualities;
+    parseCommonQualities(sdfdata_json, commonQualities);
+    sdfData.commonQualities = commonQualities;
+    if (sdfdata_json.contains("unit")){
+        sdfdata_json.at("unit").get_to(sdfData.unit);
+    }
+    if (sdfdata_json.contains("nullable")){
+        sdfdata_json.at("nullable").get_to(sdfData.nullable);
+    }
+    if (sdfdata_json.contains("contentFormat")){
+        sdfdata_json.at("contentFormat").get_to(sdfData.contentFormat);
+    }
+    if (sdfdata_json.contains("sdfType")){
+        sdfdata_json.at("sdfType").get_to(sdfData.sdfType);
+    }
+    if (sdfdata_json.contains("sdfChoice")){
+        std::map<std::string, sdfDataType> sdfChoiceMap;
+        parseSdfChoice(sdfdata_json.at("sdfChoice"), sdfChoiceMap);
+        sdfData.sdfChoice = sdfChoiceMap;
+    }
+    if (sdfdata_json.contains("enum")){
+
+    }
+    return 0;
+}
+
+int parseSdfEvent(const json& sdf_model, sdfEventType& sdfEvent)
+{
+    return 0;
+}
+
+int parseSdfAction(const json& sdf_model, sdfActionType& sdfAction)
+{
+    return 0;
+}
+
+int parseSdfProperty(const json& sdf_model, sdfPropertyType& sdfProperty)
+{
     return 0;
 }
 
