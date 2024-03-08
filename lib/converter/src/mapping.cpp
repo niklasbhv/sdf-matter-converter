@@ -37,27 +37,27 @@ int return_matter_to_sdf(deviceType& device, clusterType& cluster)
     return 0;
 }
 
-int map_matter_device()
+int map_matter_device(deviceType& device, sdfModelType& sdfModel)
 {
     return 0;
 }
 
-int map_matter_cluster()
+int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject)
 {
     return 0;
 }
 
-int map_matter_attribute()
+int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
 {
     return 0;
 }
 
-int map_matter_command()
+int map_matter_command(commandType& command, sdfActionType& sdfAction)
 {
     return 0;
 }
 
-int map_matter_event()
+int map_matter_event(eventType& event, sdfEventType& sdfEvent)
 {
     return 0;
 }
