@@ -256,6 +256,12 @@ int parseSdfThing(const json& sdfthing_json, sdfThingType& sdfThing)
         sdfThing.sdfData = sdfDataMap;
         std::cout << "Data List Size: " << sdfDataMap.size() << std::endl;
     }
+    if (sdfthing_json.contains("minItems")){
+        sdfthing_json.at("minItems").get_to(sdfThing.minItems);
+    }
+    if (sdfthing_json.contains("maxItems")){
+        sdfthing_json.at("maxItems").get_to(sdfThing.maxItems);
+    }
     return 0;
 }
 
