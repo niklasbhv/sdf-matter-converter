@@ -29,7 +29,6 @@ int loadXmlFile(const char* path, pugi::xml_document& xml_file)
     return 0;
 }
 
-//TODO: This only works if we can store multiple cluster definitions inside a single xml file
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
 {
     std::list<deviceType> deviceList;

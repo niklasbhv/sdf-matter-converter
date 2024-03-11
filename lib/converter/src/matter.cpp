@@ -179,8 +179,8 @@ int parseDevices(const pugi::xml_document& device_xml, std::list<deviceType>& de
             clusterType cluster;
             //TODO: Which of these do we need to keep? Consider round tripping
             cluster.name = cluster_node.attribute("cluster").value();
-            cluster.client = cluster_node.attribute("client").value();
-            cluster.server = cluster_node.attribute("server").value();
+            //cluster.client = cluster_node.attribute("client").value();
+            //cluster.server = cluster_node.attribute("server").value();
             //cluster_node.attribute("clientLocked").value();
             //cluster_node.attribute("serverLocked").value();
             device.clusters.push_back(cluster);
