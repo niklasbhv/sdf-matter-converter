@@ -47,6 +47,38 @@ int map_matter_command(commandType& command, sdfActionType& sdfAction)
 //! Matter Attribute -> sdfProperty
 int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
 {
+    sdfCommonType commonQualities;
+    commonQualities.label = attribute.name;
+    commonQualities.description = attribute.description;
+    if (!attribute.optional){
+        commonQualities.sdfRequired; //TODO: Create a sdfRef here
+    }
+
+    // access
+
+    sdfDataType dataQualities;
+    dataQualities.commonQualities = commonQualities;
+
+    // attribute.code -> Mapping file
+    // attribute.deflt
+    // attribute.define -> Mapping file
+    // introducedIn -> Mapping file
+    // length
+    // manufacturerCode -> Mapping file
+    // max
+    // min
+    // reportMaxInterval
+    // reportMinInterval
+    // side
+
+    dataQualities.sdfType = attribute.type; //TODO: This might need mapping of the types
+    sdfProperty.readable = attribute.readable;
+    sdfProperty.writable = attribute.writable;
+    sdfProperty.observable = attribute.reportable; //TODO: Does this match?
+
+    // array
+
+    dataQualities.nullable = attribute.isNullable;
     return 0;
 }
 
