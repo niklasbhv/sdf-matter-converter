@@ -41,6 +41,55 @@ int map_matter_event(eventType& event, sdfEventType& sdfEvent)
 //! Matter Command -> sdfAction
 int map_matter_command(commandType& command, sdfActionType& sdfAction)
 {
+    //TODO: As client and server are seperated, they have to be merged after processing all commands
+    sdfCommonType commonQualities;
+    commonQualities.label = command.name;
+    commonQualities.description = command.description;
+    sdfAction.commonQualities = commonQualities;
+
+    sdfDataType sdfData;
+
+
+
+    //sdfAction.sdfData = sdfData;
+    //! Indicates that the command is a request command
+    if (command.source == "client") {
+        //! Map Command Arguments
+        std::map<std::string, sdfDataType> sdfInputDataMap;
+        for (argType &arg: command.arg) {
+            sdfDataType sdfInputData;
+            // arraylength
+            // array
+            // deflt
+            // introducedIn -> Mapping file
+            // removedIn -> Mapping file
+            // length
+            // presentIf
+            // optional
+            // fieldIf
+            // countArg
+            sdfInputData.commonQualities.label = arg.name;
+            sdfInputData.commonQualities.description = arg.description;
+            sdfInputData.sdfType = arg.type.name; //TODO: This probably needs mapping
+            sdfInputData.nullable = arg.isNullable;
+            sdfInputDataMap.insert({arg.name, sdfInputData});
+        }
+        sdfAction.sdfInputData = sdfInputDataMap;
+    }
+    //! Indicates that the command only contains the returned values in response to a request
+    if (command.source == "server"){
+        std::map<std::string, sdfDataType> sdfOutputDataMap;
+        //TODO: The command output is in itself another command, they are matched via the response field
+        //The response field contains the name of the responding command
+        //We probably have to search for each reference to differentiate between request and response commands
+        //Maybe they can be identified by the source they're coming from
+        // -> Client : Request
+        // -> Server : Response
+
+        sdfAction.sdfOutputData = sdfOutputDataMap;
+    }
+
+
     return 0;
 }
 
