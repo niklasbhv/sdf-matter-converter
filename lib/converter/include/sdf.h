@@ -40,12 +40,11 @@ struct sdfActionType {
     std::map<std::string, sdfDataType> sdfData; //TODO: Check if this is sufficient
 };
 
-// TODO:: Currently these default to false, check if there should be a default
 struct sdfPropertyType {
     sdfDataType dataQualities;
-    bool readable = false;
-    bool writable = false;
-    bool observable = false;
+    bool readable = true;
+    bool writable = true;
+    bool observable = true;
 };
 
 struct sdfObjectType {
