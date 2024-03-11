@@ -32,8 +32,20 @@ int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
     return 0;
 }
 
-//! Matter -> SDF
-int matter_to_sdf(deviceType& device, clusterType& cluster)
+//! Matter Event -> sdfEvent
+int map_matter_event(eventType& event, sdfEventType& sdfEvent)
+{
+    return 0;
+}
+
+//! Matter Command -> sdfAction
+int map_matter_command(commandType& command, sdfActionType& sdfAction)
+{
+    return 0;
+}
+
+//! Matter Attribute -> sdfProperty
+int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
 {
     return 0;
 }
@@ -41,6 +53,34 @@ int matter_to_sdf(deviceType& device, clusterType& cluster)
 //! Matter Cluster -> sdfObject
 int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject)
 {
+    sdfCommonType commonQualities;
+    commonQualities.label = cluster.name;
+    commonQualities.description = cluster.description;
+    sdfObject.commonQualities = commonQualities;
+
+    std::map<std::string, sdfPropertyType> sdfPropertyMap;
+    for (attributeType& attribute : cluster.attributes){
+        sdfPropertyType sdfProperty;
+        map_matter_attribute(attribute, sdfProperty);
+        sdfPropertyMap.insert({attribute.name, sdfProperty});
+    }
+    sdfObject.sdfProperty = sdfPropertyMap;
+
+    std::map<std::string, sdfActionType> sdfActionMap;
+    for (commandType& command : cluster.commands){
+        sdfActionType sdfAction;
+        map_matter_command(command, sdfAction);
+        sdfActionMap.insert({command.name, sdfAction});
+    }
+    sdfObject.sdfAction = sdfActionMap;
+
+    std::map<std::string, sdfEventType> sdfEventMap;
+    for (eventType& event : cluster.events){
+        sdfEventType sdfEvent;
+        map_matter_event(event, sdfEvent);
+        sdfEventMap.insert({event.name, sdfEvent});
+    }
+    sdfObject.sdfEvent = sdfEventMap;
     return 0;
 }
 
@@ -72,20 +112,8 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel)
     return 0;
 }
 
-//! Matter Attribute -> sdfProperty
-int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
-{
-    return 0;
-}
-
-//! Matter Command -> sdfAction
-int map_matter_command(commandType& command, sdfActionType& sdfAction)
-{
-    return 0;
-}
-
-//! Matter Event -> sdfEvent
-int map_matter_event(eventType& event, sdfEventType& sdfEvent)
+//! Matter -> SDF
+int matter_to_sdf(deviceType& device, clusterType& cluster)
 {
     return 0;
 }

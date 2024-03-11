@@ -80,6 +80,7 @@ struct commandType {
 };
 
 struct attributeType {
+    std::string name; //The value of the Attribute XML Element //TODO: Has to be parsed
     // ref=description can be multiple or none
     std::list<accessType> access; // min = 0; max = inf
     std::string code; // zclCode
