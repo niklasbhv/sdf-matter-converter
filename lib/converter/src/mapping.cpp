@@ -32,8 +32,14 @@ int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
     return 0;
 }
 
+int map_matter_type(std::string& matter_type, std::string& sdf_type)
+{
+    return 0;
+};
+
 //! Matter Access Type -> Data Quality
-int map_matter_access(accessType& access, dataQualityType& dataQuality){
+int map_matter_access(accessType& access, dataQualityType& dataQuality)
+{
     //TODO: Can access be represented like this?
     return 0;
 }
@@ -166,7 +172,8 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel)
     sdfModel.infoBlock.title = device.name;
 
     //! Namespace Block
-    //sdfModel.namespaceBlock.
+    sdfModel.namespaceBlock.namespaces.insert({"zcl", ""});
+    sdfModel.namespaceBlock.defaultNamespace = "zcl";
 
     //! Definition Block
     sdfThingType sdfThing;
