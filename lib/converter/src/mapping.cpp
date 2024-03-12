@@ -32,6 +32,12 @@ int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
     return 0;
 }
 
+//! Matter Access Type -> Data Quality
+int map_matter_access(accessType& access, dataQualityType& dataQuality){
+    //TODO: Can access be represented like this?
+    return 0;
+}
+
 //! Matter Event -> sdfEvent
 int map_matter_event(eventType& event, sdfEventType& sdfEvent)
 {
