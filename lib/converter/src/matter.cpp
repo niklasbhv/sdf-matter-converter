@@ -1,7 +1,3 @@
-//
-// Created by niklas on 05.03.24.
-//
-
 #include "matter.h"
 #include "sdf.h"
 #include <list>
@@ -32,15 +28,14 @@ int parseBitmap(pugi::xml_node& bitmap_type_node, bitmapType& bitmap)
     return 0;
 }
 
-//TODO: Currently a workaround as enum is a occupied identifier
-int parseEnum(pugi::xml_node& enum_type_node, enumType& enm)
+int parseEnum(pugi::xml_node& enum_type_node, enumType& enum_)
 {
-    enm.name = enum_type_node.attribute("name").value();
-    enm.type = enum_type_node.attribute("type").value();
-    enm.cluster = enum_type_node.child("cluster").attribute("code").value();
+    enum_.name = enum_type_node.attribute("name").value();
+    enum_.type = enum_type_node.attribute("type").value();
+    enum_.cluster = enum_type_node.child("cluster").attribute("code").value();
     for (pugi::xml_node item_node : enum_type_node.children("item"))
     {
-        enm.items.insert({item_node.attribute("name").value(), item_node.attribute("value").value()});
+        enum_.items.insert({item_node.attribute("name").value(), item_node.attribute("value").value()});
     }
     return 0;
 }
