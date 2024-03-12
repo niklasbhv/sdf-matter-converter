@@ -27,7 +27,7 @@ struct typeType{
     std::string description; // required
     int size;
     bool discrete;
-    bool signd;
+    bool signed_;
     bool string;
     bool chr;
     bool lng;
@@ -57,7 +57,7 @@ struct domainType{
 struct argType{
     bool arrayLength;
     bool array;
-    std::string deflt;
+    std::string default_;
     std::string description;
     std::string introducedIn; // zclSpecVersion -> Mapping file
     std::string removedIn; // zclSpecVersion -> Mapping file
@@ -179,7 +179,7 @@ struct attributeType {
     std::string description; // min = 0; max = inf
     std::list<accessType> access; // min = 0; max = inf
     std::string code; // zclCode -> Mapping file
-    std::string deflt;
+    std::string default_;
     std::string define; // required; zclAttributeDefine -> Mapping file
     std::string introducedIn; // zclSpecVersion -> Mapping file
     int length;

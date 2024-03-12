@@ -60,17 +60,25 @@ int map_matter_command(commandType& command, sdfActionType& sdfAction)
 
     sdfDataType sdfData;
 
+    // access
 
-
-    //sdfAction.sdfData = sdfData;
+    sdfAction.sdfData = sdfData;
     //! Indicates that the command is a request command
     if (command.source == "client") {
         //! Map Command Arguments
         dataQualityType sdfInputData;
-        for (argType &arg: command.arg) {
+        sdfChoiceType sdfChoice;
+        for (argType &arg: command.arg){
+            dataQualityType dataQualities;
+            //! Common qualities
+            dataQualities.commonQualities.label = arg.name;
+            dataQualities.commonQualities.description = arg.description;
+
+            dataQualities.default_ = arg.default_;
+            dataQualities.nullable = arg.isNullable;
+            dataQualities.type = arg.type.name; //TODO: This needs mapping
             // arraylength
             // array
-            // default_
             // introducedIn -> Mapping file
             // removedIn -> Mapping file
             // length
@@ -78,11 +86,9 @@ int map_matter_command(commandType& command, sdfActionType& sdfAction)
             // optional
             // fieldIf
             // countArg
-            //sdfInputData.commonQualities.label = arg.name;
-            //sdfInputData.commonQualities.description = arg.description;
-            //sdfInputData.sdfType = arg.type.name; //TODO: This probably needs mapping
-            //sdfInputData.nullable = arg.isNullable;
+            sdfChoice.insert({arg.name, dataQualities});
         }
+        sdfInputData.sdfChoice = sdfChoice;
         sdfAction.sdfInputData = sdfInputData;
     }
     //! Indicates that the command only contains the returned values in response to a request
@@ -115,7 +121,7 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
     dataQualityType dataQualities;
     dataQualities.commonQualities = commonQualities;
     sdfProperty.dataQualities.type = attribute.type; //TODO: This definitely needs mapping
-    sdfProperty.dataQualities.default_ = attribute.deflt;
+    sdfProperty.dataQualities.default_ = attribute.default_;
     sdfProperty.dataQualities.minLength = attribute.min; //TODO: does this match?
     sdfProperty.dataQualities.maxLength = attribute.max; //TODO: does this match?
     sdfProperty.dataQualities.nullable = attribute.isNullable;

@@ -64,6 +64,7 @@ struct dataQualityType {
 };
 
 typedef std::map<std::string, dataQualityType> sdfDataType;
+typedef std::map<std::string, dataQualityType> sdfChoiceType;
 
 struct sdfEventType {
     //! Common qualities
