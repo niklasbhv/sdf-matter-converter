@@ -8,7 +8,7 @@
 
 using json = nlohmann::json;
 
-struct sdfCommonType {
+struct commonQualityType {
     std::string description;
     std::string label;
     std::string $comment;
@@ -16,58 +16,103 @@ struct sdfCommonType {
     std::list<std::string> sdfRequired;
 };
 
-struct sdfDataType {
-    //TODO: Additional fields get pulled from jsonschema
-    sdfCommonType commonQualities;
-    std::string unit;
-    bool nullable;
-    std::string contentFormat;
-    std::string sdfType;
-    std::map<std::string, sdfDataType> sdfChoice;
-    std::list<std::string> enm;
+struct jsoItemType {
+    std::string sdfRef;
+    std::string description;
+    //std::map<std::string, sdfDataType> sdfChoice;
+    //std::list<std::string> enm;
+    std::string type;
+    int minimum; // number
+    int maximum; // number
+    std::string format;
+    uint minLength;
+    uint maxLength;
 };
 
+struct dataQualityType {
+    //! Common qualities
+    commonQualityType commonQualities;
+    //! JSON schema qualities
+    std::string type; // number / string / boolean / integer / array
+    std::map<std::string, dataQualityType> sdfChoice;
+    std::list<std::string> enm;
+    std::string cnst;
+    std::string deflt;
+    int minimum; // number
+    int maximum; // number
+    int exclusiveMinimum; // number
+    int exclusiveMaximum; // number
+    int multipleOf; // number
+    //! Text string constraints
+    uint minLength;
+    uint maxLength;
+    std::string pattern;
+    std::string format; // date-time / date / time / uri / uri-reference / uuid
+    //! Array constraints
+    uint minItems;
+    uint maxItems;
+    bool uniqueItems;
+    jsoItemType items;
+    //! Additional qualities
+    std::string unit;
+    bool nullable;
+    std::string sdfType; // byte-string / unix-time
+    std::string contentFormat;
+    //! Defined in the specification
+};
+
+typedef std::map<std::string, dataQualityType> sdfDataType;
+
 struct sdfEventType {
-    sdfCommonType commonQualities;
-    sdfDataType sdfOutputData;
-    std::map<std::string, sdfDataType> sdfData; //TODO: Check if this is sufficient
+    //! Common qualities
+    commonQualityType commonQualities;
+    dataQualityType sdfOutputData;
+    sdfDataType sdfData;
 };
 
 struct sdfActionType {
-    sdfCommonType commonQualities;
-    std::map<std::string, sdfDataType> sdfInputData; //TODO: Check if this is sufficient
-    std::map<std::string, sdfDataType> sdfOutputData; //TODO: Check if this is sufficient
-    std::map<std::string, sdfDataType> sdfData; //TODO: Check if this is sufficient
+    //! Common qualities
+    commonQualityType commonQualities;
+    dataQualityType sdfInputData;
+    dataQualityType sdfOutputData;
+    sdfDataType sdfData;
 };
 
 struct sdfPropertyType {
-    sdfDataType dataQualities;
+    //! Data qualities
+    dataQualityType dataQualities;
     bool readable = true;
     bool writable = true;
     bool observable = true;
 };
 
 struct sdfObjectType {
-    sdfCommonType commonQualities;
+    //! Common qualities
+    commonQualityType commonQualities;
+    //! Paedata qualities
     std::map<std::string, sdfPropertyType> sdfProperty;
     std::map<std::string, sdfActionType> sdfAction;
     std::map<std::string, sdfEventType> sdfEvent;
-    std::map<std::string, sdfDataType> sdfData;
-    int minItems;
-    int maxItems;
+    sdfDataType sdfData;
+    //! Array definition qualities
+    uint minItems;
+    uint maxItems;
 };
 
 struct sdfThingType {
-    sdfCommonType commonQualities;
+    //! Common qualities
+    commonQualityType commonQualities;
     //! It's currently not planed to allow for nested sdfThings as they
     //! wouldn't really be able to be translated into Matter
     std::map<std::string, sdfObjectType> sdfObject;
+    //! Paedata qualities
     std::map<std::string, sdfPropertyType> sdfProperty;
     std::map<std::string, sdfActionType> sdfAction;
     std::map<std::string, sdfEventType> sdfEvent;
-    std::map<std::string, sdfDataType> sdfData;
-    int minItems;
-    int maxItems;
+    sdfDataType sdfData;
+    //! Array definition qualities
+    uint minItems;
+    uint maxItems;
 };
 
 struct namespaceType {

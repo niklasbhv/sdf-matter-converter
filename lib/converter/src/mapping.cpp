@@ -42,7 +42,7 @@ int map_matter_event(eventType& event, sdfEventType& sdfEvent)
 int map_matter_command(commandType& command, sdfActionType& sdfAction)
 {
     //TODO: As client and server are seperated, they have to be merged after processing all commands
-    sdfCommonType commonQualities;
+    commonQualityType commonQualities;
     commonQualities.label = command.name;
     commonQualities.description = command.description;
     sdfAction.commonQualities = commonQualities;
@@ -55,9 +55,8 @@ int map_matter_command(commandType& command, sdfActionType& sdfAction)
     //! Indicates that the command is a request command
     if (command.source == "client") {
         //! Map Command Arguments
-        std::map<std::string, sdfDataType> sdfInputDataMap;
+        dataQualityType sdfInputData;
         for (argType &arg: command.arg) {
-            sdfDataType sdfInputData;
             // arraylength
             // array
             // deflt
@@ -68,17 +67,16 @@ int map_matter_command(commandType& command, sdfActionType& sdfAction)
             // optional
             // fieldIf
             // countArg
-            sdfInputData.commonQualities.label = arg.name;
-            sdfInputData.commonQualities.description = arg.description;
-            sdfInputData.sdfType = arg.type.name; //TODO: This probably needs mapping
-            sdfInputData.nullable = arg.isNullable;
-            sdfInputDataMap.insert({arg.name, sdfInputData});
+            //sdfInputData.commonQualities.label = arg.name;
+            //sdfInputData.commonQualities.description = arg.description;
+            //sdfInputData.sdfType = arg.type.name; //TODO: This probably needs mapping
+            //sdfInputData.nullable = arg.isNullable;
         }
-        sdfAction.sdfInputData = sdfInputDataMap;
+        sdfAction.sdfInputData = sdfInputData;
     }
     //! Indicates that the command only contains the returned values in response to a request
     if (command.source == "server"){
-        std::map<std::string, sdfDataType> sdfOutputDataMap;
+        dataQualityType sdfOutputData;
         //TODO: The command output is in itself another command, they are matched via the response field
         //The response field contains the name of the responding command
         //We probably have to search for each reference to differentiate between request and response commands
@@ -86,7 +84,7 @@ int map_matter_command(commandType& command, sdfActionType& sdfAction)
         // -> Client : Request
         // -> Server : Response
 
-        sdfAction.sdfOutputData = sdfOutputDataMap;
+        sdfAction.sdfOutputData = sdfOutputData;
     }
 
 
@@ -96,7 +94,7 @@ int map_matter_command(commandType& command, sdfActionType& sdfAction)
 //! Matter Attribute -> sdfProperty
 int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
 {
-    sdfCommonType commonQualities;
+    commonQualityType commonQualities;
     commonQualities.label = attribute.name;
     commonQualities.description = attribute.description;
     if (!attribute.optional){
@@ -106,7 +104,7 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
     // access
 
     sdfDataType dataQualities;
-    dataQualities.commonQualities = commonQualities;
+    //dataQualities.commonQualities = commonQualities;
 
     // attribute.code -> Mapping file
     // attribute.deflt
@@ -120,21 +118,21 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
     // reportMinInterval
     // side
 
-    dataQualities.sdfType = attribute.type; //TODO: This might need mapping of the types
+    //dataQualities.sdfType = attribute.type; //TODO: This might need mapping of the types
     sdfProperty.readable = attribute.readable;
     sdfProperty.writable = attribute.writable;
     sdfProperty.observable = attribute.reportable; //TODO: Does this match?
 
     // array
 
-    dataQualities.nullable = attribute.isNullable;
+    //dataQualities.nullable = attribute.isNullable;
     return 0;
 }
 
 //! Matter Cluster -> sdfObject
 int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject)
 {
-    sdfCommonType commonQualities;
+    commonQualityType commonQualities;
     commonQualities.label = cluster.name;
     commonQualities.description = cluster.description;
     sdfObject.commonQualities = commonQualities;
@@ -179,7 +177,7 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel)
 
     //! Definition Block
     sdfThingType sdfThing;
-    sdfCommonType commonQualities;
+    commonQualityType commonQualities;
     commonQualities.label = device.name;
     sdfThing.commonQualities = commonQualities;
 
