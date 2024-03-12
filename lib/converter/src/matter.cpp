@@ -42,9 +42,25 @@ int parseEnum(pugi::xml_node& enum_type_node, enumType& enum_)
 
 int parseEvent(const pugi::xml_node& eventNode, eventType event)
 {
-    //event.description
-    //event.access
-    //event.field
+    event.description = eventNode.child("description").value();
+    for (const pugi::xml_node& accessNode : eventNode.children("access")){
+        accessType access;
+        access.op = accessNode.attribute("op").value();
+        access.role = accessNode.attribute("role").value();
+        access.privilege = accessNode.attribute("privilege").value();
+        access.modifier = accessNode.attribute("modifier").value();
+        event.access.push_back(access);
+    }
+
+    for (const pugi::xml_node& fieldNode : eventNode.children("field")){
+        eventFieldType eventField;
+        eventField.id = fieldNode.attribute("id").value();
+        eventField.name = fieldNode.attribute("name").value();
+        eventField.type = fieldNode.attribute("type").value();
+        eventField.array = fieldNode.attribute("array").as_bool();
+        eventField.isNullable = fieldNode.attribute("isNullable").as_bool();
+        event.field.push_back(eventField);
+    }
     event.code = eventNode.attribute("code").value();
     event.name = eventNode.attribute("name").value();
     event.side = eventNode.attribute("side").value();
