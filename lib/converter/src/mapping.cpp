@@ -101,31 +101,27 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
         commonQualities.sdfRequired; //TODO: Create a sdfRef here
     }
 
+    dataQualityType dataQualities;
+    dataQualities.commonQualities = commonQualities;
+    sdfProperty.dataQualities.type = attribute.type; //TODO: This definitely needs mapping
+    sdfProperty.dataQualities.deflt = attribute.deflt;
+    sdfProperty.dataQualities.minLength = attribute.min; //TODO: does this match?
+    sdfProperty.dataQualities.maxLength = attribute.max; //TODO: does this match?
+    sdfProperty.dataQualities.nullable = attribute.isNullable;
     // access
-
-    sdfDataType dataQualities;
-    //dataQualities.commonQualities = commonQualities;
-
-    // attribute.code -> Mapping file
-    // attribute.deflt
-    // attribute.define -> Mapping file
+    // code -> Mapping file
+    // define -> Mapping file
     // introducedIn -> Mapping file
     // length
     // manufacturerCode -> Mapping file
-    // max
-    // min
     // reportMaxInterval
     // reportMinInterval
-    // side
-
-    //dataQualities.sdfType = attribute.type; //TODO: This might need mapping of the types
+    // reportableChange
+    // side -> Mapping file
+    // array
     sdfProperty.readable = attribute.readable;
     sdfProperty.writable = attribute.writable;
-    sdfProperty.observable = attribute.reportable; //TODO: Does this match?
-
-    // array
-
-    //dataQualities.nullable = attribute.isNullable;
+    sdfProperty.observable = attribute.reportable; //TODO: Does this match
     return 0;
 }
 
