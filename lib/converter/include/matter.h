@@ -173,7 +173,7 @@ struct commandType {
 };
 
 struct attributeType {
-    std::string name; //The value of the Attribute XML Element //TODO: Has to be parsed
+    std::string name; //The value of the Attribute XML Element
     //! Originally std::list<argType>, for now simplified to just the description
     //TODO: You can technically define args inside the description, check if and if yes how this should be handled
     std::string description; // min = 0; max = inf

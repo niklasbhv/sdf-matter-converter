@@ -92,20 +92,34 @@ int parseCommand(const pugi::xml_node& commandNode, commandType command)
 
 int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribute)
 {
-    attribute.side = attribute_node.attribute("side").value();
-    //attribute.description = attribute_node.child("description").value();
-    //attribute.access =
-    //attribute.code = attribute_node.attribute("code").as_int();
+    attribute.name = attribute_node.value();
+    attribute.description = attribute_node.child("description").value();
+    for (const pugi::xml_node& accessNode : attribute_node.children("access")){
+        accessType access;
+        access.op = accessNode.attribute("op").value();
+        access.role = accessNode.attribute("role").value();
+        access.privilege = accessNode.attribute("privilege").value();
+        access.modifier = accessNode.attribute("modifier").value();
+    }
+    attribute.code = attribute_node.attribute("code").value();
+    attribute.default_ = attribute_node.attribute("default").value();
     attribute.define = attribute_node.attribute("define").value();
-    attribute.type = attribute_node.attribute("type").value();
-    //attribute.default_ = attribute_node.attribute("default").value();
-    attribute.reportable = attribute_node.attribute("reportable").as_bool();
-    attribute.writable = attribute_node.attribute("writable").as_bool();
-    attribute.optional = attribute_node.attribute("optional").as_bool();
-    attribute.isNullable = attribute_node.attribute("isNullable").as_bool();
-    attribute.min = attribute_node.attribute("min").as_int();
-    attribute.max = attribute_node.attribute("max").as_int();
+    attribute.introducedIn = attribute_node.attribute("introducedIn").value();
     attribute.length = attribute_node.attribute("length").as_int();
+    attribute.manufacturerCode = attribute_node.attribute("manufacturerCode").value();
+    attribute.max = attribute_node.attribute("max").as_int();
+    attribute.min = attribute_node.attribute("min").as_int();
+    // reportMaxInterval
+    // reportMinInterval
+    // reportableChange
+    attribute.optional = attribute_node.attribute("optional").as_bool();
+    attribute.side = attribute_node.attribute("side").value();
+    attribute.type = attribute_node.attribute("type").value();
+    attribute.readable = attribute_node.attribute("readable").as_bool();
+    attribute.writable = attribute_node.attribute("writable").as_bool();
+    attribute.reportable = attribute_node.attribute("reportable").as_bool();
+    attribute.array = attribute_node.attribute("array").as_bool();
+    attribute.isNullable = attribute_node.attribute("isNullable").as_bool();
     return 0;
 }
 
