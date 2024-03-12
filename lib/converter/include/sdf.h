@@ -31,9 +31,7 @@ struct jsoItemType {
     uint maxLength;
 };
 
-struct dataQualityType {
-    //! Common qualities
-    commonQualityType commonQualities;
+struct dataQualityType : commonQualityType {
     //! JSON schema qualities
     std::string type; // number / string / boolean / integer / array
     std::map<std::string, dataQualityType> sdfChoice;
@@ -66,32 +64,24 @@ struct dataQualityType {
 typedef std::map<std::string, dataQualityType> sdfDataType;
 typedef std::map<std::string, dataQualityType> sdfChoiceType;
 
-struct sdfEventType {
-    //! Common qualities
-    commonQualityType commonQualities;
+struct sdfEventType : commonQualityType {
     dataQualityType sdfOutputData;
     sdfDataType sdfData;
 };
 
-struct sdfActionType {
-    //! Common qualities
-    commonQualityType commonQualities;
+struct sdfActionType : commonQualityType {
     dataQualityType sdfInputData;
     dataQualityType sdfOutputData;
     sdfDataType sdfData;
 };
 
-struct sdfPropertyType {
-    //! Data qualities
-    dataQualityType dataQualities;
+struct sdfPropertyType : dataQualityType {
     bool readable = true;
     bool writable = true;
     bool observable = true;
 };
 
-struct sdfObjectType {
-    //! Common qualities
-    commonQualityType commonQualities;
+struct sdfObjectType : commonQualityType {
     //! Paedata qualities
     std::map<std::string, sdfPropertyType> sdfProperty;
     std::map<std::string, sdfActionType> sdfAction;
@@ -102,9 +92,7 @@ struct sdfObjectType {
     uint maxItems;
 };
 
-struct sdfThingType {
-    //! Common qualities
-    commonQualityType commonQualities;
+struct sdfThingType : commonQualityType{
     //! It's currently not planed to allow for nested sdfThings as they
     //! wouldn't really be able to be translated into Matter
     std::map<std::string, sdfObjectType> sdfObject;

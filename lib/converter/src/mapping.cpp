@@ -47,8 +47,8 @@ int map_matter_access(accessType& access, dataQualityType& dataQuality)
 //! Matter Event -> sdfEvent
 int map_matter_event(eventType& event, sdfEventType& sdfEvent)
 {
-    sdfEvent.commonQualities.label = event.name;
-    sdfEvent.commonQualities.description = event.description;
+    sdfEvent.label = event.name;
+    sdfEvent.description = event.description;
     // access
     // code -> Mapping file
     // side -> Mapping file
@@ -63,8 +63,8 @@ int map_matter_event(eventType& event, sdfEventType& sdfEvent)
 int map_matter_command(commandType& command, sdfActionType& sdfAction)
 {
     //TODO: As client and server are seperated, they have to be merged after processing all commands
-    sdfAction.commonQualities.label = command.name;
-    sdfAction.commonQualities.description = command.description;
+    sdfAction.label = command.name;
+    sdfAction.description = command.description;
 
     //sdfAction.sdfData.insert()
     // access
@@ -75,8 +75,8 @@ int map_matter_command(commandType& command, sdfActionType& sdfAction)
         for (argType &arg: command.arg){
             dataQualityType dataQualities;
             //! Common qualities
-            dataQualities.commonQualities.label = arg.name;
-            dataQualities.commonQualities.description = arg.description;
+            dataQualities.label = arg.name;
+            dataQualities.description = arg.description;
 
             dataQualities.default_ = arg.default_;
             dataQualities.nullable = arg.isNullable;
@@ -111,17 +111,17 @@ int map_matter_command(commandType& command, sdfActionType& sdfAction)
 //! Matter Attribute -> sdfProperty
 int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
 {
-    sdfProperty.dataQualities.commonQualities.label = attribute.name;
-    sdfProperty.dataQualities.commonQualities.description = attribute.description;
+    sdfProperty.label = attribute.name;
+    sdfProperty.description = attribute.description;
     if (!attribute.optional){
-        sdfProperty.dataQualities.commonQualities.sdfRequired; //TODO: Create a sdfRef here
+        sdfProperty.sdfRequired; //TODO: Create a sdfRef here
     }
 
-    sdfProperty.dataQualities.type = attribute.type; //TODO: This definitely needs mapping
-    sdfProperty.dataQualities.default_ = attribute.default_;
-    sdfProperty.dataQualities.minLength = attribute.min; //TODO: does this match?
-    sdfProperty.dataQualities.maxLength = attribute.max; //TODO: does this match?
-    sdfProperty.dataQualities.nullable = attribute.isNullable;
+    sdfProperty.type = attribute.type; //TODO: This definitely needs mapping
+    sdfProperty.default_ = attribute.default_;
+    sdfProperty.minLength = attribute.min; //TODO: does this match?
+    sdfProperty.maxLength = attribute.max; //TODO: does this match?
+    sdfProperty.nullable = attribute.isNullable;
     // access
     // code -> Mapping file
     // define -> Mapping file
@@ -142,8 +142,8 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
 //! Matter Cluster -> sdfObject
 int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject)
 {
-    sdfObject.commonQualities.label = cluster.name;
-    sdfObject.commonQualities.description = cluster.description;
+    sdfObject.label = cluster.name;
+    sdfObject.description = cluster.description;
 
     for (attributeType& attribute : cluster.attributes){
         sdfPropertyType sdfProperty;
@@ -177,7 +177,7 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel)
 
     //! Definition Block
     sdfThingType sdfThing;
-    sdfThing.commonQualities.label = device.name;
+    sdfThing.label = device.name;
 
     for (clusterType& cluster : device.clusters){
         sdfObjectType sdfObject;

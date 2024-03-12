@@ -52,9 +52,7 @@ int parseSdfChoice(const json& sdfchoice_json, std::map<std::string, dataQuality
 
 int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQuality)
 {
-    commonQualityType commonQualities;
-    parseCommonQualities(data_qualities_json, commonQualities);
-    dataQuality.commonQualities = commonQualities;
+    parseCommonQualities(data_qualities_json, dataQuality);
     if (data_qualities_json.contains("unit")){
         data_qualities_json.at("unit").get_to(dataQuality.unit);
         std::cout << "dataQuality Unit: " << dataQuality.unit << std::endl;
@@ -86,9 +84,7 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
 
 int parseSdfEvent(const json& sdfevent_json, sdfEventType& sdfEvent)
 {
-    commonQualityType commonQualities;
-    parseCommonQualities(sdfevent_json, commonQualities);
-    sdfEvent.commonQualities = commonQualities;
+    parseCommonQualities(sdfevent_json, sdfEvent);
     if (sdfevent_json.contains("sdfOutputData")){
         dataQualityType sdfOutputData;
         parseDataQualities(sdfevent_json.at("sdfOutputData"), sdfOutputData);
@@ -108,9 +104,7 @@ int parseSdfEvent(const json& sdfevent_json, sdfEventType& sdfEvent)
 
 int parseSdfAction(const json& sdfaction_json, sdfActionType& sdfAction)
 {
-    commonQualityType commonQualities;
-    parseCommonQualities(sdfaction_json, commonQualities);
-    sdfAction.commonQualities = commonQualities;
+    parseCommonQualities(sdfaction_json, sdfAction);
     if (sdfaction_json.contains("sdfInputData")){
         dataQualityType sdfInputData;
         parseDataQualities(sdfaction_json.at("sdfInputData"), sdfInputData);
@@ -135,9 +129,7 @@ int parseSdfAction(const json& sdfaction_json, sdfActionType& sdfAction)
 
 int parseSdfProperty(const json& sdfproperty_json, sdfPropertyType& sdfProperty)
 {
-    dataQualityType dataQualities;
-    parseDataQualities(sdfproperty_json, dataQualities);
-    sdfProperty.dataQualities = dataQualities;
+    parseDataQualities(sdfproperty_json, sdfProperty);
     if (sdfproperty_json.contains("readable")){
         sdfproperty_json.at("readable").get_to(sdfProperty.readable);
         std::cout << "sdfProperty readable: " << sdfProperty.readable << std::endl;
@@ -155,9 +147,7 @@ int parseSdfProperty(const json& sdfproperty_json, sdfPropertyType& sdfProperty)
 
 int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
 {
-    commonQualityType commonQualities;
-    parseCommonQualities(sdfobject_json, commonQualities);
-    sdfObject.commonQualities = commonQualities;
+    parseCommonQualities(sdfobject_json, sdfObject);
     if (sdfobject_json.contains("sdfProperty")){
         std::map<std::string, sdfPropertyType> sdfPropertyMap;
         for (const auto& property : sdfobject_json.at("sdfProperty").items()) {
@@ -211,9 +201,7 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
 
 int parseSdfThing(const json& sdfthing_json, sdfThingType& sdfThing)
 {
-    commonQualityType commonQualities;
-    parseCommonQualities(sdfthing_json, commonQualities);
-    sdfThing.commonQualities = commonQualities;
+    parseCommonQualities(sdfthing_json, sdfThing);
     if (sdfthing_json.contains("sdfObject")){
         std::map<std::string, sdfObjectType> sdfObjectMap;
         for (const auto& object : sdfthing_json.at("sdfProperty").items()) {
