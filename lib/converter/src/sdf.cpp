@@ -79,7 +79,7 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
     if (data_qualities_json.contains("enum")){
         std::list<std::string> enumList;
         data_qualities_json.at("enum").get_to(enumList);
-        dataQuality.enm = enumList;
+        dataQuality.enum_ = enumList;
     }
     return 0;
 }

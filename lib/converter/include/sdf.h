@@ -16,11 +16,13 @@ struct commonQualityType {
     std::list<std::string> sdfRequired;
 };
 
+struct dataQualityType;
+
 struct jsoItemType {
     std::string sdfRef;
     std::string description;
-    //std::map<std::string, sdfDataType> sdfChoice;
-    //std::list<std::string> enm;
+    std::map<std::string, dataQualityType> sdfChoice;
+    std::list<std::string> enum_;
     std::string type;
     int minimum; // number
     int maximum; // number
@@ -35,9 +37,9 @@ struct dataQualityType {
     //! JSON schema qualities
     std::string type; // number / string / boolean / integer / array
     std::map<std::string, dataQualityType> sdfChoice;
-    std::list<std::string> enm;
-    std::string cnst;
-    std::string deflt;
+    std::list<std::string> enum_;
+    std::string const_;
+    std::string default_;
     int minimum; // number
     int maximum; // number
     int exclusiveMinimum; // number

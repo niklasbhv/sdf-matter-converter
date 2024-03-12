@@ -35,6 +35,17 @@ int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
 //! Matter Event -> sdfEvent
 int map_matter_event(eventType& event, sdfEventType& sdfEvent)
 {
+    sdfEvent.commonQualities.label = event.name;
+    sdfEvent.commonQualities.description = event.description;
+    // access
+    // code -> Mapping file
+    // side -> Mapping file
+    // priority
+    dataQualityType sdfOutputData;
+    for (eventFieldType& eventField : event.field){
+        sdfOutputData.sdfChoice.insert({});
+    }
+    sdfEvent.sdfOutputData = sdfOutputData;
     return 0;
 }
 
@@ -59,7 +70,7 @@ int map_matter_command(commandType& command, sdfActionType& sdfAction)
         for (argType &arg: command.arg) {
             // arraylength
             // array
-            // deflt
+            // default_
             // introducedIn -> Mapping file
             // removedIn -> Mapping file
             // length
@@ -104,7 +115,7 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
     dataQualityType dataQualities;
     dataQualities.commonQualities = commonQualities;
     sdfProperty.dataQualities.type = attribute.type; //TODO: This definitely needs mapping
-    sdfProperty.dataQualities.deflt = attribute.deflt;
+    sdfProperty.dataQualities.default_ = attribute.deflt;
     sdfProperty.dataQualities.minLength = attribute.min; //TODO: does this match?
     sdfProperty.dataQualities.maxLength = attribute.max; //TODO: does this match?
     sdfProperty.dataQualities.nullable = attribute.isNullable;

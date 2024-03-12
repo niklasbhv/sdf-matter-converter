@@ -139,7 +139,9 @@ struct eventFieldType{
 };
 
 struct eventType {
-    std::list<argType> description;
+    //! Originally std::list<argType>, for now simplified to just the description
+    //TODO: You can technically define args inside the description, check if and if yes how this should be handled
+    std::string description;
     std::list<accessType> access; // min = 0; max = inf
     std::list<eventFieldType> field; // min = 0; max = inf
     std::string code;

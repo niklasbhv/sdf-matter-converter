@@ -87,7 +87,7 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
     //attribute.code = attribute_node.attribute("code").as_int();
     attribute.define = attribute_node.attribute("define").value();
     attribute.type = attribute_node.attribute("type").value();
-    //attribute.deflt = attribute_node.attribute("default").value();
+    //attribute.default_ = attribute_node.attribute("default").value();
     attribute.reportable = attribute_node.attribute("reportable").as_bool();
     attribute.writable = attribute_node.attribute("writable").as_bool();
     attribute.optional = attribute_node.attribute("optional").as_bool();
