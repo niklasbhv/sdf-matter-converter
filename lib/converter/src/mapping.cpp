@@ -188,7 +188,7 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel)
 }
 
 //! Matter -> SDF
-int matter_to_sdf(deviceType& device, clusterType& cluster)
+int map_matter_to_sdf(deviceType& device, clusterType& cluster)
 {
     return 0;
 }

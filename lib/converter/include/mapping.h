@@ -5,6 +5,6 @@
 #include "sdf.h"
 
 int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType);
-int return_matter_to_sdf(deviceType& device, clusterType& cluster);
+int map_matter_to_sdf(deviceType& device, clusterType& cluster);
 
 #endif //MAPPING_H
