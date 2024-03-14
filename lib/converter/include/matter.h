@@ -236,6 +236,6 @@ struct deviceType {
 };
 
 int parseClusters(const pugi::xml_document& cluster_xml, std::list<clusterType>& clusterList);
-int parseDevices(const pugi::xml_document& device_xml, std::list<deviceType>& deviceList);
+int parseDevice(const pugi::xml_document& device_xml, deviceType& device);
 
 #endif //MATTER_H

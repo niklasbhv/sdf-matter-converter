@@ -3,6 +3,7 @@
 //
 #include "matter.h"
 #include "sdf.h"
+#include "mapping.h"
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <pugixml.hpp>
@@ -31,12 +32,12 @@ int loadXmlFile(const char* path, pugi::xml_document& xml_file)
 
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
 {
-    std::list<deviceType> deviceList;
-    parseDevices(device_xml, deviceList);
+    deviceType device;
+    parseDevice(device_xml, device);
     std::list<clusterType> clusterList;
     parseClusters(cluster_xml, clusterList);
-    std::cout << deviceList.size() << std::endl;
     std::cout << clusterList.size() << std::endl;
+    map_matter_to_sdf(device, clusterList);
     return 0;
 }
 
@@ -46,5 +47,6 @@ int convertSdfToMatter(const json& sdf_model, const json& sdf_mapping)
     parseSdfModel(sdf_model, sdfModel);
     sdfMappingType sdfMapping;
     parseSdfMapping(sdf_mapping, sdfMapping);
+    map_sdf_to_matter(sdfModel, sdfMapping);
     return 0;
 }

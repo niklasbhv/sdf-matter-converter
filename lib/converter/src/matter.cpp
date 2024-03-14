@@ -187,10 +187,9 @@ int parseClusters(const pugi::xml_document& cluster_xml, std::list<clusterType>&
     return 0;
 }
 
-int parseDevices(const pugi::xml_document& device_xml, std::list<deviceType>& deviceList)
+int parseDevice(const pugi::xml_document& device_xml, deviceType& device)
 {
-    for (pugi::xml_node device_node: device_xml.child("configurator").children("deviceType")) {
-        deviceType device;
+        auto device_node = device_xml.child("configurator").child("deviceType");
         device.name = device_node.child("name").value();
         device.domain = device_node.child("domain").value();
         device.typeName = device_node.child("typeName").value();
@@ -210,7 +209,5 @@ int parseDevices(const pugi::xml_document& device_xml, std::list<deviceType>& de
             //cluster_node.attribute("serverLocked").value();
             device.clusters.push_back(cluster);
         }
-        deviceList.push_back(device);
-    }
     return 0;
 }
