@@ -125,8 +125,9 @@ struct infoBlockType {
 struct sdfModelType {
     infoBlockType infoBlock;
     namespaceType namespaceBlock;
-    std::map<std::string, sdfThingType>sdfThings;
-    std::map<std::string, sdfObjectType> sdfObjects;
+    //! Either a single sdfThing or a single sdfObject are allowed per model
+    std::tuple<std::string, sdfThingType>sdfThings;
+    std::tuple<std::string, sdfObjectType> sdfObjects;
 };
 
 struct sdfMappingType {

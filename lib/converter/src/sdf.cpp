@@ -312,24 +312,13 @@ int parseSdfModel(const json& sdf_model, sdfModelType& sdfModel)
     //! Does the SDF-Model contain a sdfThing?
     if (sdf_model.contains("sdfThing")){
         std::map<std::string, sdfThingType>sdfThingMap;
-        for (const auto& thing : sdf_model.at("sdfThing").items()) {
-            sdfThingType sdfThing;
-            parseSdfThing(thing.value(), sdfThing);
-            sdfThingMap.insert({thing.key(), sdfThing});
-        }
-        sdfModel.sdfThings = sdfThingMap;
-        std::cout << "Thing List Size: " << sdfThingMap.size() << std::endl;
+        sdfThingType sdfThing;
+        parseSdfThing(sdf_model.at("sdfThing"), sdfThing);
     }
     //! If not, does the SDF-Model contain a sdfObject?
-    else if (sdf_model.contains("sdfObject")){
-        std::map<std::string, sdfObjectType> sdfObjectMap;
-        for (const auto& object : sdf_model.at("sdfObject").items()) {
-            sdfObjectType sdfObject;
-            parseSdfObject(object.value(), sdfObject);
-            sdfObjectMap.insert({object.key(), sdfObject});
-        }
-        sdfModel.sdfObjects = sdfObjectMap;
-        std::cout << "Object List Size: " << sdfObjectMap.size() << std::endl;
+    else if (sdf_model.contains("sdfObject")) {
+        sdfObjectType sdfObject;
+        parseSdfObject(sdf_model.at("sdfObject"), sdfObject);
     }
     else {
         return -1;
