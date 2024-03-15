@@ -30,6 +30,14 @@ int loadXmlFile(const char* path, pugi::xml_document& xml_file)
     return 0;
 }
 
+int loadJsonFromCoap(){
+    return 0;
+}
+
+int loadXmlFromCoap(){
+    return 0;
+}
+
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
 {
     deviceType device;
