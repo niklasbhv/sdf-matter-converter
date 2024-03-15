@@ -5,6 +5,7 @@
 #include <map>
 #include <list>
 #include <nlohmann/json.hpp>
+#include <optional>
 
 using json = nlohmann::json;
 
@@ -126,8 +127,8 @@ struct sdfModelType {
     infoBlockType infoBlock;
     namespaceType namespaceBlock;
     //! Either a single sdfThing or a single sdfObject are allowed per model
-    std::tuple<std::string, sdfThingType>sdfThings;
-    std::tuple<std::string, sdfObjectType> sdfObjects;
+    std::optional<sdfThingType>sdfThing;
+    std::optional<sdfObjectType> sdfObject;
 };
 
 struct sdfMappingType {

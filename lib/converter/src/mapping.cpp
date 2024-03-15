@@ -86,16 +86,13 @@ int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType)
     MappingList.merge(sdfMappingType.map);
 
     std::list<clusterType> clusterList;
-
-    // TODO: How do we handle SDF Mappings?
-
-    // TODO: If no sdfThings are present, a new device with a single cluster has to be created
-
-    //! Resolve mappings
-    for (auto cluster : clusterList){
-        if (MappingList.count("#/sdfObject/" + cluster.name))
-        resolve_mappings(cluster);
+    if (sdfModel.sdfThing.has_value()){
+        deviceType device;
+        map_sdf_thing(sdfModel.sdfThing.value(), device);
+    } else if (sdfModel.sdfObject.has_value()){
+        // TODO: If no sdfThings are present, a new device with a single cluster has to be created
     }
+    // TODO: How do we handle SDF Mappings?
 
     return 0;
 }
