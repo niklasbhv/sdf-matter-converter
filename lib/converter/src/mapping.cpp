@@ -2,6 +2,10 @@
 #include "matter.h"
 #include "sdf.h"
 
+int resolve_mappings(clusterType& cluster){
+    return 0;
+}
+
 int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
 {
     return 0;
@@ -81,26 +85,18 @@ int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType)
     //! Make the SDF mapping global
     MappingList.merge(sdfMappingType.map);
 
+    std::list<clusterType> clusterList;
+
     // TODO: How do we handle SDF Mappings?
-    //! Iterate trough sdfThings if present
-    if (!sdfModel.sdfThings.empty()){
-        // TODO: Should we accept multiple sdfThing definitions
-        //! Currently just using the first device in the map
-        for (auto sdfThing : sdfModel.sdfThings){
-            deviceType device;
-            map_sdf_thing(sdfThing.second, device);
-            break;
-        }
+
+    // TODO: If no sdfThings are present, a new device with a single cluster has to be created
+
+    //! Resolve mappings
+    for (auto cluster : clusterList){
+        if (MappingList.count("#/sdfObject/" + cluster.name))
+        resolve_mappings(cluster);
     }
-    //! Iterate through sdfObjects if no sdfThings are present
-    else if (!sdfModel.sdfObjects.empty()){
-        std::list<clusterType> clusterList;
-        for (auto sdfObject : sdfModel.sdfObjects){
-            clusterType cluster;
-            map_sdf_object(sdfObject.second, cluster);
-            clusterList.push_back(cluster);
-        }
-    }
+
     return 0;
 }
 
