@@ -19,6 +19,30 @@ int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute)
 
 int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
 {
+    //! Common qualities
+    cluster.name = sdfObject.label;
+    cluster.description = sdfObject.description;
+
+    //! Iterate through sdfProperties
+    for (auto sdfProperty : sdfObject.sdfProperty){
+        attributeType attribute;
+        map_sdf_property(sdfProperty.second, attribute);
+        cluster.attributes.push_back(attribute);
+    }
+
+    //! Iterate through sdfActions
+    for (auto sdfAction : sdfObject.sdfAction){
+        commandType command;
+        map_sdf_action(sdfAction.second, command);
+        cluster.commands.push_back(command);
+    }
+
+    //! Iterate through sdfEvents
+    for (auto sdfEvent : sdfObject.sdfEvent){
+        eventType event;
+        map_sdf_event(sdfEvent.second, event);
+        cluster.events.push_back(event);
+    }
     return 0;
 }
 
