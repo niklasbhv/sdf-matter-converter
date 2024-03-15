@@ -24,6 +24,19 @@ int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
 
 int map_sdf_thing(sdfThingType& sdfThing, deviceType& device)
 {
+    //! Common qualities
+    device.name = sdfThing.label;
+    // domain
+    // typeName
+    // profileId
+    // deviceId
+    // channels
+    for (auto sdfObject : sdfThing.sdfObject){
+        clusterType cluster;
+        map_sdf_object(sdfObject.second, cluster);
+        device.clusters.push_back(cluster);
+    }
+    //TODO: How do we handle Properties, Actions and Events of a sdfThing?
     return 0;
 }
 
