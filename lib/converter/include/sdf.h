@@ -7,6 +7,8 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 
+//TODO: How do we check if uint or bool are empty?
+
 using json = nlohmann::json;
 
 struct commonQualityType {
@@ -25,8 +27,8 @@ struct jsoItemType {
     std::map<std::string, dataQualityType> sdfChoice;
     std::list<std::string> enum_;
     std::string type;
-    int minimum; // number
-    int maximum; // number
+    int minimum = -1; // number
+    int maximum = -1; // number
     std::string format;
     uint minLength;
     uint maxLength;
@@ -39,11 +41,11 @@ struct dataQualityType : commonQualityType {
     std::list<std::string> enum_;
     std::string const_;
     std::string default_;
-    int minimum; // number
-    int maximum; // number
-    int exclusiveMinimum; // number
-    int exclusiveMaximum; // number
-    int multipleOf; // number
+    int minimum = -1; // number
+    int maximum = -1; // number
+    int exclusiveMinimum = -1; // number
+    int exclusiveMaximum = -1; // number
+    int multipleOf = -1; // number
     //! Text string constraints
     uint minLength;
     uint maxLength;
