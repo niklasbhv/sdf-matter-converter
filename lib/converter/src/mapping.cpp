@@ -22,6 +22,18 @@ int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
     //! Common qualities
     cluster.name = sdfObject.label;
     cluster.description = sdfObject.description;
+    // domain
+    // description
+    // code
+    // define
+    // server
+    // client
+    // generateCmdHandlers
+    // tag
+    // globalAttribute
+    // introducedIn
+    // manufacturerCode
+    // singleton
 
     //! Iterate through sdfProperties
     for (auto sdfProperty : sdfObject.sdfProperty){
@@ -67,7 +79,7 @@ int map_sdf_thing(sdfThingType& sdfThing, deviceType& device)
 int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType)
 {
     //! Make the SDF mapping global
-    MappingList = sdfMappingType.map;
+    MappingList.merge(sdfMappingType.map);
 
     // TODO: How do we handle SDF Mappings?
     //! Iterate trough sdfThings if present
