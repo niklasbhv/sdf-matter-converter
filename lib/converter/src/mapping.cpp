@@ -2,22 +2,7 @@
 #include "matter.h"
 #include "sdf.h"
 
-int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType)
-{
-    return 0;
-}
-
-int map_sdf_thing(sdfThingType& sdfThing, deviceType& device)
-{
-    return 0;
-}
-
-int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
-{
-    return 0;
-}
-
-int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute)
+int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
 {
     return 0;
 }
@@ -27,8 +12,46 @@ int map_sdf_action(sdfActionType& sdfAction, commandType& command)
     return 0;
 }
 
-int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
+int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute)
 {
+    return 0;
+}
+
+int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
+{
+    return 0;
+}
+
+int map_sdf_thing(sdfThingType& sdfThing, deviceType& device)
+{
+    return 0;
+}
+
+int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType)
+{
+    //! Make the SDF mapping global
+    MappingList = sdfMappingType.map;
+
+    // TODO: How do we handle SDF Mappings?
+    //! Iterate trough sdfThings if present
+    if (!sdfModel.sdfThings.empty()){
+        // TODO: Should we accept multiple sdfThing definitions
+        //! Currently just using the first device in the map
+        for (auto sdfThing : sdfModel.sdfThings){
+            deviceType device;
+            map_sdf_thing(sdfThing.second, device);
+            break;
+        }
+    }
+    //! Iterate through sdfObjects if no sdfThings are present
+    else if (!sdfModel.sdfObjects.empty()){
+        std::list<clusterType> clusterList;
+        for (auto sdfObject : sdfModel.sdfObjects){
+            clusterType cluster;
+            map_sdf_object(sdfObject.second, cluster);
+            clusterList.push_back(cluster);
+        }
+    }
     return 0;
 }
 
