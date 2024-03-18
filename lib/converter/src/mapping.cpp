@@ -8,6 +8,13 @@ int resolve_mappings(clusterType& cluster){
 
 int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
 {
+    event.name = sdfEvent.label;
+    event.description = sdfEvent.description;
+    // access
+    // field
+    // code
+    // side
+    // priority
     return 0;
 }
 
