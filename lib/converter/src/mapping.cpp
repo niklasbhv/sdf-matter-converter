@@ -13,6 +13,9 @@ int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
 
 int map_sdf_action(sdfActionType& sdfAction, commandType& command)
 {
+    command.name = sdfAction.label;
+    command.description = sdfAction.description;
+    //TODO: This needs further mapping as these need to be split up
     return 0;
 }
 
