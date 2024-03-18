@@ -18,6 +18,29 @@ int map_sdf_action(sdfActionType& sdfAction, commandType& command)
 
 int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute)
 {
+    attribute.name = sdfProperty.label;
+    attribute.description = sdfProperty.description;
+    // access
+    // code
+    attribute.default_ = sdfProperty.default_;
+    // define
+    // introducedIn
+    // length
+    // manufacturerCode
+    //TODO: Does this match?
+    attribute.max = sdfProperty.maximum;
+    attribute.min = sdfProperty.minimum;
+    // reportMaxInterval
+    // reportMinInterval
+    // reportableChange
+    // optional
+    // side
+    attribute.type = sdfProperty.type; //TODO: Definitely needs mapping
+    // reportable
+    // array
+    attribute.isNullable = sdfProperty.nullable;
+    attribute.readable = sdfProperty.readable;
+    attribute.writable = sdfProperty.writable;
     return 0;
 }
 
