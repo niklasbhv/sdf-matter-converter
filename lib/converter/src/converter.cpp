@@ -15,7 +15,6 @@ using json = nlohmann::json;
 int loadJsonFile(const char* path, json& json_file)
 {
     std::ifstream f(path);
-    //TODO: Check if this can fail (and how)
     json_file = json::parse(f);
     return 0;
 }
@@ -28,6 +27,18 @@ int loadXmlFile(const char* path, pugi::xml_document& xml_file)
         return -1;
     }
     return 0;
+}
+
+int saveJsonFile(const char* path, json& json_file)
+{
+    std::ofstream f(path);
+    f << json_file;
+    return 0;
+}
+
+int saveXmlFile(const char* path, pugi::xml_document& xml_file)
+{
+    return xml_file.save_file(path);
 }
 
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
