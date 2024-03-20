@@ -6,6 +6,8 @@
 #include "matter.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
+#include <string>
+#include "mapping.h"
 
 using json = nlohmann::json;
 
@@ -342,7 +344,20 @@ int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping)
         }
     }
     if (sdf_mapping.contains("map")) {
-        //TODO: Currently not sure how to implement different types and custem fields
+        //TODO: Currently not sure how to implement different types and custom fields
+        for (auto& mapping : sdf_mapping.at("map").items()) {
+            auto& link = mapping.key();
+            mappingTree.path();
+            mappingTree.root().set_name("#");
+            pugi::xml_node current_node = mappingTree.root();
+            for (int i = 0; i < link.size(); i++){
+                int j = 0;
+                if (link[i] == '/') {
+                    j = i;
+                    mappingTree.append_child(link.substr(j, i).c_str());
+                }
+            }
+        }
     }
     return 0;
 }

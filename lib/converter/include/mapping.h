@@ -5,7 +5,9 @@
 #include "sdf.h"
 
 //! Used to store sdfLinks used inside the SDF Mapping files
-inline std::map<std::string, std::string> MappingList;
+inline pugi::xml_document mappingTree;
+//! Used to store information that needs to be written into the Mapping file
+inline pugi::xml_node deviceTree;
 
 int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType);
 int map_matter_to_sdf(deviceType& device, std::list<clusterType>& clusterList);
