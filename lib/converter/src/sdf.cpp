@@ -345,18 +345,26 @@ int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping)
     }
     if (sdf_mapping.contains("map")) {
         //TODO: Currently not sure how to implement different types and custom fields
+        //! Iterate through all items in the map section
         for (auto& mapping : sdf_mapping.at("map").items()) {
             auto& link = mapping.key();
-            mappingTree.path();
-            mappingTree.root().set_name("#");
             pugi::xml_node current_node = mappingTree.root();
+            int j = 0;
+            //! Disassemble the JSON reference into its substrings and add them into a tree structure
             for (int i = 0; i < link.size(); i++){
-                int j = 0;
                 if (link[i] == '/') {
-                    j = i;
                     mappingTree.append_child(link.substr(j, i).c_str());
+                    j = i;
                 }
             }
+            //! Iterate through all items available at this JSON reference
+            for (auto& items : mapping.value().items()){
+                //! Add a new attribute with its matching value
+                mappingTree.append_attribute(items.key().c_str());
+                //mappingTree.attribute(items.key().c_str()).set_value(items.value().get_to(char*));
+            }
+
+            std::cout << mappingTree.path() << std::endl;
         }
     }
     return 0;

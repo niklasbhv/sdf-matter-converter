@@ -116,7 +116,7 @@ int map_sdf_thing(sdfThingType& sdfThing, deviceType& device)
 int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType)
 {
     //! Make the SDF mapping global
-    MappingList.merge(sdfMappingType.map);
+    //MappingList.merge(sdfMappingType.map);
 
     std::list<clusterType> clusterList;
     if (sdfModel.sdfThing.has_value()){
