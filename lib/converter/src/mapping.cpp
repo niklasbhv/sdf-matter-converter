@@ -1,8 +1,23 @@
+#include <iostream>
 #include "mapping.h"
 #include "matter.h"
 #include "sdf.h"
 
-int resolve_mappings(clusterType& cluster){
+int resolve_mappings(clusterType& cluster)
+{
+    return 0;
+}
+
+int save_to_mapping(const char* name, const std::string& value)
+{
+    //deviceTree.append_attribute(name) = value.c_str();
+    return 0;
+}
+
+template <typename T>
+
+int get_from_mapping(const char* name, T& value)
+{
     return 0;
 }
 
@@ -59,17 +74,16 @@ int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
     //! Common qualities
     cluster.name = sdfObject.label;
     cluster.description = sdfObject.description;
-    // domain
-    // description
-    // code
+    save_to_mapping("domain", cluster.domain);
+    save_to_mapping("code", cluster.code);
     // define
     // server
     // client
     // generateCmdHandlers
     // tag
     // globalAttribute
-    // introducedIn
-    // manufacturerCode
+    save_to_mapping("introducedIn", cluster.introducedIn);
+    save_to_mapping("manufacturerCode", cluster.manufacturerCode);
     // singleton
 
     //! Iterate through sdfProperties
@@ -101,8 +115,8 @@ int map_sdf_thing(sdfThingType& sdfThing, deviceType& device)
     device.name = sdfThing.label;
     // domain
     // typeName
-    // profileId
-    // deviceId
+    save_to_mapping("profileId", device.profileId);
+    save_to_mapping("deviceId", device.deviceId);
     // channels
     for (auto sdfObject : sdfThing.sdfObject){
         clusterType cluster;
@@ -148,8 +162,8 @@ int map_matter_event(eventType& event, sdfEventType& sdfEvent)
     sdfEvent.label = event.name;
     sdfEvent.description = event.description;
     // access
-    // code -> Mapping file
-    // side -> Mapping file
+    save_to_mapping("code", event.code);
+    save_to_mapping("side", event.side);
     // priority
     for (eventFieldType& eventField : event.field){
         sdfEvent.sdfOutputData.sdfChoice.insert({});
@@ -181,8 +195,8 @@ int map_matter_command(commandType& command, sdfActionType& sdfAction)
             dataQualities.type = arg.type.name; //TODO: This needs mapping
             // arraylength
             // array
-            // introducedIn -> Mapping file
-            // removedIn -> Mapping file
+            save_to_mapping("introducedIn", command.introducedIn);
+            //save_to_mapping("removedIn", command.removedIn);
             // length
             // presentIf
             // optional
@@ -221,15 +235,15 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
     sdfProperty.maxLength = attribute.max; //TODO: does this match?
     sdfProperty.nullable = attribute.isNullable;
     // access
-    // code -> Mapping file
-    // define -> Mapping file
-    // introducedIn -> Mapping file
+    save_to_mapping("code", attribute.code);
+    save_to_mapping("define", attribute.define);
+    save_to_mapping("introducedIn", attribute.introducedIn);
     // length
-    // manufacturerCode -> Mapping file
+    save_to_mapping("manufacturerCode", attribute.manufacturerCode);
     // reportMaxInterval
     // reportMinInterval
     // reportableChange
-    // side -> Mapping file
+    save_to_mapping("side", attribute.side);
     // array
     sdfProperty.readable = attribute.readable;
     sdfProperty.writable = attribute.writable;
@@ -238,9 +252,10 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
 }
 
 //! Matter Cluster -> sdfObject
-int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject)
+int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml_node clusterNode)
 {
     sdfObject.label = cluster.name;
+    clusterNode.append_child(cluster.name.c_str());
     sdfObject.description = cluster.description;
 
     for (attributeType& attribute : cluster.attributes){
@@ -264,10 +279,15 @@ int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject)
 }
 
 //! Matter Device -> SDF-Model
-int map_matter_device(deviceType& device, sdfModelType& sdfModel)
+int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node& deviceNode)
 {
+
     //! Information Block
     sdfModel.infoBlock.title = device.name;
+    std::cout << device.name << std::endl;
+
+    //! Append the device node to the tree
+    deviceNode.append_child(device.name.c_str());
 
     //! Namespace Block
     sdfModel.namespaceBlock.namespaces.insert({"zcl", ""});
@@ -277,25 +297,48 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel)
     sdfThingType sdfThing;
     sdfThing.label = device.name;
 
+    //! Add sdfObject to the tree
+    deviceNode.child(device.name.c_str()).append_child("sdfObject");
+
     for (clusterType& cluster : device.clusters){
         sdfObjectType sdfObject;
-        map_matter_cluster(cluster, sdfObject);
+        map_matter_cluster(cluster, sdfObject, deviceNode.child(device.name.c_str()).child("sdfObject"));
         sdfThing.sdfObject.insert({cluster.name, sdfObject});
     }
     return 0;
 }
 
+//! For debug purposes, prints a visual represenation of the tree
+struct simple_walker: pugi::xml_tree_walker
+{
+    bool for_each(pugi::xml_node& node) override
+    {
+        for (int i = 0; i < depth(); ++i) std::cout << "--> "; // indentation
+
+        std::cout << node.name() << std::endl;
+
+        return true; // continue traversal
+    }
+};
+
+
 //! Matter -> SDF
 int map_matter_to_sdf(deviceType& device, std::list<clusterType>& clusterList)
 {
+    pugi::xml_document referenceTree;
+    referenceTree.append_child("#").append_child("sdfThing");
+    simple_walker walker;
     sdfModelType sdfModel;
-    map_matter_device(device, sdfModel);
+    for (auto test : referenceTree.child("#").children()){
+        map_matter_device(device, sdfModel, test);
+    }
     //! Iterate through clusters
     std::list<sdfObjectType> sdfObjectList;
     for (auto cluster : clusterList){
         sdfObjectType sdfObject;
-        map_matter_cluster(cluster, sdfObject);
+        //map_matter_cluster(cluster, sdfObject);
         sdfObjectList.push_back(sdfObject);
     }
+    referenceTree.traverse(walker);
     return 0;
 }

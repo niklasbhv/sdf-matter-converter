@@ -6,8 +6,7 @@
 
 //! Used to store sdfLinks used inside the SDF Mapping files
 inline pugi::xml_document mappingTree;
-//! Used to store information that needs to be written into the Mapping file
-inline pugi::xml_node deviceTree;
+inline pugi::xml_node mappingTreeCurrentNode = mappingTree.root();
 
 int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType);
 int map_matter_to_sdf(deviceType& device, std::list<clusterType>& clusterList);

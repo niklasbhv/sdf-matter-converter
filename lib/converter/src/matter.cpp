@@ -2,6 +2,7 @@
 #include "sdf.h"
 #include <list>
 #include <pugixml.hpp>
+#include <iostream>
 
 //TODO: Trying to interpret strings as types can fail and should be caught
 //TODO: Many of these are optional, how does the code react to missing attributes?
@@ -123,11 +124,11 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
     return 0;
 }
 
-int parseClusters(const pugi::xml_document& cluster_xml, std::list<clusterType>& clusterList)
+int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clusterList)
 {
     //! Iterate through all enum children
     std::list<enumType> enums;
-    for (pugi::xml_node enum_node: cluster_xml.child("configurator").children("enum")){
+    for (pugi::xml_node enum_node: cluster_xml.children("enum")){
         enumType enm;
         parseEnum(enum_node, enm);
         enums.push_back(enm);
@@ -144,11 +145,11 @@ int parseClusters(const pugi::xml_document& cluster_xml, std::list<clusterType>&
     //! Iterate through all clusters children
     for (pugi::xml_node cluster_node: cluster_xml.child("configurator").children("cluster")) {
         clusterType cluster;
-        cluster.name = cluster_node.child("name").value();
-        cluster.domain = cluster_node.child("domain").value();
-        cluster.description = cluster_node.child("description").value();
-        cluster.code = cluster_node.child("code").value();
-        cluster.define = cluster_node.child("define").value();
+        cluster.name = cluster_node.child("name").child_value();
+        cluster.domain = cluster_node.child("domain").child_value();
+        cluster.description = cluster_node.child("description").child_value();
+        cluster.code = cluster_node.child("code").child_value();
+        cluster.define = cluster_node.child("define").child_value();
         // cluster.server
         // cluster.client
         // cluster.generateCmdHandlers
@@ -187,14 +188,20 @@ int parseClusters(const pugi::xml_document& cluster_xml, std::list<clusterType>&
     return 0;
 }
 
-int parseDevice(const pugi::xml_document& device_xml, deviceType& device)
+int parseDevice(const pugi::xml_node& device_xml, deviceType& device)
 {
-        auto device_node = device_xml.child("configurator").child("deviceType");
-        device.name = device_node.child("name").value();
-        device.domain = device_node.child("domain").value();
-        device.typeName = device_node.child("typeName").value();
-        device.profileId = device_node.child("profileId").value();
-        device.deviceId = device_node.child("deviceId").value();
+        std::cout << device_xml.name() << std::endl;
+        auto device_node = device_xml.child("deviceType");
+        device.name = device_node.child("name").child_value();
+        std::cout << device_node.name() << std::endl;
+        device.domain = device_node.child("domain").child_value();
+        std::cout << device.domain << std::endl;
+        device.typeName = device_node.child("typeName").child_value();
+        std::cout << device.typeName << std::endl;
+        device.profileId = device_node.child("profileId").child_value();
+        std::cout << device.profileId << std::endl;
+        device.deviceId = device_node.child("deviceId").child_value();
+        std::cout << device.deviceId << std::endl;
 
         //! Iterate through all clusters children
         for (pugi::xml_node cluster_node: device_node.children("clusters")) {
