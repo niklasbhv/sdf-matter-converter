@@ -252,10 +252,11 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
 }
 
 //! Matter Cluster -> sdfObject
-int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml_node clusterNode)
+int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml_node& clusterNode)
 {
     sdfObject.label = cluster.name;
     clusterNode.append_child(cluster.name.c_str());
+    std::cout << "Cluster Name: " << cluster.name << std::endl;
     sdfObject.description = cluster.description;
 
     for (attributeType& attribute : cluster.attributes){
@@ -287,7 +288,8 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node
     std::cout << device.name << std::endl;
 
     //! Append the device node to the tree
-    deviceNode.append_child(device.name.c_str());
+    deviceNode.append_child(device.name.c_str()).append_child("sdfObject");
+    auto cluster_node = deviceNode.child(device.name.c_str()).child("sdfObject");
 
     //! Namespace Block
     sdfModel.namespaceBlock.namespaces.insert({"zcl", ""});
@@ -296,19 +298,17 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node
     //! Definition Block
     sdfThingType sdfThing;
     sdfThing.label = device.name;
-
-    //! Add sdfObject to the tree
-    deviceNode.child(device.name.c_str()).append_child("sdfObject");
-
+    /*
     for (clusterType& cluster : device.clusters){
         sdfObjectType sdfObject;
-        map_matter_cluster(cluster, sdfObject, deviceNode.child(device.name.c_str()).child("sdfObject"));
+        map_matter_cluster(cluster, sdfObject, cluster_node);
         sdfThing.sdfObject.insert({cluster.name, sdfObject});
     }
+     */
     return 0;
 }
 
-//! For debug purposes, prints a visual represenation of the tree
+//! For debug purposes, prints a visual representation of the tree
 struct simple_walker: pugi::xml_tree_walker
 {
     bool for_each(pugi::xml_node& node) override
@@ -327,16 +327,16 @@ int map_matter_to_sdf(deviceType& device, std::list<clusterType>& clusterList)
 {
     pugi::xml_document referenceTree;
     referenceTree.append_child("#").append_child("sdfThing");
+    auto device_node = referenceTree.child("#").child("sdfThing");
     simple_walker walker;
     sdfModelType sdfModel;
-    for (auto test : referenceTree.child("#").children()){
-        map_matter_device(device, sdfModel, test);
-    }
+    map_matter_device(device, sdfModel, device_node);
     //! Iterate through clusters
     std::list<sdfObjectType> sdfObjectList;
+    auto cluster_node = referenceTree.child("#").child("sdfThing").child(device.name.c_str()).child("sdfObject");
     for (auto cluster : clusterList){
         sdfObjectType sdfObject;
-        //map_matter_cluster(cluster, sdfObject);
+        map_matter_cluster(cluster, sdfObject, cluster_node);
         sdfObjectList.push_back(sdfObject);
     }
     referenceTree.traverse(walker);

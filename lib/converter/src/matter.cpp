@@ -136,14 +136,14 @@ int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clu
 
     //! Iterate through all bitmap children
     std::list<bitmapType> bitmaps;
-    for (pugi::xml_node bitmap_node: cluster_xml.child("configurator").children("bitmap")){
+    for (pugi::xml_node bitmap_node: cluster_xml.children("bitmap")){
         bitmapType bitmap;
         parseBitmap(bitmap_node, bitmap);
         bitmaps.push_back(bitmap);
     }
 
     //! Iterate through all clusters children
-    for (pugi::xml_node cluster_node: cluster_xml.child("configurator").children("cluster")) {
+    for (pugi::xml_node cluster_node: cluster_xml.children("cluster")) {
         clusterType cluster;
         cluster.name = cluster_node.child("name").child_value();
         cluster.domain = cluster_node.child("domain").child_value();
