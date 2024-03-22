@@ -285,7 +285,7 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node
 
     //! Information Block
     sdfModel.infoBlock.title = device.name;
-    std::cout << device.name << std::endl;
+    std::cout << "Currently Mapping: " << device.name << std::endl;
 
     //! Append the device node to the tree
     deviceNode.append_child(device.name.c_str()).append_child("sdfObject");
@@ -298,13 +298,13 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node
     //! Definition Block
     sdfThingType sdfThing;
     sdfThing.label = device.name;
-    /*
+
     for (clusterType& cluster : device.clusters){
         sdfObjectType sdfObject;
-        map_matter_cluster(cluster, sdfObject, cluster_node);
+        //TODO: A different mapping function is needed for this
+        //map_matter_cluster(cluster, sdfObject, cluster_node);
         sdfThing.sdfObject.insert({cluster.name, sdfObject});
     }
-     */
     return 0;
 }
 

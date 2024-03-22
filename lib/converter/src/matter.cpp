@@ -190,18 +190,17 @@ int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clu
 
 int parseDevice(const pugi::xml_node& device_xml, deviceType& device)
 {
-        std::cout << device_xml.name() << std::endl;
         auto device_node = device_xml.child("deviceType");
         device.name = device_node.child("name").child_value();
-        std::cout << device_node.name() << std::endl;
+        std::cout << "Device Name: " << device_node.child("name").child_value() << std::endl;
         device.domain = device_node.child("domain").child_value();
-        std::cout << device.domain << std::endl;
+        std::cout << "Device Domain: " << device.domain << std::endl;
         device.typeName = device_node.child("typeName").child_value();
-        std::cout << device.typeName << std::endl;
+        std::cout << "Device Type: " << device.typeName << std::endl;
         device.profileId = device_node.child("profileId").child_value();
-        std::cout << device.profileId << std::endl;
+        std::cout << "Profile ID: " << device.profileId << std::endl;
         device.deviceId = device_node.child("deviceId").child_value();
-        std::cout << device.deviceId << std::endl;
+        std::cout << "Device ID: " << device.deviceId << std::endl;
 
         //! Iterate through all clusters children
         for (pugi::xml_node cluster_node: device_node.children("clusters")) {

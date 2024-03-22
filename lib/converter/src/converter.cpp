@@ -26,7 +26,6 @@ int loadXmlFile(const char* path, pugi::xml_document& xml_file)
         std::cerr << "Could not load XML file" << std::endl;
         return -1;
     }
-    std::cout << "XML-File: " << xml_file.document_element().name() << std::endl;
     return 0;
 }
 
@@ -48,7 +47,7 @@ int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_doc
     parseDevice(device_xml.document_element(), device);
     std::list<clusterType> clusterList;
     parseClusters(cluster_xml.document_element(), clusterList);
-    std::cout << clusterList.size() << std::endl;
+    std::cout << "Number of parsed Clusters: " << clusterList.size() << std::endl;
     map_matter_to_sdf(device, clusterList);
     return 0;
 }
