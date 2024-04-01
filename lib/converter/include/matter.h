@@ -1,6 +1,11 @@
 /**
- * @file matter.h
+ * @file
+ * @author Niklas Meyer <nik_mey@uni-bremen.de>
  * Licensed under Apache 2.0
+ *
+ * @section Description
+ *
+ * Structs to contain parsed information for Matter
  */
 #ifndef MATTER_H
 #define MATTER_H
@@ -143,7 +148,7 @@ struct eventFieldType{
 };
 
 /**
- * Struct which contains Matter event information
+ * @brief Struct which contains Matter event information
  */
 struct eventType {
     //! Originally std::list<argType>, for now simplified to just the description
@@ -158,7 +163,7 @@ struct eventType {
 };
 
 /**
- * Struct which contains Matter command information
+ * @brief Struct which contains Matter command information
  */
 struct commandType {
     //! Originally std::list<argType>, for now simplified to just the description
@@ -254,7 +259,26 @@ struct deviceType {
     std::list<clusterType> clusters;
 };
 
+/**
+ * @brief Parses xml-file into a list of clusters.
+ *
+ * This function takes a cluster definitions in xml format and converts them into a list of clusters.
+ *
+ * @param cluster_xml Cluster definitions in xml format.
+ * @param clusterList The resulting list of parsed clusters.
+ * @return 0 on success, negative on failure.
+ */
 int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clusterList);
+
+/**
+ * @brief Parses xml-file into a device.
+ *
+ * This function takes a device definition in xml format and converts it into a device.
+ *
+ * @param device_xml Device definitions in xml format.
+ * @param device The resulting device.
+ * @return 0 on success, negative on failure.
+ */
 int parseDevice(const pugi::xml_node& device_xml, deviceType& device);
 
 #endif //MATTER_H
