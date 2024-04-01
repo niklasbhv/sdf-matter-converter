@@ -1,3 +1,7 @@
+/**
+ * @file matter.h
+ * Licensed under Apache 2.0
+ */
 #ifndef MATTER_H
 #define MATTER_H
 
@@ -138,6 +142,9 @@ struct eventFieldType{
     bool isNullable; //optional
 };
 
+/**
+ * Struct which contains Matter event information
+ */
 struct eventType {
     //! Originally std::list<argType>, for now simplified to just the description
     //TODO: You can technically define args inside the description, check if and if yes how this should be handled
@@ -150,6 +157,9 @@ struct eventType {
     std::string priority;
 };
 
+/**
+ * Struct which contains Matter command information
+ */
 struct commandType {
     //! Originally std::list<argType>, for now simplified to just the description
     //TODO: You can technically define args inside the description, check if and if yes how this should be handled
@@ -172,6 +182,9 @@ struct commandType {
     std::string response;
 };
 
+/**
+ * @brief Struct which contains Matter attribute information
+ */
 struct attributeType {
     std::string name; //The value of the Attribute XML Element
     //! Originally std::list<argType>, for now simplified to just the description
@@ -199,6 +212,9 @@ struct attributeType {
     bool isNullable;
 };
 
+/**
+ * @brief Struct which contains Matter cluster information.
+ */
 struct clusterType {
     std::string name;
     //! Originally domainType, for now simplified to just the name
@@ -221,6 +237,9 @@ struct clusterType {
     bool singleton;
 };
 
+/**
+ *  @brief Struct which contains Matter device information.
+ */
 struct deviceType {
     std::string name;
     //! Originally domainType, for now simplified to just the name
