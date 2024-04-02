@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['infoblocktype_27',['infoBlockType',['../structinfoBlockType.html',1,'']]]
+  ['infoblocktype_0',['infoBlockType',['../structinfoBlockType.html',1,'']]]
 ];

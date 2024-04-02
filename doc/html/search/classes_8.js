@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['jsoitemtype_77',['jsoItemType',['../structjsoItemType.html',1,'']]]
+  ['jsoitemtype_0',['jsoItemType',['../structjsoItemType.html',1,'']]]
 ];

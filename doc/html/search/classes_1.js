@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['bitmaptype_59',['bitmapType',['../structbitmapType.html',1,'']]]
+  ['bitmaptype_0',['bitmapType',['../structbitmapType.html',1,'']]]
 ];

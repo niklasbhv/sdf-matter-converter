@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['savejsonfile_98',['saveJsonFile',['../converter_8h.html#a8cb0f518266323bc74c92ea7008d7cb7',1,'converter.h']]],
-  ['savexmlfile_99',['saveXmlFile',['../converter_8h.html#af67a7dde8507b089498b022456d7ec86',1,'converter.h']]]
+  ['parseclusters_0',['parseClusters',['../matter_8h.html#ad37e22923e49d86c158b18c82ad6bdb4',1,'matter.h']]],
+  ['parsedevice_1',['parseDevice',['../matter_8h.html#ac7edc29ec5a122317d9d88f57def7fbe',1,'matter.h']]]
 ];
