@@ -39,3 +39,4 @@
 # IntelliJ Idea folder
 
 /.idea
+/doc/*
