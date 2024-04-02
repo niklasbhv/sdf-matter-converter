@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['tagtype_81',['tagType',['../structtagType.html',1,'']]],
-  ['typetype_82',['typeType',['../structtypeType.html',1,'']]]
+  ['tagtype_88',['tagType',['../structtagType.html',1,'']]],
+  ['typetype_89',['typeType',['../structtypeType.html',1,'']]]
 ];

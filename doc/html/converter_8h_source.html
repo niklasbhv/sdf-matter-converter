@@ -69,24 +69,32 @@ $(function() {
 <div class="title">converter.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">//</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment">// Created by niklas on 28.02.24.</span></div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment">//</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160; </div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#ifndef CONVERTER_H</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#define CONVERTER_H</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160; </div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;nlohmann/json.hpp&gt;</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;pugixml.hpp&gt;</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="keywordtype">int</span> loadJsonFile(<span class="keyword">const</span> <span class="keywordtype">char</span>* path, nlohmann::json&amp; json_file);</div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="keywordtype">int</span> convertSdfToMatter(<span class="keyword">const</span> nlohmann::json&amp; sdf_model, <span class="keyword">const</span> nlohmann::json&amp; sdf_mapping);</div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="keywordtype">int</span> saveJsonFile(<span class="keyword">const</span> <span class="keywordtype">char</span>* path, nlohmann::json&amp; json_file);</div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="keywordtype">int</span> loadXmlFile(<span class="keyword">const</span> <span class="keywordtype">char</span>* path, pugi::xml_document&amp; xml_file);</div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="keywordtype">int</span> convertMatterToSdf(<span class="keyword">const</span> pugi::xml_document&amp; device_xml, <span class="keyword">const</span> pugi::xml_document&amp; cluster_xml);</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keywordtype">int</span> saveXmlFile(<span class="keyword">const</span> <span class="keywordtype">char</span>* path, pugi::xml_document&amp; xml_file);</div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//CONVERTER_H</span></div>
+<a href="converter_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160; </div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#ifndef CONVERTER_H</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#define CONVERTER_H</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160; </div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;nlohmann/json.hpp&gt;</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;pugixml.hpp&gt;</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
+<div class="line"><a name="l00025"></a><span class="lineno"><a class="line" href="converter_8h.html#aa45ce63431c46f45cbac7134086b800d">   25</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="converter_8h.html#aa45ce63431c46f45cbac7134086b800d">loadJsonFile</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* path, nlohmann::json&amp; json_file);</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; </div>
+<div class="line"><a name="l00036"></a><span class="lineno"><a class="line" href="converter_8h.html#abf2aa96506a247ef9c556259b071e742">   36</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="converter_8h.html#abf2aa96506a247ef9c556259b071e742">convertSdfToMatter</a>(<span class="keyword">const</span> nlohmann::json&amp; sdf_model, <span class="keyword">const</span> nlohmann::json&amp; sdf_mapping);</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; </div>
+<div class="line"><a name="l00047"></a><span class="lineno"><a class="line" href="converter_8h.html#a8cb0f518266323bc74c92ea7008d7cb7">   47</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="converter_8h.html#a8cb0f518266323bc74c92ea7008d7cb7">saveJsonFile</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* path, nlohmann::json&amp; json_file);</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
+<div class="line"><a name="l00058"></a><span class="lineno"><a class="line" href="converter_8h.html#a955e1a1c1489e5a74ef54835d7c10d86">   58</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="converter_8h.html#a955e1a1c1489e5a74ef54835d7c10d86">loadXmlFile</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* path, pugi::xml_document&amp; xml_file);</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160; </div>
+<div class="line"><a name="l00069"></a><span class="lineno"><a class="line" href="converter_8h.html#ab65294b6a8b17bc3588bc3e529e9af37">   69</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="converter_8h.html#ab65294b6a8b17bc3588bc3e529e9af37">convertMatterToSdf</a>(<span class="keyword">const</span> pugi::xml_document&amp; device_xml, <span class="keyword">const</span> pugi::xml_document&amp; cluster_xml);</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160; </div>
+<div class="line"><a name="l00080"></a><span class="lineno"><a class="line" href="converter_8h.html#af67a7dde8507b089498b022456d7ec86">   80</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="converter_8h.html#af67a7dde8507b089498b022456d7ec86">saveXmlFile</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* path, pugi::xml_document&amp; xml_file);</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//CONVERTER_H</span></div>
+<div class="ttc" id="aconverter_8h_html_a8cb0f518266323bc74c92ea7008d7cb7"><div class="ttname"><a href="converter_8h.html#a8cb0f518266323bc74c92ea7008d7cb7">saveJsonFile</a></div><div class="ttdeci">int saveJsonFile(const char *path, nlohmann::json &amp;json_file)</div><div class="ttdoc">Save a json object into a json file.</div></div>
+<div class="ttc" id="aconverter_8h_html_a955e1a1c1489e5a74ef54835d7c10d86"><div class="ttname"><a href="converter_8h.html#a955e1a1c1489e5a74ef54835d7c10d86">loadXmlFile</a></div><div class="ttdeci">int loadXmlFile(const char *path, pugi::xml_document &amp;xml_file)</div><div class="ttdoc">Load a xml file.</div></div>
+<div class="ttc" id="aconverter_8h_html_aa45ce63431c46f45cbac7134086b800d"><div class="ttname"><a href="converter_8h.html#aa45ce63431c46f45cbac7134086b800d">loadJsonFile</a></div><div class="ttdeci">int loadJsonFile(const char *path, nlohmann::json &amp;json_file)</div><div class="ttdoc">Load a json file.</div></div>
+<div class="ttc" id="aconverter_8h_html_ab65294b6a8b17bc3588bc3e529e9af37"><div class="ttname"><a href="converter_8h.html#ab65294b6a8b17bc3588bc3e529e9af37">convertMatterToSdf</a></div><div class="ttdeci">int convertMatterToSdf(const pugi::xml_document &amp;device_xml, const pugi::xml_document &amp;cluster_xml)</div><div class="ttdoc">Convert matter to sdf.</div></div>
+<div class="ttc" id="aconverter_8h_html_abf2aa96506a247ef9c556259b071e742"><div class="ttname"><a href="converter_8h.html#abf2aa96506a247ef9c556259b071e742">convertSdfToMatter</a></div><div class="ttdeci">int convertSdfToMatter(const nlohmann::json &amp;sdf_model, const nlohmann::json &amp;sdf_mapping)</div><div class="ttdoc">Convert sdf to matter.</div></div>
+<div class="ttc" id="aconverter_8h_html_af67a7dde8507b089498b022456d7ec86"><div class="ttname"><a href="converter_8h.html#af67a7dde8507b089498b022456d7ec86">saveXmlFile</a></div><div class="ttdeci">int saveXmlFile(const char *path, pugi::xml_document &amp;xml_file)</div><div class="ttdoc">Save a xml object into a xml file.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

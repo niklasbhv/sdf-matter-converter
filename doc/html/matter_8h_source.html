@@ -70,272 +70,272 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <a href="matter_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160; </div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#ifndef MATTER_H</span></div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#define MATTER_H</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160; </div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;map&gt;</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;list&gt;</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &quot;pugixml.hpp&quot;</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="keyword">struct </span><a class="code" href="structargType.html">argType</a>;</div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160; </div>
-<div class="line"><a name="l00020"></a><span class="lineno"><a class="line" href="structgroupType.html">   20</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structgroupType.html">groupType</a>{</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    std::list&lt;argType&gt; description;</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    std::string id;</div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;    std::string name;</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;};</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160; </div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keyword">struct </span><a class="code" href="structcommandType.html">commandType</a>;</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160; </div>
-<div class="line"><a name="l00028"></a><span class="lineno"><a class="line" href="structcliType.html">   28</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structcliType.html">cliType</a>{</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    std::list&lt;groupType&gt; group;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    std::list&lt;commandType&gt; command;</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;};</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; </div>
-<div class="line"><a name="l00033"></a><span class="lineno"><a class="line" href="structtypeType.html">   33</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structtypeType.html">typeType</a>{</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    std::string id; <span class="comment">// required</span></div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    std::string name; <span class="comment">// required</span></div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    std::string description; <span class="comment">// required</span></div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <span class="keywordtype">int</span> size;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <span class="keywordtype">bool</span> discrete;</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    <span class="keywordtype">bool</span> signed_;</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    <span class="keywordtype">bool</span> string;</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <span class="keywordtype">bool</span> chr;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <span class="keywordtype">bool</span> lng;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <span class="keywordtype">bool</span> analog;</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keywordtype">bool</span> composite;</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;};</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
-<div class="line"><a name="l00047"></a><span class="lineno"><a class="line" href="structolderType.html">   47</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structolderType.html">olderType</a>{</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    std::string dependsOn; <span class="comment">// optional</span></div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    std::string spec; <span class="comment">// optional</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <span class="keywordtype">bool</span> certifiable;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;};</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
-<div class="line"><a name="l00053"></a><span class="lineno"><a class="line" href="structchannelType.html">   53</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structchannelType.html">channelType</a>{</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    std::list&lt;int&gt; channels; <span class="comment">// min = 11; max = 26; whitespace =&gt; collapse</span></div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    <span class="keywordtype">bool</span> editable; <span class="comment">// required</span></div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;};</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
-<div class="line"><a name="l00058"></a><span class="lineno"><a class="line" href="structdomainType.html">   58</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structdomainType.html">domainType</a>{</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    std::list&lt;olderType&gt; older;</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    std::string dependsOn; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    std::string name;</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    std::string spec; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keywordtype">bool</span> certifiable;</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;};</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
-<div class="line"><a name="l00066"></a><span class="lineno"><a class="line" href="structargType.html">   66</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structargType.html">argType</a>{</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    <span class="keywordtype">bool</span> arrayLength;</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    <span class="keywordtype">bool</span> array;</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    std::string default_;</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    std::string description;</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    std::string introducedIn; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    std::string removedIn; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    std::string name;</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    <a class="code" href="structtypeType.html">typeType</a> type;</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    <span class="keywordtype">int</span> length;</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    std::string presentIf;</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordtype">int</span> optional;</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    <span class="keywordtype">int</span> fieldId;</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    std::string countArg; <span class="comment">// optional</span></div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    <span class="keywordtype">bool</span> isNullable;</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;};</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
-<div class="line"><a name="l00083"></a><span class="lineno"><a class="line" href="structtagType.html">   83</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structtagType.html">tagType</a>{</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    std::string name; <span class="comment">// required</span></div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;    std::string description; <span class="comment">// required</span></div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;};</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160; </div>
-<div class="line"><a name="l00088"></a><span class="lineno"><a class="line" href="structfeatureBitType.html">   88</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structfeatureBitType.html">featureBitType</a>{</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    std::string tag; <span class="comment">//required</span></div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    <span class="keywordtype">int</span> bit; <span class="comment">//required</span></div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;};</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
-<div class="line"><a name="l00093"></a><span class="lineno"><a class="line" href="structglobalAttributeType.html">   93</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structglobalAttributeType.html">globalAttributeType</a>{</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    std::list&lt;featureBitType&gt; featureBit;</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    std::string side; <span class="comment">// required; zclSideWithEither -&gt; Mapping file</span></div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    std::string code; <span class="comment">// required</span></div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    std::string value; <span class="comment">// required</span></div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;};</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
-<div class="line"><a name="l00100"></a><span class="lineno"><a class="line" href="structclientType.html">  100</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structclientType.html">clientType</a>{</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    <span class="keywordtype">bool</span> client;</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    <span class="keywordtype">bool</span> init; <span class="comment">// required</span></div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    <span class="keywordtype">bool</span> tick; <span class="comment">// required</span></div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;};</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160; </div>
-<div class="line"><a name="l00106"></a><span class="lineno"><a class="line" href="structserverType.html">  106</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structserverType.html">serverType</a>{</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keywordtype">bool</span> server;</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    <span class="keywordtype">bool</span> init; <span class="comment">// required</span></div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <span class="keywordtype">bool</span> tick; <span class="comment">// required</span></div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    std::string tickFrequency;</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;};</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160; </div>
-<div class="line"><a name="l00113"></a><span class="lineno"><a class="line" href="structaccessType.html">  113</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structaccessType.html">accessType</a>{</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    std::string op;</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    std::string role;</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    std::string privilege;</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    std::string modifier;</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;};</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160; </div>
-<div class="line"><a name="l00120"></a><span class="lineno"><a class="line" href="structfieldType.html">  120</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structfieldType.html">fieldType</a>{</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;    std::string mask; <span class="comment">// required</span></div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;    std::string name; <span class="comment">// required</span></div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    std::string introducedIn; <span class="comment">//zclSpecVersion -&gt; Mapping file</span></div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;    <span class="keywordtype">int</span> fieldId;</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;};</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160; </div>
-<div class="line"><a name="l00127"></a><span class="lineno"><a class="line" href="structbitmapType.html">  127</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structbitmapType.html">bitmapType</a>{</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;    std::string name; <span class="comment">// required</span></div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    std::string type; <span class="comment">// required</span></div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;    <span class="comment">//TODO: This gets matched to the cluster code attribute</span></div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;    std::string cluster; <span class="comment">// min = 0; max = inf; name = cluster</span></div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;    std::list&lt;fieldType&gt; fields; <span class="comment">// min = 1; max = inf; ref=field</span></div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;};</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160; </div>
-<div class="line"><a name="l00135"></a><span class="lineno"><a class="line" href="structenumType.html">  135</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structenumType.html">enumType</a>{</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;    std::string name;</div>
-<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;    std::string type;</div>
-<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;    std::string cluster;</div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;    std::map&lt;std::string, std::string&gt; items;</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;};</div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160; </div>
-<div class="line"><a name="l00142"></a><span class="lineno"><a class="line" href="structeventFieldType.html">  142</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structeventFieldType.html">eventFieldType</a>{</div>
-<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    std::string id; <span class="comment">// required</span></div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;    std::string name; <span class="comment">// required</span></div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    std::string type; <span class="comment">// required</span></div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;    <span class="keywordtype">bool</span> array; <span class="comment">//optional</span></div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    <span class="keywordtype">bool</span> isNullable; <span class="comment">//optional</span></div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;};</div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160; </div>
-<div class="line"><a name="l00153"></a><span class="lineno"><a class="line" href="structeventType.html">  153</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structeventType.html">eventType</a> {</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;    <span class="comment">//TODO: You can technically define args inside the description, check if and if yes how this should be handled</span></div>
-<div class="line"><a name="l00156"></a><span class="lineno"><a class="line" href="structeventType.html#a2da22ce9ee8a970d63d7da8e7079f434">  156</a></span>&#160;    std::string <a class="code" href="structeventType.html#a2da22ce9ee8a970d63d7da8e7079f434">description</a>;</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;    std::list&lt;accessType&gt; access; <span class="comment">// min = 0; max = inf</span></div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;    std::list&lt;eventFieldType&gt; field; <span class="comment">// min = 0; max = inf</span></div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    std::string code;</div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    std::string name;</div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    std::string side; <span class="comment">// required; zclSide</span></div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    std::string priority;</div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;};</div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160; </div>
-<div class="line"><a name="l00168"></a><span class="lineno"><a class="line" href="structcommandType.html">  168</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structcommandType.html">commandType</a> {</div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;    <span class="comment">//TODO: You can technically define args inside the description, check if and if yes how this should be handled</span></div>
-<div class="line"><a name="l00171"></a><span class="lineno"><a class="line" href="structcommandType.html#af1c90ef4fb109dda3d946f2d53e9b75b">  171</a></span>&#160;    std::string <a class="code" href="structcommandType.html#af1c90ef4fb109dda3d946f2d53e9b75b">description</a>;</div>
-<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;    std::list&lt;accessType&gt; access; <span class="comment">// min = 0; max = inf</span></div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    std::list&lt;argType&gt; arg; <span class="comment">// min = 0; max = inf</span></div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    <a class="code" href="structcliType.html">cliType</a> cli;</div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    std::string cliFunctionName;</div>
-<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    std::string code;</div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="keywordtype">bool</span> disableDefaultResponse;</div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;    std::string functionName;</div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;    std::string group;</div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;    std::string introducedIn; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;    <span class="keywordtype">bool</span> noDefaultImplementation;</div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    std::string manufacturerCode; <span class="comment">// zclCode -&gt; Mapping file</span></div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    std::string name;</div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;    <span class="keywordtype">bool</span> optional;</div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;    std::string source;</div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;    std::string restriction;</div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;    std::string response;</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;};</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160; </div>
-<div class="line"><a name="l00193"></a><span class="lineno"><a class="line" href="structattributeType.html">  193</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structattributeType.html">attributeType</a> {</div>
-<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;    std::string name; <span class="comment">//The value of the Attribute XML Element</span></div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;<span class="comment"></span>    <span class="comment">//TODO: You can technically define args inside the description, check if and if yes how this should be handled</span></div>
-<div class="line"><a name="l00197"></a><span class="lineno"><a class="line" href="structattributeType.html#a1b0ea76fa184075b6eeaed64191e260f">  197</a></span>&#160;    std::string <a class="code" href="structattributeType.html#a1b0ea76fa184075b6eeaed64191e260f">description</a>; <span class="comment">// min = 0; max = inf</span></div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;    std::list&lt;accessType&gt; access; <span class="comment">// min = 0; max = inf</span></div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    std::string code; <span class="comment">// zclCode -&gt; Mapping file</span></div>
-<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;    std::string default_;</div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    std::string define; <span class="comment">// required; zclAttributeDefine -&gt; Mapping file</span></div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    std::string introducedIn; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    <span class="keywordtype">int</span> length;</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;    std::string  manufacturerCode; <span class="comment">// zclCode -&gt; Mapping file</span></div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;    <span class="keywordtype">int</span> max; <span class="comment">//TODO: Check anySimpleType</span></div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;    <span class="keywordtype">int</span> min; <span class="comment">//TODO: Check anySimpleType</span></div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;    <span class="comment">// reportMaxInterval //TODO: Check anySimpleType</span></div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;    <span class="comment">// reportMinInterval</span></div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;    <span class="comment">// reportableChange //TODO: Check anySimpleType</span></div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;    <span class="keywordtype">bool</span> optional; <span class="comment">// required</span></div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;    std::string side; <span class="comment">// required</span></div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;    std::string type; <span class="comment">// required</span></div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;    <span class="keywordtype">bool</span> readable;</div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;    <span class="keywordtype">bool</span> writable;</div>
-<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;    <span class="keywordtype">bool</span> reportable;</div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;    <span class="keywordtype">bool</span> array;</div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;    <span class="keywordtype">bool</span> isNullable;</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;};</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160; </div>
-<div class="line"><a name="l00223"></a><span class="lineno"><a class="line" href="structclusterType.html">  223</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structclusterType.html">clusterType</a> {</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    std::string name;</div>
-<div class="line"><a name="l00226"></a><span class="lineno"><a class="line" href="structclusterType.html#ab93fd84215ffbc2bb53ddcb902519622">  226</a></span>&#160;    std::string <a class="code" href="structclusterType.html#ab93fd84215ffbc2bb53ddcb902519622">domain</a>;</div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    <span class="comment">//TODO: You can technically define args inside the description, check if and if yes how this should be handled</span></div>
-<div class="line"><a name="l00229"></a><span class="lineno"><a class="line" href="structclusterType.html#a6eb76a62f2369b00addb231fa8384cc7">  229</a></span>&#160;    std::string <a class="code" href="structclusterType.html#a6eb76a62f2369b00addb231fa8384cc7">description</a>;</div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    std::string code; <span class="comment">//zclCode -&gt; Mapping file</span></div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;    std::string define;</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;    <a class="code" href="structserverType.html">serverType</a> server;</div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    <a class="code" href="structclientType.html">clientType</a> client;</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;    <span class="keywordtype">bool</span> generateCmdHandlers; <span class="comment">// min = 0;</span></div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;    std::list&lt;tagType&gt; tag;</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    std::list&lt;globalAttributeType&gt; globalAttribute;</div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    std::list&lt;attributeType&gt; attributes; <span class="comment">//min = 0; max = inf</span></div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;    std::list&lt;commandType&gt; commands; <span class="comment">//min = 0; max = inf</span></div>
-<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    std::list&lt;eventType&gt; events; <span class="comment">//min = 0; max = inf</span></div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    std::string introducedIn; <span class="comment">// -&gt; Mapping file</span></div>
-<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    std::string manufacturerCode; <span class="comment">// zclCode -&gt; Mapping file</span></div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;    <span class="keywordtype">bool</span> singleton;</div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;};</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160; </div>
-<div class="line"><a name="l00248"></a><span class="lineno"><a class="line" href="structdeviceType.html">  248</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structdeviceType.html">deviceType</a> {</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;    std::string name;</div>
-<div class="line"><a name="l00251"></a><span class="lineno"><a class="line" href="structdeviceType.html#a8470115e48c54e74f146a0b7ee0e5e73">  251</a></span>&#160;    std::string <a class="code" href="structdeviceType.html#a8470115e48c54e74f146a0b7ee0e5e73">domain</a>;</div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;    std::string typeName;</div>
-<div class="line"><a name="l00254"></a><span class="lineno"><a class="line" href="structdeviceType.html#a58d0d368566745cc53c731346efb4227">  254</a></span>&#160;    std::string <a class="code" href="structdeviceType.html#a58d0d368566745cc53c731346efb4227">profileId</a>;</div>
-<div class="line"><a name="l00256"></a><span class="lineno"><a class="line" href="structdeviceType.html#aeeb763a1237540cfa9ee84505dc5e2de">  256</a></span>&#160;    std::string <a class="code" href="structdeviceType.html#aeeb763a1237540cfa9ee84505dc5e2de">deviceId</a>;</div>
-<div class="line"><a name="l00258"></a><span class="lineno"><a class="line" href="structdeviceType.html#aae1e78997aebcb0a540591efd89095f1">  258</a></span>&#160;    std::list&lt;int&gt; <a class="code" href="structdeviceType.html#aae1e78997aebcb0a540591efd89095f1">channels</a>; <span class="comment">// Each element is between 11 and 26</span></div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;    std::list&lt;clusterType&gt; clusters;</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;};</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160; </div>
-<div class="line"><a name="l00271"></a><span class="lineno"><a class="line" href="matter_8h.html#ad37e22923e49d86c158b18c82ad6bdb4">  271</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="matter_8h.html#ad37e22923e49d86c158b18c82ad6bdb4">parseClusters</a>(<span class="keyword">const</span> pugi::xml_node&amp; cluster_xml, std::list&lt;clusterType&gt;&amp; clusterList);</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160; </div>
-<div class="line"><a name="l00282"></a><span class="lineno"><a class="line" href="matter_8h.html#ac7edc29ec5a122317d9d88f57def7fbe">  282</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="matter_8h.html#ac7edc29ec5a122317d9d88f57def7fbe">parseDevice</a>(<span class="keyword">const</span> pugi::xml_node&amp; device_xml, <a class="code" href="structdeviceType.html">deviceType</a>&amp; device);</div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160; </div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//MATTER_H</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#ifndef MATTER_H</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#define MATTER_H</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160; </div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;map&gt;</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;list&gt;</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &quot;pugixml.hpp&quot;</span></div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160; </div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="keyword">struct </span><a class="code" href="structargType.html">argType</a>;</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; </div>
+<div class="line"><a name="l00019"></a><span class="lineno"><a class="line" href="structgroupType.html">   19</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structgroupType.html">groupType</a>{</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    std::list&lt;argType&gt; description;</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    std::string id;</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    std::string name;</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;};</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; </div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keyword">struct </span><a class="code" href="structcommandType.html">commandType</a>;</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; </div>
+<div class="line"><a name="l00027"></a><span class="lineno"><a class="line" href="structcliType.html">   27</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structcliType.html">cliType</a>{</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    std::list&lt;groupType&gt; group;</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    std::list&lt;commandType&gt; command;</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;};</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
+<div class="line"><a name="l00032"></a><span class="lineno"><a class="line" href="structtypeType.html">   32</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structtypeType.html">typeType</a>{</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    std::string id; <span class="comment">// required</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    std::string name; <span class="comment">// required</span></div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    std::string description; <span class="comment">// required</span></div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    <span class="keywordtype">int</span> size;</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <span class="keywordtype">bool</span> discrete;</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <span class="keywordtype">bool</span> signed_;</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    <span class="keywordtype">bool</span> string;</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    <span class="keywordtype">bool</span> chr;</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <span class="keywordtype">bool</span> lng;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <span class="keywordtype">bool</span> analog;</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <span class="keywordtype">bool</span> composite;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;};</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="structolderType.html">   46</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structolderType.html">olderType</a>{</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    std::string dependsOn; <span class="comment">// optional</span></div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    std::string spec; <span class="comment">// optional</span></div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="keywordtype">bool</span> certifiable;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;};</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
+<div class="line"><a name="l00052"></a><span class="lineno"><a class="line" href="structchannelType.html">   52</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structchannelType.html">channelType</a>{</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    std::list&lt;int&gt; channels; <span class="comment">// min = 11; max = 26; whitespace =&gt; collapse</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="keywordtype">bool</span> editable; <span class="comment">// required</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;};</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
+<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="structdomainType.html">   57</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structdomainType.html">domainType</a>{</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    std::list&lt;olderType&gt; older;</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    std::string dependsOn; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    std::string name;</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    std::string spec; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    <span class="keywordtype">bool</span> certifiable;</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;};</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
+<div class="line"><a name="l00065"></a><span class="lineno"><a class="line" href="structargType.html">   65</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structargType.html">argType</a>{</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    <span class="keywordtype">bool</span> arrayLength;</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    <span class="keywordtype">bool</span> array;</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    std::string default_;</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    std::string description;</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    std::string introducedIn; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    std::string removedIn; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    std::string name;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    <a class="code" href="structtypeType.html">typeType</a> type;</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    <span class="keywordtype">int</span> length;</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    std::string presentIf;</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    <span class="keywordtype">int</span> optional;</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordtype">int</span> fieldId;</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    std::string countArg; <span class="comment">// optional</span></div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    <span class="keywordtype">bool</span> isNullable;</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;};</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
+<div class="line"><a name="l00082"></a><span class="lineno"><a class="line" href="structtagType.html">   82</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structtagType.html">tagType</a>{</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    std::string name; <span class="comment">// required</span></div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    std::string description; <span class="comment">// required</span></div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;};</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
+<div class="line"><a name="l00087"></a><span class="lineno"><a class="line" href="structfeatureBitType.html">   87</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structfeatureBitType.html">featureBitType</a>{</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    std::string tag; <span class="comment">//required</span></div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    <span class="keywordtype">int</span> bit; <span class="comment">//required</span></div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;};</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160; </div>
+<div class="line"><a name="l00092"></a><span class="lineno"><a class="line" href="structglobalAttributeType.html">   92</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structglobalAttributeType.html">globalAttributeType</a>{</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    std::list&lt;featureBitType&gt; featureBit;</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    std::string side; <span class="comment">// required; zclSideWithEither -&gt; Mapping file</span></div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    std::string code; <span class="comment">// required</span></div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    std::string value; <span class="comment">// required</span></div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;};</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
+<div class="line"><a name="l00099"></a><span class="lineno"><a class="line" href="structclientType.html">   99</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structclientType.html">clientType</a>{</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    <span class="keywordtype">bool</span> client;</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    <span class="keywordtype">bool</span> init; <span class="comment">// required</span></div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    <span class="keywordtype">bool</span> tick; <span class="comment">// required</span></div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;};</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
+<div class="line"><a name="l00105"></a><span class="lineno"><a class="line" href="structserverType.html">  105</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structserverType.html">serverType</a>{</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    <span class="keywordtype">bool</span> server;</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keywordtype">bool</span> init; <span class="comment">// required</span></div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    <span class="keywordtype">bool</span> tick; <span class="comment">// required</span></div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    std::string tickFrequency;</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;};</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
+<div class="line"><a name="l00112"></a><span class="lineno"><a class="line" href="structaccessType.html">  112</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structaccessType.html">accessType</a>{</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    std::string op;</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    std::string role;</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    std::string privilege;</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    std::string modifier;</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;};</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160; </div>
+<div class="line"><a name="l00119"></a><span class="lineno"><a class="line" href="structfieldType.html">  119</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structfieldType.html">fieldType</a>{</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;    std::string mask; <span class="comment">// required</span></div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;    std::string name; <span class="comment">// required</span></div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;    std::string introducedIn; <span class="comment">//zclSpecVersion -&gt; Mapping file</span></div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    <span class="keywordtype">int</span> fieldId;</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;};</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160; </div>
+<div class="line"><a name="l00126"></a><span class="lineno"><a class="line" href="structbitmapType.html">  126</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structbitmapType.html">bitmapType</a>{</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;    std::string name; <span class="comment">// required</span></div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;    std::string type; <span class="comment">// required</span></div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    <span class="comment">//TODO: This gets matched to the cluster code attribute</span></div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;    std::string cluster; <span class="comment">// min = 0; max = inf; name = cluster</span></div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;    std::list&lt;fieldType&gt; fields; <span class="comment">// min = 1; max = inf; ref=field</span></div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;};</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160; </div>
+<div class="line"><a name="l00134"></a><span class="lineno"><a class="line" href="structenumType.html">  134</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structenumType.html">enumType</a>{</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    std::string name;</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;    std::string type;</div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;    std::string cluster;</div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;    std::map&lt;std::string, std::string&gt; items;</div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;};</div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160; </div>
+<div class="line"><a name="l00141"></a><span class="lineno"><a class="line" href="structeventFieldType.html">  141</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structeventFieldType.html">eventFieldType</a>{</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;    std::string id; <span class="comment">// required</span></div>
+<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    std::string name; <span class="comment">// required</span></div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;    std::string type; <span class="comment">// required</span></div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    <span class="keywordtype">bool</span> array; <span class="comment">//optional</span></div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;    <span class="keywordtype">bool</span> isNullable; <span class="comment">//optional</span></div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;};</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160; </div>
+<div class="line"><a name="l00152"></a><span class="lineno"><a class="line" href="structeventType.html">  152</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structeventType.html">eventType</a> {</div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;    <span class="comment">//TODO: You can technically define args inside the description, check if and if yes how this should be handled</span></div>
+<div class="line"><a name="l00155"></a><span class="lineno"><a class="line" href="structeventType.html#a2da22ce9ee8a970d63d7da8e7079f434">  155</a></span>&#160;    std::string <a class="code" href="structeventType.html#a2da22ce9ee8a970d63d7da8e7079f434">description</a>;</div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;    std::list&lt;accessType&gt; access; <span class="comment">// min = 0; max = inf</span></div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;    std::list&lt;eventFieldType&gt; field; <span class="comment">// min = 0; max = inf</span></div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;    std::string code;</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    std::string name;</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    std::string side; <span class="comment">// required; zclSide</span></div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    std::string priority;</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;};</div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160; </div>
+<div class="line"><a name="l00167"></a><span class="lineno"><a class="line" href="structcommandType.html">  167</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structcommandType.html">commandType</a> {</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    <span class="comment">//TODO: You can technically define args inside the description, check if and if yes how this should be handled</span></div>
+<div class="line"><a name="l00170"></a><span class="lineno"><a class="line" href="structcommandType.html#af1c90ef4fb109dda3d946f2d53e9b75b">  170</a></span>&#160;    std::string <a class="code" href="structcommandType.html#af1c90ef4fb109dda3d946f2d53e9b75b">description</a>;</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;    std::list&lt;accessType&gt; access; <span class="comment">// min = 0; max = inf</span></div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;    std::list&lt;argType&gt; arg; <span class="comment">// min = 0; max = inf</span></div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    <a class="code" href="structcliType.html">cliType</a> cli;</div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    std::string cliFunctionName;</div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    std::string code;</div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    <span class="keywordtype">bool</span> disableDefaultResponse;</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    std::string functionName;</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;    std::string group;</div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;    std::string introducedIn; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;    <span class="keywordtype">bool</span> noDefaultImplementation;</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;    std::string manufacturerCode; <span class="comment">// zclCode -&gt; Mapping file</span></div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    std::string name;</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    <span class="keywordtype">bool</span> optional;</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;    std::string source;</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;    std::string restriction;</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;    std::string response;</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;};</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160; </div>
+<div class="line"><a name="l00192"></a><span class="lineno"><a class="line" href="structattributeType.html">  192</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structattributeType.html">attributeType</a> {</div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;    std::string name; <span class="comment">//The value of the Attribute XML Element</span></div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;<span class="comment"></span>    <span class="comment">//TODO: You can technically define args inside the description, check if and if yes how this should be handled</span></div>
+<div class="line"><a name="l00196"></a><span class="lineno"><a class="line" href="structattributeType.html#a1b0ea76fa184075b6eeaed64191e260f">  196</a></span>&#160;    std::string <a class="code" href="structattributeType.html#a1b0ea76fa184075b6eeaed64191e260f">description</a>; <span class="comment">// min = 0; max = inf</span></div>
+<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;    std::list&lt;accessType&gt; access; <span class="comment">// min = 0; max = inf</span></div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;    std::string code; <span class="comment">// zclCode -&gt; Mapping file</span></div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    std::string default_;</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;    std::string define; <span class="comment">// required; zclAttributeDefine -&gt; Mapping file</span></div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    std::string introducedIn; <span class="comment">// zclSpecVersion -&gt; Mapping file</span></div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    <span class="keywordtype">int</span> length;</div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    std::string  manufacturerCode; <span class="comment">// zclCode -&gt; Mapping file</span></div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;    <span class="keywordtype">int</span> max; <span class="comment">//TODO: Check anySimpleType</span></div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;    <span class="keywordtype">int</span> min; <span class="comment">//TODO: Check anySimpleType</span></div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;    <span class="comment">// reportMaxInterval //TODO: Check anySimpleType</span></div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;    <span class="comment">// reportMinInterval</span></div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;    <span class="comment">// reportableChange //TODO: Check anySimpleType</span></div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;    <span class="keywordtype">bool</span> optional; <span class="comment">// required</span></div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;    std::string side; <span class="comment">// required</span></div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;    std::string type; <span class="comment">// required</span></div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;    <span class="keywordtype">bool</span> readable;</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;    <span class="keywordtype">bool</span> writable;</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;    <span class="keywordtype">bool</span> reportable;</div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;    <span class="keywordtype">bool</span> array;</div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;    <span class="keywordtype">bool</span> isNullable;</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;};</div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160; </div>
+<div class="line"><a name="l00222"></a><span class="lineno"><a class="line" href="structclusterType.html">  222</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structclusterType.html">clusterType</a> {</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    std::string name;</div>
+<div class="line"><a name="l00225"></a><span class="lineno"><a class="line" href="structclusterType.html#ab93fd84215ffbc2bb53ddcb902519622">  225</a></span>&#160;    std::string <a class="code" href="structclusterType.html#ab93fd84215ffbc2bb53ddcb902519622">domain</a>;</div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;    <span class="comment">//TODO: You can technically define args inside the description, check if and if yes how this should be handled</span></div>
+<div class="line"><a name="l00228"></a><span class="lineno"><a class="line" href="structclusterType.html#a6eb76a62f2369b00addb231fa8384cc7">  228</a></span>&#160;    std::string <a class="code" href="structclusterType.html#a6eb76a62f2369b00addb231fa8384cc7">description</a>;</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    std::string code; <span class="comment">//zclCode -&gt; Mapping file</span></div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    std::string define;</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;    <a class="code" href="structserverType.html">serverType</a> server;</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;    <a class="code" href="structclientType.html">clientType</a> client;</div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    <span class="keywordtype">bool</span> generateCmdHandlers; <span class="comment">// min = 0;</span></div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;    std::list&lt;tagType&gt; tag;</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;    std::list&lt;globalAttributeType&gt; globalAttribute;</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    std::list&lt;attributeType&gt; attributes; <span class="comment">//min = 0; max = inf</span></div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    std::list&lt;commandType&gt; commands; <span class="comment">//min = 0; max = inf</span></div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;    std::list&lt;eventType&gt; events; <span class="comment">//min = 0; max = inf</span></div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    std::string introducedIn; <span class="comment">// -&gt; Mapping file</span></div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    std::string manufacturerCode; <span class="comment">// zclCode -&gt; Mapping file</span></div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    <span class="keywordtype">bool</span> singleton;</div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;};</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160; </div>
+<div class="line"><a name="l00247"></a><span class="lineno"><a class="line" href="structdeviceType.html">  247</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structdeviceType.html">deviceType</a> {</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    std::string name;</div>
+<div class="line"><a name="l00250"></a><span class="lineno"><a class="line" href="structdeviceType.html#a8470115e48c54e74f146a0b7ee0e5e73">  250</a></span>&#160;    std::string <a class="code" href="structdeviceType.html#a8470115e48c54e74f146a0b7ee0e5e73">domain</a>;</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;    std::string typeName;</div>
+<div class="line"><a name="l00253"></a><span class="lineno"><a class="line" href="structdeviceType.html#a58d0d368566745cc53c731346efb4227">  253</a></span>&#160;    std::string <a class="code" href="structdeviceType.html#a58d0d368566745cc53c731346efb4227">profileId</a>;</div>
+<div class="line"><a name="l00255"></a><span class="lineno"><a class="line" href="structdeviceType.html#aeeb763a1237540cfa9ee84505dc5e2de">  255</a></span>&#160;    std::string <a class="code" href="structdeviceType.html#aeeb763a1237540cfa9ee84505dc5e2de">deviceId</a>;</div>
+<div class="line"><a name="l00257"></a><span class="lineno"><a class="line" href="structdeviceType.html#aae1e78997aebcb0a540591efd89095f1">  257</a></span>&#160;    std::list&lt;int&gt; <a class="code" href="structdeviceType.html#aae1e78997aebcb0a540591efd89095f1">channels</a>; <span class="comment">// Each element is between 11 and 26</span></div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    std::list&lt;clusterType&gt; clusters;</div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;};</div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160; </div>
+<div class="line"><a name="l00270"></a><span class="lineno"><a class="line" href="matter_8h.html#ad37e22923e49d86c158b18c82ad6bdb4">  270</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="matter_8h.html#ad37e22923e49d86c158b18c82ad6bdb4">parseClusters</a>(<span class="keyword">const</span> pugi::xml_node&amp; cluster_xml, std::list&lt;clusterType&gt;&amp; clusterList);</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160; </div>
+<div class="line"><a name="l00281"></a><span class="lineno"><a class="line" href="matter_8h.html#ac7edc29ec5a122317d9d88f57def7fbe">  281</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="matter_8h.html#ac7edc29ec5a122317d9d88f57def7fbe">parseDevice</a>(<span class="keyword">const</span> pugi::xml_node&amp; device_xml, <a class="code" href="structdeviceType.html">deviceType</a>&amp; device);</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160; </div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//MATTER_H</span></div>
 <div class="ttc" id="amatter_8h_html_ac7edc29ec5a122317d9d88f57def7fbe"><div class="ttname"><a href="matter_8h.html#ac7edc29ec5a122317d9d88f57def7fbe">parseDevice</a></div><div class="ttdeci">int parseDevice(const pugi::xml_node &amp;device_xml, deviceType &amp;device)</div><div class="ttdoc">Parses xml-file into a device.</div></div>
 <div class="ttc" id="amatter_8h_html_ad37e22923e49d86c158b18c82ad6bdb4"><div class="ttname"><a href="matter_8h.html#ad37e22923e49d86c158b18c82ad6bdb4">parseClusters</a></div><div class="ttdeci">int parseClusters(const pugi::xml_node &amp;cluster_xml, std::list&lt; clusterType &gt; &amp;clusterList)</div><div class="ttdoc">Parses xml-file into a list of clusters.</div></div>
-<div class="ttc" id="astructaccessType_html"><div class="ttname"><a href="structaccessType.html">accessType</a></div><div class="ttdef"><b>Definition:</b> matter.h:113</div></div>
-<div class="ttc" id="astructargType_html"><div class="ttname"><a href="structargType.html">argType</a></div><div class="ttdef"><b>Definition:</b> matter.h:66</div></div>
-<div class="ttc" id="astructattributeType_html"><div class="ttname"><a href="structattributeType.html">attributeType</a></div><div class="ttdoc">Struct which contains Matter attribute information.</div><div class="ttdef"><b>Definition:</b> matter.h:193</div></div>
-<div class="ttc" id="astructattributeType_html_a1b0ea76fa184075b6eeaed64191e260f"><div class="ttname"><a href="structattributeType.html#a1b0ea76fa184075b6eeaed64191e260f">attributeType::description</a></div><div class="ttdeci">std::string description</div><div class="ttdoc">Originally std::list&lt;argType&gt;, for now simplified to just the description.</div><div class="ttdef"><b>Definition:</b> matter.h:197</div></div>
-<div class="ttc" id="astructbitmapType_html"><div class="ttname"><a href="structbitmapType.html">bitmapType</a></div><div class="ttdef"><b>Definition:</b> matter.h:127</div></div>
-<div class="ttc" id="astructchannelType_html"><div class="ttname"><a href="structchannelType.html">channelType</a></div><div class="ttdef"><b>Definition:</b> matter.h:53</div></div>
-<div class="ttc" id="astructcliType_html"><div class="ttname"><a href="structcliType.html">cliType</a></div><div class="ttdef"><b>Definition:</b> matter.h:28</div></div>
-<div class="ttc" id="astructclientType_html"><div class="ttname"><a href="structclientType.html">clientType</a></div><div class="ttdef"><b>Definition:</b> matter.h:100</div></div>
-<div class="ttc" id="astructclusterType_html"><div class="ttname"><a href="structclusterType.html">clusterType</a></div><div class="ttdoc">Struct which contains Matter cluster information.</div><div class="ttdef"><b>Definition:</b> matter.h:223</div></div>
-<div class="ttc" id="astructclusterType_html_a6eb76a62f2369b00addb231fa8384cc7"><div class="ttname"><a href="structclusterType.html#a6eb76a62f2369b00addb231fa8384cc7">clusterType::description</a></div><div class="ttdeci">std::string description</div><div class="ttdoc">Originally std::list&lt;argType&gt;, for now simplified to just the description.</div><div class="ttdef"><b>Definition:</b> matter.h:229</div></div>
-<div class="ttc" id="astructclusterType_html_ab93fd84215ffbc2bb53ddcb902519622"><div class="ttname"><a href="structclusterType.html#ab93fd84215ffbc2bb53ddcb902519622">clusterType::domain</a></div><div class="ttdeci">std::string domain</div><div class="ttdoc">Originally domainType, for now simplified to just the name.</div><div class="ttdef"><b>Definition:</b> matter.h:226</div></div>
-<div class="ttc" id="astructcommandType_html"><div class="ttname"><a href="structcommandType.html">commandType</a></div><div class="ttdoc">Struct which contains Matter command information.</div><div class="ttdef"><b>Definition:</b> matter.h:168</div></div>
-<div class="ttc" id="astructcommandType_html_af1c90ef4fb109dda3d946f2d53e9b75b"><div class="ttname"><a href="structcommandType.html#af1c90ef4fb109dda3d946f2d53e9b75b">commandType::description</a></div><div class="ttdeci">std::string description</div><div class="ttdoc">Originally std::list&lt;argType&gt;, for now simplified to just the description.</div><div class="ttdef"><b>Definition:</b> matter.h:171</div></div>
-<div class="ttc" id="astructdeviceType_html"><div class="ttname"><a href="structdeviceType.html">deviceType</a></div><div class="ttdoc">Struct which contains Matter device information.</div><div class="ttdef"><b>Definition:</b> matter.h:248</div></div>
-<div class="ttc" id="astructdeviceType_html_a58d0d368566745cc53c731346efb4227"><div class="ttname"><a href="structdeviceType.html#a58d0d368566745cc53c731346efb4227">deviceType::profileId</a></div><div class="ttdeci">std::string profileId</div><div class="ttdoc">Originally consists of an additional editable field, for now simplified to just the name.</div><div class="ttdef"><b>Definition:</b> matter.h:254</div></div>
-<div class="ttc" id="astructdeviceType_html_a8470115e48c54e74f146a0b7ee0e5e73"><div class="ttname"><a href="structdeviceType.html#a8470115e48c54e74f146a0b7ee0e5e73">deviceType::domain</a></div><div class="ttdeci">std::string domain</div><div class="ttdoc">Originally domainType, for now simplified to just the name.</div><div class="ttdef"><b>Definition:</b> matter.h:251</div></div>
-<div class="ttc" id="astructdeviceType_html_aae1e78997aebcb0a540591efd89095f1"><div class="ttname"><a href="structdeviceType.html#aae1e78997aebcb0a540591efd89095f1">deviceType::channels</a></div><div class="ttdeci">std::list&lt; int &gt; channels</div><div class="ttdoc">Originally channelType, for now simplified to just the channels.</div><div class="ttdef"><b>Definition:</b> matter.h:258</div></div>
-<div class="ttc" id="astructdeviceType_html_aeeb763a1237540cfa9ee84505dc5e2de"><div class="ttname"><a href="structdeviceType.html#aeeb763a1237540cfa9ee84505dc5e2de">deviceType::deviceId</a></div><div class="ttdeci">std::string deviceId</div><div class="ttdoc">Originally consists of an additional editable field, for now simplified to just the name.</div><div class="ttdef"><b>Definition:</b> matter.h:256</div></div>
-<div class="ttc" id="astructdomainType_html"><div class="ttname"><a href="structdomainType.html">domainType</a></div><div class="ttdef"><b>Definition:</b> matter.h:58</div></div>
-<div class="ttc" id="astructenumType_html"><div class="ttname"><a href="structenumType.html">enumType</a></div><div class="ttdef"><b>Definition:</b> matter.h:135</div></div>
-<div class="ttc" id="astructeventFieldType_html"><div class="ttname"><a href="structeventFieldType.html">eventFieldType</a></div><div class="ttdef"><b>Definition:</b> matter.h:142</div></div>
-<div class="ttc" id="astructeventType_html"><div class="ttname"><a href="structeventType.html">eventType</a></div><div class="ttdoc">Struct which contains Matter event information.</div><div class="ttdef"><b>Definition:</b> matter.h:153</div></div>
-<div class="ttc" id="astructeventType_html_a2da22ce9ee8a970d63d7da8e7079f434"><div class="ttname"><a href="structeventType.html#a2da22ce9ee8a970d63d7da8e7079f434">eventType::description</a></div><div class="ttdeci">std::string description</div><div class="ttdoc">Originally std::list&lt;argType&gt;, for now simplified to just the description.</div><div class="ttdef"><b>Definition:</b> matter.h:156</div></div>
-<div class="ttc" id="astructfeatureBitType_html"><div class="ttname"><a href="structfeatureBitType.html">featureBitType</a></div><div class="ttdef"><b>Definition:</b> matter.h:88</div></div>
-<div class="ttc" id="astructfieldType_html"><div class="ttname"><a href="structfieldType.html">fieldType</a></div><div class="ttdef"><b>Definition:</b> matter.h:120</div></div>
-<div class="ttc" id="astructglobalAttributeType_html"><div class="ttname"><a href="structglobalAttributeType.html">globalAttributeType</a></div><div class="ttdef"><b>Definition:</b> matter.h:93</div></div>
-<div class="ttc" id="astructgroupType_html"><div class="ttname"><a href="structgroupType.html">groupType</a></div><div class="ttdef"><b>Definition:</b> matter.h:20</div></div>
-<div class="ttc" id="astructolderType_html"><div class="ttname"><a href="structolderType.html">olderType</a></div><div class="ttdef"><b>Definition:</b> matter.h:47</div></div>
-<div class="ttc" id="astructserverType_html"><div class="ttname"><a href="structserverType.html">serverType</a></div><div class="ttdef"><b>Definition:</b> matter.h:106</div></div>
-<div class="ttc" id="astructtagType_html"><div class="ttname"><a href="structtagType.html">tagType</a></div><div class="ttdef"><b>Definition:</b> matter.h:83</div></div>
-<div class="ttc" id="astructtypeType_html"><div class="ttname"><a href="structtypeType.html">typeType</a></div><div class="ttdef"><b>Definition:</b> matter.h:33</div></div>
+<div class="ttc" id="astructaccessType_html"><div class="ttname"><a href="structaccessType.html">accessType</a></div><div class="ttdef"><b>Definition:</b> matter.h:112</div></div>
+<div class="ttc" id="astructargType_html"><div class="ttname"><a href="structargType.html">argType</a></div><div class="ttdef"><b>Definition:</b> matter.h:65</div></div>
+<div class="ttc" id="astructattributeType_html"><div class="ttname"><a href="structattributeType.html">attributeType</a></div><div class="ttdoc">Struct which contains Matter attribute information.</div><div class="ttdef"><b>Definition:</b> matter.h:192</div></div>
+<div class="ttc" id="astructattributeType_html_a1b0ea76fa184075b6eeaed64191e260f"><div class="ttname"><a href="structattributeType.html#a1b0ea76fa184075b6eeaed64191e260f">attributeType::description</a></div><div class="ttdeci">std::string description</div><div class="ttdoc">Originally std::list&lt;argType&gt;, for now simplified to just the description.</div><div class="ttdef"><b>Definition:</b> matter.h:196</div></div>
+<div class="ttc" id="astructbitmapType_html"><div class="ttname"><a href="structbitmapType.html">bitmapType</a></div><div class="ttdef"><b>Definition:</b> matter.h:126</div></div>
+<div class="ttc" id="astructchannelType_html"><div class="ttname"><a href="structchannelType.html">channelType</a></div><div class="ttdef"><b>Definition:</b> matter.h:52</div></div>
+<div class="ttc" id="astructcliType_html"><div class="ttname"><a href="structcliType.html">cliType</a></div><div class="ttdef"><b>Definition:</b> matter.h:27</div></div>
+<div class="ttc" id="astructclientType_html"><div class="ttname"><a href="structclientType.html">clientType</a></div><div class="ttdef"><b>Definition:</b> matter.h:99</div></div>
+<div class="ttc" id="astructclusterType_html"><div class="ttname"><a href="structclusterType.html">clusterType</a></div><div class="ttdoc">Struct which contains Matter cluster information.</div><div class="ttdef"><b>Definition:</b> matter.h:222</div></div>
+<div class="ttc" id="astructclusterType_html_a6eb76a62f2369b00addb231fa8384cc7"><div class="ttname"><a href="structclusterType.html#a6eb76a62f2369b00addb231fa8384cc7">clusterType::description</a></div><div class="ttdeci">std::string description</div><div class="ttdoc">Originally std::list&lt;argType&gt;, for now simplified to just the description.</div><div class="ttdef"><b>Definition:</b> matter.h:228</div></div>
+<div class="ttc" id="astructclusterType_html_ab93fd84215ffbc2bb53ddcb902519622"><div class="ttname"><a href="structclusterType.html#ab93fd84215ffbc2bb53ddcb902519622">clusterType::domain</a></div><div class="ttdeci">std::string domain</div><div class="ttdoc">Originally domainType, for now simplified to just the name.</div><div class="ttdef"><b>Definition:</b> matter.h:225</div></div>
+<div class="ttc" id="astructcommandType_html"><div class="ttname"><a href="structcommandType.html">commandType</a></div><div class="ttdoc">Struct which contains Matter command information.</div><div class="ttdef"><b>Definition:</b> matter.h:167</div></div>
+<div class="ttc" id="astructcommandType_html_af1c90ef4fb109dda3d946f2d53e9b75b"><div class="ttname"><a href="structcommandType.html#af1c90ef4fb109dda3d946f2d53e9b75b">commandType::description</a></div><div class="ttdeci">std::string description</div><div class="ttdoc">Originally std::list&lt;argType&gt;, for now simplified to just the description.</div><div class="ttdef"><b>Definition:</b> matter.h:170</div></div>
+<div class="ttc" id="astructdeviceType_html"><div class="ttname"><a href="structdeviceType.html">deviceType</a></div><div class="ttdoc">Struct which contains Matter device information.</div><div class="ttdef"><b>Definition:</b> matter.h:247</div></div>
+<div class="ttc" id="astructdeviceType_html_a58d0d368566745cc53c731346efb4227"><div class="ttname"><a href="structdeviceType.html#a58d0d368566745cc53c731346efb4227">deviceType::profileId</a></div><div class="ttdeci">std::string profileId</div><div class="ttdoc">Originally consists of an additional editable field, for now simplified to just the name.</div><div class="ttdef"><b>Definition:</b> matter.h:253</div></div>
+<div class="ttc" id="astructdeviceType_html_a8470115e48c54e74f146a0b7ee0e5e73"><div class="ttname"><a href="structdeviceType.html#a8470115e48c54e74f146a0b7ee0e5e73">deviceType::domain</a></div><div class="ttdeci">std::string domain</div><div class="ttdoc">Originally domainType, for now simplified to just the name.</div><div class="ttdef"><b>Definition:</b> matter.h:250</div></div>
+<div class="ttc" id="astructdeviceType_html_aae1e78997aebcb0a540591efd89095f1"><div class="ttname"><a href="structdeviceType.html#aae1e78997aebcb0a540591efd89095f1">deviceType::channels</a></div><div class="ttdeci">std::list&lt; int &gt; channels</div><div class="ttdoc">Originally channelType, for now simplified to just the channels.</div><div class="ttdef"><b>Definition:</b> matter.h:257</div></div>
+<div class="ttc" id="astructdeviceType_html_aeeb763a1237540cfa9ee84505dc5e2de"><div class="ttname"><a href="structdeviceType.html#aeeb763a1237540cfa9ee84505dc5e2de">deviceType::deviceId</a></div><div class="ttdeci">std::string deviceId</div><div class="ttdoc">Originally consists of an additional editable field, for now simplified to just the name.</div><div class="ttdef"><b>Definition:</b> matter.h:255</div></div>
+<div class="ttc" id="astructdomainType_html"><div class="ttname"><a href="structdomainType.html">domainType</a></div><div class="ttdef"><b>Definition:</b> matter.h:57</div></div>
+<div class="ttc" id="astructenumType_html"><div class="ttname"><a href="structenumType.html">enumType</a></div><div class="ttdef"><b>Definition:</b> matter.h:134</div></div>
+<div class="ttc" id="astructeventFieldType_html"><div class="ttname"><a href="structeventFieldType.html">eventFieldType</a></div><div class="ttdef"><b>Definition:</b> matter.h:141</div></div>
+<div class="ttc" id="astructeventType_html"><div class="ttname"><a href="structeventType.html">eventType</a></div><div class="ttdoc">Struct which contains Matter event information.</div><div class="ttdef"><b>Definition:</b> matter.h:152</div></div>
+<div class="ttc" id="astructeventType_html_a2da22ce9ee8a970d63d7da8e7079f434"><div class="ttname"><a href="structeventType.html#a2da22ce9ee8a970d63d7da8e7079f434">eventType::description</a></div><div class="ttdeci">std::string description</div><div class="ttdoc">Originally std::list&lt;argType&gt;, for now simplified to just the description.</div><div class="ttdef"><b>Definition:</b> matter.h:155</div></div>
+<div class="ttc" id="astructfeatureBitType_html"><div class="ttname"><a href="structfeatureBitType.html">featureBitType</a></div><div class="ttdef"><b>Definition:</b> matter.h:87</div></div>
+<div class="ttc" id="astructfieldType_html"><div class="ttname"><a href="structfieldType.html">fieldType</a></div><div class="ttdef"><b>Definition:</b> matter.h:119</div></div>
+<div class="ttc" id="astructglobalAttributeType_html"><div class="ttname"><a href="structglobalAttributeType.html">globalAttributeType</a></div><div class="ttdef"><b>Definition:</b> matter.h:92</div></div>
+<div class="ttc" id="astructgroupType_html"><div class="ttname"><a href="structgroupType.html">groupType</a></div><div class="ttdef"><b>Definition:</b> matter.h:19</div></div>
+<div class="ttc" id="astructolderType_html"><div class="ttname"><a href="structolderType.html">olderType</a></div><div class="ttdef"><b>Definition:</b> matter.h:46</div></div>
+<div class="ttc" id="astructserverType_html"><div class="ttname"><a href="structserverType.html">serverType</a></div><div class="ttdef"><b>Definition:</b> matter.h:105</div></div>
+<div class="ttc" id="astructtagType_html"><div class="ttname"><a href="structtagType.html">tagType</a></div><div class="ttdef"><b>Definition:</b> matter.h:82</div></div>
+<div class="ttc" id="astructtypeType_html"><div class="ttname"><a href="structtypeType.html">typeType</a></div><div class="ttdef"><b>Definition:</b> matter.h:32</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

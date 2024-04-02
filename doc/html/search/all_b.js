@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['oldertype_30',['olderType',['../structolderType.html',1,'']]]
+  ['namespacetype_34',['namespaceType',['../structnamespaceType.html',1,'']]]
 ];

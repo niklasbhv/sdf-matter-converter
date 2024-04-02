@@ -1,11 +1,10 @@
 /**
  * @file
  * @author Niklas Meyer <nik_mey@uni-bremen.de>
- * Licensed under Apache 2.0
  *
  * @section Description
  *
- * Structs to contain parsed information for Matter
+ * Structs to contain parsed information for Matter and functions to parse from xml files.
  */
 #ifndef MATTER_H
 #define MATTER_H

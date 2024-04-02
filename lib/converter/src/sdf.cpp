@@ -1,7 +1,3 @@
-//
-// Created by niklas on 05.03.24.
-//
-
 #include "sdf.h"
 #include "matter.h"
 #include <nlohmann/json.hpp>

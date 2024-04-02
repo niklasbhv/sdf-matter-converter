@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['unit_48',['unit',['../structdataQualityType.html#a7df8e7b76f63d6748ff5f67bd2e6f35d',1,'dataQualityType']]]
+  ['tagtype_52',['tagType',['../structtagType.html',1,'']]],
+  ['type_53',['type',['../structdataQualityType.html#aeff094d683682dfc1548c30cc2a22546',1,'dataQualityType']]],
+  ['typetype_54',['typeType',['../structtypeType.html',1,'']]]
 ];

@@ -1,6 +1,3 @@
-//
-// Created by Niklas on 26.02.2024.
-//
 #include "matter.h"
 #include "sdf.h"
 #include "mapping.h"

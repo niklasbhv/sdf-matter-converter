@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['featurebittype_20',['featureBitType',['../structfeatureBitType.html',1,'']]],
-  ['fieldtype_21',['fieldType',['../structfieldType.html',1,'']]]
+  ['featurebittype_23',['featureBitType',['../structfeatureBitType.html',1,'']]],
+  ['fieldtype_24',['fieldType',['../structfieldType.html',1,'']]]
 ];

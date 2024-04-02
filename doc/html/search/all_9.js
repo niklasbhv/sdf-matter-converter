@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['matter_2eh_26',['matter.h',['../matter_8h.html',1,'']]],
-  ['minitems_27',['minItems',['../structdataQualityType.html#a95386caa4fd831a2fcd7d7cc7f852c90',1,'dataQualityType::minItems()'],['../structsdfObjectType.html#a429fc0e30588f7f66b52942e1cb6d1d1',1,'sdfObjectType::minItems()'],['../structsdfThingType.html#a890b289993af07a7d08ff1cd452391e6',1,'sdfThingType::minItems()']]],
-  ['minlength_28',['minLength',['../structdataQualityType.html#a7bbd572e5d01611af7d1b084590ad818',1,'dataQualityType']]]
+  ['loadjsonfile_29',['loadJsonFile',['../converter_8h.html#aa45ce63431c46f45cbac7134086b800d',1,'converter.h']]],
+  ['loadxmlfile_30',['loadXmlFile',['../converter_8h.html#a955e1a1c1489e5a74ef54835d7c10d86',1,'converter.h']]]
 ];
