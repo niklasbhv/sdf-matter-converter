@@ -1,3 +1,11 @@
+/**
+ * @file
+ * @author Niklas Meyer <nik_mey@uni-bremen.de>
+ *
+ * @section Description
+ *
+ * Structs to contain parsed information for sdf and functions to parse from json files.
+ */
 #ifndef SDF_H
 #define SDF_H
 
@@ -11,6 +19,9 @@
 
 using json = nlohmann::json;
 
+/**
+ * Struct which contains common quality information.
+ */
 struct commonQualityType {
     std::string description;
     std::string label;
@@ -19,8 +30,14 @@ struct commonQualityType {
     std::list<std::string> sdfRequired;
 };
 
+/**
+ * Data quality struct definition.
+ */
 struct dataQualityType;
 
+/**
+ * Struct which contains jso information.
+ */
 struct jsoItemType {
     std::string sdfRef;
     std::string description;
@@ -34,6 +51,9 @@ struct jsoItemType {
     uint maxLength;
 };
 
+/**
+ * Struct which contains data quality information.
+ */
 struct dataQualityType : commonQualityType {
     //! JSON schema qualities
     std::string type; // number / string / boolean / integer / array
@@ -64,26 +84,45 @@ struct dataQualityType : commonQualityType {
     //! Defined in the specification
 };
 
+/**
+ * Type definition for sdfData.
+ */
 typedef std::map<std::string, dataQualityType> sdfDataType;
+
+/**
+ * Type definition for sdfChoice.
+ */
 typedef std::map<std::string, dataQualityType> sdfChoiceType;
 
+/**
+ * Struct which contains sdfEvent information.
+ */
 struct sdfEventType : commonQualityType {
     dataQualityType sdfOutputData;
     sdfDataType sdfData;
 };
 
+/**
+ * Struct which contains sdfAction information.
+ */
 struct sdfActionType : commonQualityType {
     dataQualityType sdfInputData;
     dataQualityType sdfOutputData;
     sdfDataType sdfData;
 };
 
+/**
+ * Struct which contains sdfProperty information.
+ */
 struct sdfPropertyType : dataQualityType {
     bool readable = true;
     bool writable = true;
     bool observable = true;
 };
 
+/**
+ * Struct which contains sdfObject information.
+ */
 struct sdfObjectType : commonQualityType {
     //! Paedata qualities
     std::map<std::string, sdfPropertyType> sdfProperty;
@@ -95,6 +134,9 @@ struct sdfObjectType : commonQualityType {
     uint maxItems;
 };
 
+/**
+ * Struct which contains sdfThing information.
+ */
 struct sdfThingType : commonQualityType{
     //! It's currently not planed to allow for nested sdfThings as they
     //! wouldn't really be able to be translated into Matter
@@ -109,11 +151,17 @@ struct sdfThingType : commonQualityType{
     uint maxItems;
 };
 
+/**
+ * Struct which contains namespace block information.
+ */
 struct namespaceType {
     std::map<std::string, std::string> namespaces;
     std::string defaultNamespace;
 };
 
+/**
+ * Struct which contains information block information.
+ */
 struct infoBlockType {
     std::string title;
     std::string description;
@@ -125,6 +173,9 @@ struct infoBlockType {
     std::string $comment;
 };
 
+/**
+ * Struct which contains sdf-model information.
+ */
 struct sdfModelType {
     infoBlockType infoBlock;
     namespaceType namespaceBlock;
@@ -133,13 +184,35 @@ struct sdfModelType {
     std::optional<sdfObjectType> sdfObject;
 };
 
+/**
+ * Struct which contains sdf-mapping information.
+ */
 struct sdfMappingType {
     infoBlockType infoBlock;
     namespaceType namespaceBlock;
     std::map<std::string, std::string> map;
 };
 
+/**
+ * @brief Parse a sdf-model.
+ *
+ * This functions parses a sdf-model into an object.
+ *
+ * @param sdf_model The input sdf-model.
+ * @param sdfModel The resulting object.
+ * @return 0 on success, negative on failure.
+ */
 int parseSdfModel(const json& sdf_model, sdfModelType& sdfModel);
+
+/**
+ * @brief Parse a sdf-mapping.
+ *
+ * This function parses a sdf-mapping into an object.
+ *
+ * @param sdf_mapping The input sdf-mapping.
+ * @param sdfMapping The resulting object.
+ * @return 0 on success, negative on failure.
+ */
 int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping);
 
 #endif //SDF_H

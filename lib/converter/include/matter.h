@@ -4,7 +4,7 @@
  *
  * @section Description
  *
- * Structs to contain parsed information for Matter and functions to parse from xml files.
+ * Structs to contain parsed information for matter and functions to parse from xml files.
  */
 #ifndef MATTER_H
 #define MATTER_H
