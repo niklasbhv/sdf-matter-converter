@@ -13,7 +13,8 @@ add_executable(sdf_matter_converter src/main.cpp
         lib/converter/src/matter.cpp
         lib/converter/include/matter.h
         lib/converter/src/mapping.cpp
-        lib/converter/include/mapping.h)
+        lib/converter/include/mapping.h
+        src/main.h)
 
 # add dependencies
 include(cmake/CPM.cmake)

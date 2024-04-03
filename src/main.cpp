@@ -1,10 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <nlohmann/json.hpp>
-//TODO: Currently using Pugixml for performance und footprint, might make validation optional (Xerces) to safe resources
 #include <pugixml.hpp>
 #include <argparse/argparse.hpp>
 #include <converter.h>
+#include "main.h"
+
+//#define VALIDATE
 
 using json = nlohmann::json;
 
