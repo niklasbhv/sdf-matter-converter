@@ -1,6 +1,3 @@
-//
-// Created by Niklas on 26.02.2024.
-//
 #include <nlohmann/json.hpp>
 #include <fstream>
 
@@ -21,7 +18,7 @@ int validateSdf(const char* path, const char* schema)
     return 0;
 }
 
-int validateMatter()
+int validateMatter(const char* path, const char* schema)
 {
     return 0;
 }
