@@ -41,7 +41,7 @@
  * @param json_file The resulting json object.
  * @return 0 on success, negative on failure,
  */
-inline int loadJsonFile(const char* path, nlohmann::json& json_file)
+static inline int loadJsonFile(const char* path, nlohmann::json& json_file)
 {
     std::ifstream f(path);
     json_file = nlohmann::json::parse(f);
@@ -57,7 +57,7 @@ inline int loadJsonFile(const char* path, nlohmann::json& json_file)
  * @param json_file The input json file.
  * @return 0 on success, negative on failure.
  */
-inline int saveJsonFile(const char* path, nlohmann::json& json_file)
+static inline int saveJsonFile(const char* path, nlohmann::json& json_file)
 {
     std::ofstream f(path);
     f << json_file;
@@ -73,7 +73,7 @@ inline int saveJsonFile(const char* path, nlohmann::json& json_file)
  * @param xml_file The resulting xml file.
  * @return 0 on success, negative on failure.
  */
-inline int loadXmlFile(const char* path, pugi::xml_document& xml_file)
+static inline int loadXmlFile(const char* path, pugi::xml_document& xml_file)
 {
     pugi::xml_parse_result result = xml_file.load_file(path);
     if (!result){
@@ -92,7 +92,7 @@ inline int loadXmlFile(const char* path, pugi::xml_document& xml_file)
  * @param xml_file The input xml file.
  * @return 0 on success, negative on failure.
  */
-inline int saveXmlFile(const char* path, pugi::xml_document& xml_file)
+static inline int saveXmlFile(const char* path, pugi::xml_document& xml_file)
 {
     return xml_file.save_file(path);
 }
