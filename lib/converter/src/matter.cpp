@@ -15,17 +15,12 @@
  */
 
 #include "matter.h"
-#include "sdf.h"
 #include <list>
 #include <pugixml.hpp>
 #include <iostream>
 
 //TODO: Trying to interpret strings as types can fail and should be caught
 //TODO: Many of these are optional, how does the code react to missing attributes?
-
-//
-// Functions responsible for the Matter -> SDF conversion
-//
 
 int parseBitmap(pugi::xml_node& bitmap_type_node, bitmapType& bitmap)
 {
@@ -142,6 +137,7 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
 
 int parseCluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
 {
+    // TODO: Currently enums and bitmaps are parsed for every cluster, even if they're not needed
     // Iterate through all enum children
     std::list<enumType> enums;
     for (pugi::xml_node enum_node: cluster_xml.children("enum")){
@@ -159,45 +155,44 @@ int parseCluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
     }
 
     // Iterate through all clusters children
-    for (pugi::xml_node cluster_node: cluster_xml.children("cluster")) {
-        cluster.name = cluster_node.child("name").child_value();
-        cluster.domain = cluster_node.child("domain").child_value();
-        cluster.description = cluster_node.child("description").child_value();
-        cluster.code = cluster_node.child("code").child_value();
-        cluster.define = cluster_node.child("define").child_value();
-        // cluster.server
-        // cluster.client
-        // cluster.generateCmdHandlers
-        // cluster.tag
-        // cluster.globalAttribute
+    for (auto cluster_node : cluster_xml.children("configurator")){
+        // Search for the matching cluster definition
+        if (cluster_node.child("name").value() == cluster.name){
+            cluster.domain = cluster_node.child("domain").child_value();
+            cluster.description = cluster_node.child("description").child_value();
+            cluster.code = cluster_node.child("code").child_value();
+            cluster.define = cluster_node.child("define").child_value();
+            // cluster.generateCmdHandlers
+            // cluster.tag
+            // cluster.globalAttribute
 
-        // Iterate through all attribute children
-        std::list<attributeType> attributeList;
-        for (pugi::xml_node attribute_node: cluster_node.children("attribute")) {
-            attributeType attribute;
-            parseAttribute(attribute_node, attribute);
-            attributeList.push_back(attribute);
+            // Iterate through all attribute children
+            std::list<attributeType> attributeList;
+            for (pugi::xml_node attribute_node: cluster_node.children("attribute")) {
+                attributeType attribute;
+                parseAttribute(attribute_node, attribute);
+                attributeList.push_back(attribute);
+            }
+            cluster.attributes = attributeList;
+
+            // Iterate through all command children
+            std::list<commandType> commandList;
+            for (pugi::xml_node command_node: cluster_node.children("command")) {
+                commandType command;
+                parseCommand(command_node, command);
+                commandList.push_back(command);
+            }
+            cluster.commands = commandList;
+
+            // Iterate through all event children
+            std::list<eventType> eventList;
+            for (pugi::xml_node event_node: cluster_node.children("event")) {
+                eventType event;
+                parseEvent(event_node, event);
+                eventList.push_back(event);
+            }
+            cluster.events = eventList;
         }
-        cluster.attributes = attributeList;
-
-        // Iterate through all command children
-        std::list<commandType> commandList;
-        for (pugi::xml_node command_node: cluster_node.children("command")) {
-            commandType command;
-            parseCommand(command_node, command);
-            commandList.push_back(command);
-        }
-        cluster.commands = commandList;
-
-        // Iterate through all event children
-        std::list<eventType> eventList;
-        for (pugi::xml_node event_node: cluster_node.children("event")) {
-            eventType event;
-            parseEvent(event_node, event);
-            eventList.push_back(event);
-        }
-        cluster.events = eventList;
-
     }
     return 0;
 }
