@@ -244,8 +244,10 @@ struct clusterType {
     std::string description;
     std::string code; //zclCode -> Mapping file
     std::string define;
-    serverType server;
-    clientType client;
+    //! Originally serverType, simplified to bool for now
+    bool server;
+    //! Originally clientType, simplified to bool for now
+    bool client;
     bool generateCmdHandlers; // min = 0;
     std::list<tagType> tag;
     std::list<globalAttributeType> globalAttribute;
@@ -274,26 +276,17 @@ struct deviceType {
     std::list<clusterType> clusters;
 };
 
-/**
- * @brief Parses xml-file into a list of clusters.
- *
- * This function takes a cluster definitions in xml format and converts them into a list of clusters.
- *
- * @param cluster_xml Cluster definitions in xml format.
- * @param clusterList The resulting list of parsed clusters.
- * @return 0 on success, negative on failure.
- */
-int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clusterList);
 
 /**
  * @brief Parses xml-file into a device.
  *
- * This function takes a device definition in xml format and converts it into a device.
+ * This function takes a device definition and the cluster definitions in xml format and converts it into a device.
  *
  * @param device_xml Device definitions in xml format.
+ * @param cluster_xml Cluster definitions in xml format.
  * @param device The resulting device.
  * @return 0 on success, negative on failure.
  */
-int parseDevice(const pugi::xml_node& device_xml, deviceType& device);
+int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device);
 
 #endif //MATTER_H

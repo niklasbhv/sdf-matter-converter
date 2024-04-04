@@ -140,9 +140,9 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
     return 0;
 }
 
-int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clusterList)
+int parseCluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
 {
-    //! Iterate through all enum children
+    // Iterate through all enum children
     std::list<enumType> enums;
     for (pugi::xml_node enum_node: cluster_xml.children("enum")){
         enumType enm;
@@ -150,7 +150,7 @@ int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clu
         enums.push_back(enm);
     }
 
-    //! Iterate through all bitmap children
+    // Iterate through all bitmap children
     std::list<bitmapType> bitmaps;
     for (pugi::xml_node bitmap_node: cluster_xml.children("bitmap")){
         bitmapType bitmap;
@@ -158,9 +158,8 @@ int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clu
         bitmaps.push_back(bitmap);
     }
 
-    //! Iterate through all clusters children
+    // Iterate through all clusters children
     for (pugi::xml_node cluster_node: cluster_xml.children("cluster")) {
-        clusterType cluster;
         cluster.name = cluster_node.child("name").child_value();
         cluster.domain = cluster_node.child("domain").child_value();
         cluster.description = cluster_node.child("description").child_value();
@@ -172,7 +171,7 @@ int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clu
         // cluster.tag
         // cluster.globalAttribute
 
-        //! Iterate through all attribute children
+        // Iterate through all attribute children
         std::list<attributeType> attributeList;
         for (pugi::xml_node attribute_node: cluster_node.children("attribute")) {
             attributeType attribute;
@@ -181,7 +180,7 @@ int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clu
         }
         cluster.attributes = attributeList;
 
-        //! Iterate through all command children
+        // Iterate through all command children
         std::list<commandType> commandList;
         for (pugi::xml_node command_node: cluster_node.children("command")) {
             commandType command;
@@ -190,7 +189,7 @@ int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clu
         }
         cluster.commands = commandList;
 
-        //! Iterate through all event children
+        // Iterate through all event children
         std::list<eventType> eventList;
         for (pugi::xml_node event_node: cluster_node.children("event")) {
             eventType event;
@@ -199,12 +198,11 @@ int parseClusters(const pugi::xml_node& cluster_xml, std::list<clusterType>& clu
         }
         cluster.events = eventList;
 
-        clusterList.push_back(cluster);
     }
     return 0;
 }
 
-int parseDevice(const pugi::xml_node& device_xml, deviceType& device)
+int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device)
 {
         auto device_node = device_xml.child("deviceType");
         device.name = device_node.child("name").child_value();
@@ -218,17 +216,16 @@ int parseDevice(const pugi::xml_node& device_xml, deviceType& device)
         device.deviceId = device_node.child("deviceId").child_value();
         std::cout << "Device ID: " << device.deviceId << std::endl;
 
-        //! Iterate through all clusters children
+        // Iterate through all clusters children
+        // Each cluster gets parsed afterward, this way only clusters that are used for a device are parsed
         for (pugi::xml_node cluster_node: device_node.children("clusters")) {
-            //TODO: It might be useful to match these to the definitions inside the cluster xml to minimize computation
-            //TODO: On the other hand it could be overhead as we have to iterate through this list
             clusterType cluster;
-            //TODO: Which of these do we need to keep? Consider round tripping
             cluster.name = cluster_node.attribute("cluster").value();
-            //cluster.client = cluster_node.attribute("client").value();
-            //cluster.server = cluster_node.attribute("server").value();
+            cluster.client = cluster_node.attribute("client").as_bool();
+            cluster.server = cluster_node.attribute("server").as_bool();
             //cluster_node.attribute("clientLocked").value();
             //cluster_node.attribute("serverLocked").value();
+            parseCluster(cluster_xml, cluster);
             device.clusters.push_back(cluster);
         }
     return 0;

@@ -28,11 +28,8 @@ using json = nlohmann::json;
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
 {
     deviceType device;
-    parseDevice(device_xml.document_element(), device);
-    std::list<clusterType> clusterList;
-    parseClusters(cluster_xml.document_element(), clusterList);
-    std::cout << "Number of parsed Clusters: " << clusterList.size() << std::endl;
-    map_matter_to_sdf(device, clusterList);
+    parseDevice(device_xml.document_element(), cluster_xml.document_element(), device);
+    map_matter_to_sdf(device);
     return 0;
 }
 

@@ -340,7 +340,7 @@ struct simple_walker: pugi::xml_tree_walker
 
 
 //! Matter -> SDF
-int map_matter_to_sdf(deviceType& device, std::list<clusterType>& clusterList)
+int map_matter_to_sdf(deviceType& device)
 {
     pugi::xml_document referenceTree;
     referenceTree.append_child("#").append_child("sdfThing");
@@ -352,7 +352,7 @@ int map_matter_to_sdf(deviceType& device, std::list<clusterType>& clusterList)
     //! Iterate through clusters
     std::list<sdfObjectType> sdfObjectList;
     auto cluster_node = referenceTree.child("#").child("sdfThing").child(device.name.c_str()).child("sdfObject");
-    for (auto cluster : clusterList){
+    for (auto cluster : device.clusters){
         sdfObjectType sdfObject;
         map_matter_cluster(cluster, sdfObject, cluster_node);
         sdfObjectList.push_back(sdfObject);
