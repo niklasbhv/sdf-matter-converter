@@ -157,7 +157,9 @@ int parseCluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
     // Iterate through all clusters children
     for (auto cluster_node : cluster_xml.children("configurator")){
         // Search for the matching cluster definition
+        std::cout << "Searching for Cluster: " << cluster_node.child("name").value() << std::endl;
         if (cluster_node.child("name").value() == cluster.name){
+            std::cout << "Currently parsing Cluster: " << cluster.name << std::endl;
             cluster.domain = cluster_node.child("domain").child_value();
             cluster.description = cluster_node.child("description").child_value();
             cluster.code = cluster_node.child("code").child_value();
@@ -213,7 +215,7 @@ int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_
 
         // Iterate through all clusters children
         // Each cluster gets parsed afterward, this way only clusters that are used for a device are parsed
-        for (pugi::xml_node cluster_node: device_node.children("clusters")) {
+        for (pugi::xml_node cluster_node: device_node.child("clusters").children()) {
             clusterType cluster;
             cluster.name = cluster_node.attribute("cluster").value();
             cluster.client = cluster_node.attribute("client").as_bool();
