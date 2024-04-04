@@ -3,8 +3,10 @@ project(converter)
 
 # Add a library with the above sources
 add_library(${PROJECT_NAME} src/converter.cpp
+        src/mapping.cpp
         src/matter.cpp
         src/sdf.cpp
+        include/mapping.h
         include/matter.h
         include/sdf.h)
 
@@ -13,7 +15,6 @@ include(../../cmake/CPM.cmake)
 
 CPMAddPackage("gh:nlohmann/json@3.11.3")
 CPMAddPackage("gh:zeux/pugixml@1.14")
-CPMAddPackage("gh:obgm/libcoap@4.3.4")
 
 target_include_directories( ${PROJECT_NAME}
         PUBLIC ${PROJECT_SOURCE_DIR}/include

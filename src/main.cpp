@@ -6,7 +6,7 @@
 #include <converter.h>
 #include "main.h"
 
-//#define VALIDATE
+#define VALIDATE
 
 using json = nlohmann::json;
 
