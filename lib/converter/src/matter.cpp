@@ -106,7 +106,7 @@ int parseCommand(const pugi::xml_node& commandNode, commandType command)
 
 int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribute)
 {
-    attribute.name = attribute_node.value();
+    attribute.name = attribute_node.child_value();
     std::cout << "Currently parsing Attribute: " << attribute.name << std::endl;
     attribute.description = attribute_node.child("description").value();
     for (const pugi::xml_node& accessNode : attribute_node.children("access")){
