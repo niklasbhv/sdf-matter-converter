@@ -50,7 +50,7 @@ int parseCommonQualities(const json& sdf_elem, commonQualityType& commonQuality)
     return 0;
 }
 
-//! Function prototype for parseDataQualities
+// Function prototype for parseDataQualities
 int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQuality);
 
 int parseSdfChoice(const json& sdfchoice_json, std::map<std::string, dataQualityType> sdfChoiceMap)
@@ -323,13 +323,13 @@ int parseSdfModel(const json& sdf_model, sdfModelType& sdfModel)
         }
     }
 
-    //! Does the SDF-Model contain a sdfThing?
+    // Check if the sdf-model contains a sdfThing
     if (sdf_model.contains("sdfThing")){
         std::map<std::string, sdfThingType>sdfThingMap;
         sdfThingType sdfThing;
         parseSdfThing(sdf_model.at("sdfThing"), sdfThing);
     }
-    //! If not, does the SDF-Model contain a sdfObject?
+    // If not, check if the sdf-model contains a sdfObject
     else if (sdf_model.contains("sdfObject")) {
         sdfObjectType sdfObject;
         parseSdfObject(sdf_model.at("sdfObject"), sdfObject);
@@ -357,21 +357,21 @@ int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping)
     }
     if (sdf_mapping.contains("map")) {
         //TODO: Currently not sure how to implement different types and custom fields
-        //! Iterate through all items in the map section
+        // Iterate through all items in the map section
         for (auto& mapping : sdf_mapping.at("map").items()) {
             auto& link = mapping.key();
             pugi::xml_node current_node = mappingTree.root();
             int j = 0;
-            //! Disassemble the JSON reference into its substrings and add them into a tree structure
+            // Disassemble the JSON reference into its substrings and add them into a tree structure
             for (int i = 0; i < link.size(); i++){
                 if (link[i] == '/') {
                     mappingTree.append_child(link.substr(j, i).c_str());
                     j = i;
                 }
             }
-            //! Iterate through all items available at this JSON reference
+            // Iterate through all items available at this JSON reference
             for (auto& items : mapping.value().items()){
-                //! Add a new attribute with its matching value
+                // Add a new attribute with its matching value
                 mappingTree.append_attribute(items.key().c_str());
                 //mappingTree.attribute(items.key().c_str()).set_value(items.value().get_to(char*));
             }
@@ -379,5 +379,26 @@ int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping)
             std::cout << mappingTree.path() << std::endl;
         }
     }
+    return 0;
+}
+using nlohmann::to_json;
+
+int serializeCommonQualities(const commonQualityType& commonQuality, json& sdf_elem)
+{
+    if (!commonQuality.description.empty())
+        sdf_elem["description"] = commonQuality.description;
+    if (!commonQuality.label.empty())
+        sdf_elem["label"] = commonQuality.label;
+    if (!commonQuality.$comment.empty())
+        sdf_elem["$comment"] = commonQuality.$comment;
+    if (!commonQuality.sdfRef.empty())
+        sdf_elem["sdfRef"] = commonQuality.sdfRef;
+    if (!commonQuality.sdfRequired.empty())
+        sdf_elem["sdfRequired"] = commonQuality.sdfRequired;
+    return 0;
+}
+
+int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model)
+{
     return 0;
 }
