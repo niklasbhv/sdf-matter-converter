@@ -75,6 +75,7 @@ int parseEvent(const pugi::xml_node& eventNode, eventType event)
     }
     event.code = eventNode.attribute("code").value();
     event.name = eventNode.attribute("name").value();
+    std::cout << "Currently parsing Event: " << event.name << std::endl;
     event.side = eventNode.attribute("side").value();
     event.priority = eventNode.attribute("priority").value();
     return 0;
@@ -95,6 +96,7 @@ int parseCommand(const pugi::xml_node& commandNode, commandType command)
     command.noDefaultImplementation = commandNode.attribute("noDefaultImplementation").as_bool();
     command.manufacturerCode = commandNode.attribute("manufacturerCode").value();
     command.name = commandNode.attribute("name").value();
+    std::cout << "Currently parsing Command: " << command.name << std::endl;
     command.optional = commandNode.attribute("optional").as_bool();
     command.source = commandNode.attribute("source").value();
     command.restriction = commandNode.attribute("restriction").value();
@@ -105,6 +107,7 @@ int parseCommand(const pugi::xml_node& commandNode, commandType command)
 int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribute)
 {
     attribute.name = attribute_node.value();
+    std::cout << "Currently parsing Attribute: " << attribute.name << std::endl;
     attribute.description = attribute_node.child("description").value();
     for (const pugi::xml_node& accessNode : attribute_node.children("access")){
         accessType access;
@@ -155,10 +158,11 @@ int parseCluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
     }
 
     // Iterate through all clusters children
-    for (auto cluster_node : cluster_xml.children("configurator")){
+    for (auto cluster_node : cluster_xml.children("cluster")){
         // Search for the matching cluster definition
-        std::cout << "Searching for Cluster: " << cluster_node.child("name").value() << std::endl;
-        if (cluster_node.child("name").value() == cluster.name){
+        std::cout << "Searching for Cluster: " << cluster.name << std::endl;
+        std::cout << "Currently found Cluster: " << cluster_node.child("name").child_value() << std::endl;
+        if (cluster.name == cluster_node.child("name").child_value()){
             std::cout << "Currently parsing Cluster: " << cluster.name << std::endl;
             cluster.domain = cluster_node.child("domain").child_value();
             cluster.description = cluster_node.child("description").child_value();
