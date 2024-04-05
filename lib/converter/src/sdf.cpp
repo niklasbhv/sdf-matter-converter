@@ -432,6 +432,15 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
     return 0;
 }
 
+int serializeNamespaceBlock(const namespaceType& namespaceBlock, json& namespace_block_json)
+{
+    if (!namespaceBlock.namespaces.empty())
+        namespace_block_json["namespaces"] = namespaceBlock.namespaces;
+    if (!namespaceBlock.defaultNamespace.empty())
+        namespace_block_json["defaultNamespace"] = namespaceBlock.defaultNamespace;
+    return 0;
+}
+
 int serializeInfoBlock(const infoBlockType& infoBlock, json& info_block_json)
 {
     if (!infoBlock.title.empty())
