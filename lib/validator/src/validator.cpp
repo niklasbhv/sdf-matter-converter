@@ -23,9 +23,15 @@ using nlohmann::json_schema::json_validator;
 
 int loadJsonFile(const char* path, nlohmann::json& json_file)
 {
-    std::ifstream f(path);
-    json_file = nlohmann::json::parse(f);
-    return 0;
+    try {
+        std::ifstream f(path);
+        json_file = nlohmann::json::parse(f);
+    }
+    catch (const std::exception& err) {
+        std::cerr << "Failed to load JSON file: " << path << std::endl;
+        std::cerr << err.what() << std::endl;
+        return -1;
+    }
 }
 
 int validateSdf(const char* path, const char* schema)
