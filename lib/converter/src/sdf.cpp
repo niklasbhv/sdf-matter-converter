@@ -516,3 +516,8 @@ int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json)
 
     return 0;
 }
+
+int serializeSdfMapping(const sdfMappingType& sdfMapping, json& sdf_mapping_json)
+{
+    return 0;
+}

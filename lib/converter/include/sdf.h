@@ -231,4 +231,27 @@ int parseSdfModel(const json& sdf_model, sdfModelType& sdfModel);
  */
 int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping);
 
+
+/**
+ * @brief Serialize a sdf-model.
+ *
+ * This function serializes a sdf-model into json.
+ *
+ * @param sdfModel The input sdf-model.
+ * @param sdf_model_json The resulting json.
+ * @return 0 on success, negative on failure.
+ */
+int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json);
+
+/**
+ * @bried Serialize a sdf-mapping.
+ *
+ * This function serializes a sdf-mapping into json.
+ *
+ * @param sdfMapping The input sdf-mapping.
+ * @param sdf_mapping_json The resulting json.
+ * @return 0 on success, negative on failure.
+ */
+int serializeSdfMapping(const sdfMappingType& sdfMapping, json& sdf_mapping_json);
+
 #endif //SDF_H
