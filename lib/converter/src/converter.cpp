@@ -40,5 +40,8 @@ int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_doc
     sdfModelType sdfModel;
     sdfMappingType sdfMapping;
     map_matter_to_sdf(device, sdfModel, sdfMapping);
+
+    serializeSdfModel(sdfModel, sdf_model);
+    serializeSdfMapping(sdfMapping, sdf_mapping);
     return 0;
 }
