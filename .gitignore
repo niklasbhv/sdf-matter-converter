@@ -36,7 +36,11 @@
 
 /cmake-build-debug
 
-# IntelliJ Idea folder
+# IDE specific folders
 
 /.idea
+/.vs
+
+# Documentation folder
+
 /doc/*
