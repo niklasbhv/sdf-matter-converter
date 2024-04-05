@@ -52,12 +52,17 @@ struct commonQualityType {
 struct dataQualityType;
 
 /**
+ * Type definition for sdfChoice.
+ */
+typedef std::map<std::string, dataQualityType> sdfChoiceType;
+
+/**
  * Struct which contains jso information.
  */
 struct jsoItemType {
     std::string sdfRef;
     std::string description;
-    std::map<std::string, dataQualityType> sdfChoice;
+    sdfChoiceType sdfChoice;
     std::list<std::string> enum_;
     std::string type;
     int minimum = -1; // number
@@ -66,11 +71,6 @@ struct jsoItemType {
     uint minLength;
     uint maxLength;
 };
-
-/**
- * Type definition for sdfChoice.
- */
-typedef std::map<std::string, dataQualityType> sdfChoiceType;
 
 /**
  * Struct which contains data quality information.
