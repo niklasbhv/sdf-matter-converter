@@ -46,9 +46,10 @@ inline pugi::xml_node mappingTreeCurrentNode = mappingTree.root();
  *
  * @param sdfModel The input sdf-model.
  * @param sdfMappingType The input sdf-mapping.
+ * @param device The resulting device definition.
  * @return 0 on success, negative on failure.
  */
-int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType);
+int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType, deviceType& device);
 
 /**
  * @brief Map a device and cluster definition to a sdf-object.
@@ -56,8 +57,10 @@ int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType);
  * This function maps a device onto a sdf-model and sdf-mapping.
  *
  * @param device The input device definition.
+ * @param sdfModel The resulting sdf-model.
+ * @param sdfMapping The resulting sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int map_matter_to_sdf(deviceType& device);
+int map_matter_to_sdf(deviceType& device, sdfModelType& sdfModel, sdfMappingType& sdfMapping);
 
 #endif //MAPPING_H

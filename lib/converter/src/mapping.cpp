@@ -143,14 +143,13 @@ int map_sdf_thing(sdfThingType& sdfThing, deviceType& device)
     return 0;
 }
 
-int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType)
+int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType, deviceType& device)
 {
     //! Make the SDF mapping global
     //MappingList.merge(sdfMappingType.map);
 
     std::list<clusterType> clusterList;
     if (sdfModel.sdfThing.has_value()){
-        deviceType device;
         map_sdf_thing(sdfModel.sdfThing.value(), device);
     } else if (sdfModel.sdfObject.has_value()){
         // TODO: If no sdfThings are present, a new device with a single cluster has to be created
@@ -340,14 +339,14 @@ struct simple_walker: pugi::xml_tree_walker
 
 
 //! Matter -> SDF
-int map_matter_to_sdf(deviceType& device)
+int map_matter_to_sdf(deviceType& device, sdfModelType& sdfModel, sdfMappingType& sdfMapping)
 {
+    //TODO: sdfMapping is currently unused
     pugi::xml_document referenceTree;
     referenceTree.append_child("#").append_child("sdfThing");
     auto device_node = referenceTree.child("#").child("sdfThing");
     //! Create a walker to visually represent the tree
     simple_walker walker;
-    sdfModelType sdfModel;
     map_matter_device(device, sdfModel, device_node);
     //! Iterate through clusters
     std::list<sdfObjectType> sdfObjectList;
