@@ -495,9 +495,7 @@ int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json)
     sdf_model_json["info"] = info_block_json;
 
     // Serialize the namespace information and append it
-    json namespace_block_json;
-    serializeNamespaceBlock(sdfModel.namespaceBlock, namespace_block_json);
-    sdf_model_json.push_back(namespace_block_json);
+    serializeNamespaceBlock(sdfModel.namespaceBlock, sdf_model_json);
 
     if (sdfModel.sdfThing.has_value()){
         json sdf_thing_json;
