@@ -25,9 +25,7 @@
 
 #include <nlohmann/json.hpp>
 #include <pugixml.hpp>
-#ifdef VALIDATE
 #include "validator.h"
-#endif
 
 #ifndef SDF_MATTER_CONVERTER_MAIN_H
 #define SDF_MATTER_CONVERTER_MAIN_H
@@ -43,8 +41,15 @@
  */
 static inline int loadJsonFile(const char* path, nlohmann::json& json_file)
 {
-    std::ifstream f(path);
-    json_file = nlohmann::json::parse(f);
+    try {
+        std::ifstream f(path);
+        json_file = nlohmann::json::parse(f);
+    }
+    catch (const std::exception& err) {
+        std::cerr << "Failed to load JSON file: " << path << std::endl;
+        std::cerr << err.what() << std::endl;
+        return -1;
+    }
     return 0;
 }
 
@@ -59,8 +64,15 @@ static inline int loadJsonFile(const char* path, nlohmann::json& json_file)
  */
 static inline int saveJsonFile(const char* path, nlohmann::json& json_file)
 {
-    std::ofstream f(path);
-    f << json_file;
+    try {
+        std::ofstream f(path);
+        f << json_file;
+    }
+    catch (const std::exception& err) {
+        std::cerr << "Failed to save JSON file: " << path << std::endl;
+        std::cerr << err.what() << std::endl;
+        return -1;
+    }
     return 0;
 }
 
@@ -77,7 +89,7 @@ static inline int loadXmlFile(const char* path, pugi::xml_document& xml_file)
 {
     pugi::xml_parse_result result = xml_file.load_file(path);
     if (!result){
-        std::cerr << "Could not load XML file" << std::endl;
+        std::cerr << "Failed to load XML file: " << path << std::endl;
         return -1;
     }
     return 0;
