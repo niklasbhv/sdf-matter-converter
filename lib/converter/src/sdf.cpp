@@ -432,6 +432,31 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
     return 0;
 }
 
+int serializeSdfEvent(const sdfEventType& sdfEvent, json& sdf_event_json)
+{
+    return 0;
+}
+
+int serializeSdfAction(const sdfActionType& sdfAction, json& sdf_action_json)
+{
+    return 0;
+}
+
+int serializeSdfProperty(const sdfPropertyType& sdfProperty, json& sdf_property_json)
+{
+    return 0;
+}
+
+int serializeSdfObject(const sdfObjectType& sdfObject, json& sdf_object_json)
+{
+    return 0;
+}
+
+int serializeSdfThing(const sdfThingType& sdfThing, json& sdf_thing_json)
+{
+    return 0;
+}
+
 int serializeNamespaceBlock(const namespaceType& namespaceBlock, json& namespace_block_json)
 {
     if (!namespaceBlock.namespaces.empty())
