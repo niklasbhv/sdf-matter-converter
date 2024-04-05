@@ -21,7 +21,7 @@
 #include "matter.h"
 #include "sdf.h"
 
-using json = nlohmann::json;
+using json = nlohmann::ordered_json;
 
 int parseCommonQualities(const json& sdf_elem, commonQualityType& commonQuality)
 {

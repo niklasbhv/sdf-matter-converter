@@ -42,7 +42,7 @@
  * @param cluster_xml The output cluster definition.
  * @return 0 on success, negative on failure.
  */
-int convertSdfToMatter(const nlohmann::json& sdf_model, const nlohmann::json& sdf_mapping, pugi::xml_document& device_xml, pugi::xml_document& cluster_xml);
+int convertSdfToMatter(const nlohmann::ordered_json& sdf_model, const nlohmann::ordered_json& sdf_mapping, pugi::xml_document& device_xml, pugi::xml_document& cluster_xml);
 
 /**
  * @brief Convert matter to sdf.
@@ -55,6 +55,6 @@ int convertSdfToMatter(const nlohmann::json& sdf_model, const nlohmann::json& sd
  * @param sdf_mapping The output sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml, nlohmann::json& sdf_model, nlohmann::json& sdf_mapping);
+int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping);
 
 #endif //CONVERTER_H

@@ -22,7 +22,7 @@
 #include <converter.h>
 #include "main.h"
 
-using json = nlohmann::json;
+using json = nlohmann::ordered_json;
 
 int main(int argc, char *argv[]) {
     argparse::ArgumentParser program("sdf-matter-converter");

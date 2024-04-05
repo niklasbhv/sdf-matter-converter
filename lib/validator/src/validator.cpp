@@ -18,28 +18,29 @@
 #include <fstream>
 #include <iostream>
 
-using nlohmann::json;
+using nlohmann::ordered_json;
 using nlohmann::json_schema::json_validator;
 
-int loadJsonFile(const char* path, nlohmann::json& json_file)
+int loadJsonFile(const char* path, nlohmann::ordered_json& json_file)
 {
     try {
         std::ifstream f(path);
-        json_file = nlohmann::json::parse(f);
+        json_file = nlohmann::ordered_json::parse(f);
     }
     catch (const std::exception& err) {
         std::cerr << "Failed to load JSON file: " << path << std::endl;
         std::cerr << err.what() << std::endl;
         return -1;
     }
+    return 0;
 }
 
 int validateSdf(const char* path, const char* schema)
 {
     //Load the json file as well as the schema
-    nlohmann::json json_file;
+    nlohmann::ordered_json json_file;
     loadJsonFile(path, json_file);
-    nlohmann::json json_schema;
+    nlohmann::ordered_json json_schema;
     loadJsonFile(schema, json_schema);
 
     // Create a new validator and set its schema

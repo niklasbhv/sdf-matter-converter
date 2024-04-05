@@ -39,11 +39,11 @@
  * @param json_file The resulting json object.
  * @return 0 on success, negative on failure,
  */
-static inline int loadJsonFile(const char* path, nlohmann::json& json_file)
+static inline int loadJsonFile(const char* path, nlohmann::ordered_json& json_file)
 {
     try {
         std::ifstream f(path);
-        json_file = nlohmann::json::parse(f);
+        json_file = nlohmann::ordered_json::parse(f);
     }
     catch (const std::exception& err) {
         std::cerr << "Failed to load JSON file: " << path << std::endl;
@@ -62,7 +62,7 @@ static inline int loadJsonFile(const char* path, nlohmann::json& json_file)
  * @param json_file The input json file.
  * @return 0 on success, negative on failure.
  */
-static inline int saveJsonFile(const char* path, nlohmann::json& json_file)
+static inline int saveJsonFile(const char* path, nlohmann::ordered_json& json_file)
 {
     try {
         std::ofstream f(path);

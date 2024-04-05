@@ -20,7 +20,7 @@
 #include "sdf.h"
 #include "mapping.h"
 
-int convertSdfToMatter(const nlohmann::json& sdf_model, const nlohmann::json& sdf_mapping, pugi::xml_document& device_xml, pugi::xml_document& cluster_xml)
+int convertSdfToMatter(const nlohmann::ordered_json& sdf_model, const nlohmann::ordered_json& sdf_mapping, pugi::xml_document& device_xml, pugi::xml_document& cluster_xml)
 {
     sdfModelType sdfModel;
     parseSdfModel(sdf_model, sdfModel);
@@ -32,7 +32,7 @@ int convertSdfToMatter(const nlohmann::json& sdf_model, const nlohmann::json& sd
     return 0;
 }
 
-int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml, nlohmann::json& sdf_model, nlohmann::json& sdf_mapping)
+int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping)
 {
     deviceType device;
     parseDevice(device_xml.document_element(), cluster_xml.document_element(), device);

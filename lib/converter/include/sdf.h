@@ -33,7 +33,7 @@
 
 //TODO: How do we check if uint or bool are empty?
 
-using json = nlohmann::json;
+using json = nlohmann::ordered_json;
 
 /**
  * Struct which contains common quality information.
