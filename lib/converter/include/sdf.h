@@ -28,8 +28,8 @@
 #include <string>
 #include <map>
 #include <list>
-#include <nlohmann/json.hpp>
 #include <optional>
+#include <nlohmann/json.hpp>
 
 //TODO: How do we check if uint or bool are empty?
 

@@ -14,10 +14,10 @@
  *  limitations under the License.
  */
 
-#include "matter.h"
 #include <list>
-#include <pugixml.hpp>
 #include <iostream>
+#include <pugixml.hpp>
+#include "matter.h"
 
 //TODO: Trying to interpret strings as types can fail and should be caught
 //TODO: Many of these are optional, how does the code react to missing attributes?

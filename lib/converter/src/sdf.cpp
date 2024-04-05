@@ -14,12 +14,12 @@
  *  limitations under the License.
  */
 
-#include "sdf.h"
-#include "matter.h"
-#include <nlohmann/json.hpp>
 #include <iostream>
 #include <string>
+#include <nlohmann/json.hpp>
 #include "mapping.h"
+#include "matter.h"
+#include "sdf.h"
 
 using json = nlohmann::json;
 
@@ -434,7 +434,5 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
 
 int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model)
 {
-
-
     return 0;
 }

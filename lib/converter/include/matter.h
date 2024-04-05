@@ -28,7 +28,7 @@
 #include <string>
 #include <map>
 #include <list>
-#include "pugixml.hpp"
+#include <pugixml.hpp>
 
 struct argType;
 

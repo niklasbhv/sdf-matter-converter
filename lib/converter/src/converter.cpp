@@ -14,16 +14,11 @@
  *  limitations under the License.
  */
 
+#include <nlohmann/json.hpp>
+#include <pugixml.hpp>
 #include "matter.h"
 #include "sdf.h"
 #include "mapping.h"
-#include <iostream>
-#include <nlohmann/json.hpp>
-#include <pugixml.hpp>
-#include <fstream>
-#include <list>
-
-using json = nlohmann::json;
 
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml)
 {
@@ -33,7 +28,7 @@ int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_doc
     return 0;
 }
 
-int convertSdfToMatter(const json& sdf_model, const json& sdf_mapping)
+int convertSdfToMatter(const nlohmann::json& sdf_model, const nlohmann::json& sdf_mapping)
 {
     sdfModelType sdfModel;
     parseSdfModel(sdf_model, sdfModel);
