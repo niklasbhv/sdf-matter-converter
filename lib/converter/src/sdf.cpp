@@ -381,24 +381,60 @@ int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping)
     }
     return 0;
 }
-using nlohmann::to_json;
 
-int serializeCommonQualities(const commonQualityType& commonQuality, json& sdf_elem)
+int serializeCommonQualities(const commonQualityType& commonQuality, json& common_quality_json)
 {
     if (!commonQuality.description.empty())
-        sdf_elem["description"] = commonQuality.description;
+        common_quality_json["description"] = commonQuality.description;
     if (!commonQuality.label.empty())
-        sdf_elem["label"] = commonQuality.label;
+        common_quality_json["label"] = commonQuality.label;
     if (!commonQuality.$comment.empty())
-        sdf_elem["$comment"] = commonQuality.$comment;
+        common_quality_json["$comment"] = commonQuality.$comment;
     if (!commonQuality.sdfRef.empty())
-        sdf_elem["sdfRef"] = commonQuality.sdfRef;
+        common_quality_json["sdfRef"] = commonQuality.sdfRef;
     if (!commonQuality.sdfRequired.empty())
-        sdf_elem["sdfRequired"] = commonQuality.sdfRequired;
+        common_quality_json["sdfRequired"] = commonQuality.sdfRequired;
+    return 0;
+}
+
+int serializeDataQualities(const dataQualityType& dataQuality, json& data_quality_json)
+{
+    if (!dataQuality.type.empty())
+        data_quality_json["type"] = dataQuality.type;
+    //sdfChoice
+    //enum_
+    if (!dataQuality.const_.empty())
+        data_quality_json["const"] = dataQuality.const_;
+    if (!dataQuality.default_.empty())
+        data_quality_json["default"] = dataQuality.default_;
+    //minimum
+    //maximum
+    //exclusiveMinimum
+    //exclusiveMaximum
+    //multipleOf
+    //minLength
+    //maxLength
+    if (!dataQuality.pattern.empty())
+        data_quality_json["pattern"] = dataQuality.pattern;
+    if (!dataQuality.format.empty())
+        data_quality_json["format"] = dataQuality.format;
+    //minItems
+    //maxItems
+    //uniqueItems
+    //items
+    if (!dataQuality.unit.empty())
+        data_quality_json["unit"] = dataQuality.unit;
+    //nullable
+    if (!dataQuality.sdfType.empty())
+        data_quality_json["sdfType"] = dataQuality.sdfType;
+    if (!dataQuality.contentFormat.empty())
+        data_quality_json["contentFormat"] = dataQuality.contentFormat;
     return 0;
 }
 
 int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model)
 {
+
+
     return 0;
 }
