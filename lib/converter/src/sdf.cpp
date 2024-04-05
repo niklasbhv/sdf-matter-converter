@@ -487,7 +487,32 @@ int serializeInfoBlock(const infoBlockType& infoBlock, json& info_block_json)
     return 0;
 }
 
-int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model)
+int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json)
 {
+    // Serialize the information block and add it to info
+    json info_block_json;
+    serializeInfoBlock(sdfModel.infoBlock, info_block_json);
+    sdf_model_json["info"] = info_block_json;
+
+    // Serialize the namespace information and append it
+    json namespace_block_json;
+    serializeNamespaceBlock(sdfModel.namespaceBlock, namespace_block_json);
+    sdf_model_json.push_back(namespace_block_json);
+
+    if (sdfModel.sdfThing.has_value()){
+        json sdf_thing_json;
+        serializeSdfThing(sdfModel.sdfThing.value(), sdf_thing_json);
+        sdf_model_json["sdfThing"] = sdf_thing_json;
+    }
+    else if (sdfModel.sdfObject.has_value()){
+        json sdf_object_json;
+        serializeSdfObject(sdfModel.sdfObject.value(), sdf_object_json);
+        sdf_model_json["sdfObject"] = sdf_object_json;
+    }
+    else {
+        // If neither sdfThing nor sdfObject are present, the models definition block is empty and thus invalid
+        return -1;
+    }
+
     return 0;
 }
