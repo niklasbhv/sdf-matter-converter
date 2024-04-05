@@ -101,7 +101,9 @@ int main(int argc, char *argv[]) {
         std::cout << "Successfully loaded Cluster XML!" << std::endl;
 
         std::cout << "Converting Matter to SDF..." << std::endl;
-        convertMatterToSdf(device_xml, cluster_xml);
+        json sdf_model;
+        json sdf_mapping;
+        convertMatterToSdf(device_xml, cluster_xml, sdf_model, sdf_mapping);
         std::cout << "Successfully converted Matter to SDF!" << std::endl;
 
         std::cout << "Saving JSON files...." << std::endl;
@@ -158,7 +160,9 @@ int main(int argc, char *argv[]) {
         std::cout << "Successfully loaded SDF-Mapping JSON!" << std::endl;
 
         std::cout << "Converting SDF to Matter..." << std::endl;
-        convertSdfToMatter(sdf_model, sdf_mapping);
+        pugi::xml_document device_xml;
+        pugi::xml_document cluster_xml;
+        convertSdfToMatter(sdf_model, sdf_mapping, device_xml, cluster_xml);
         std::cout << "Successfully converted SDF to Matter!" << std::endl;
 
         std::cout << "Saving XML files...." << std::endl;
