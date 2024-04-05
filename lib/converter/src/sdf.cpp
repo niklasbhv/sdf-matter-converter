@@ -432,6 +432,27 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
     return 0;
 }
 
+int serializeInfoBlock(const infoBlockType& infoBlock, json& info_block_json)
+{
+    if (!infoBlock.title.empty())
+        info_block_json["title"] = infoBlock.title;
+    if (!infoBlock.description.empty())
+        info_block_json["description"] = infoBlock.description;
+    if (!infoBlock.version.empty())
+        info_block_json["version"] = infoBlock.version;
+    if (!infoBlock.modified.empty())
+        info_block_json["modified"] = infoBlock.modified;
+    if (!infoBlock.copyright.empty())
+        info_block_json["copyright"] = infoBlock.copyright;
+    if (!infoBlock.license.empty())
+        info_block_json["license"] = infoBlock.license;
+    if (!infoBlock.features.empty())
+        info_block_json["features"] = infoBlock.features;
+    if (!infoBlock.$comment.empty())
+        info_block_json["$comment"] = infoBlock.$comment;
+    return 0;
+}
+
 int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model)
 {
     return 0;
