@@ -106,21 +106,21 @@ int main(int argc, char *argv[]) {
         convertMatterToSdf(device_xml, cluster_xml, sdf_model, sdf_mapping);
         std::cout << "Successfully converted Matter to SDF!" << std::endl;
 
+        //TODO: Output filenames are hardcoded for now, schema is also currently empty
         std::cout << "Saving JSON files...." << std::endl;
-        //saveJsonFile();
+        saveJsonFile("./sdf-model.json", sdf_model);
         std::cout << "Successfully saved SDF-Model!" << std::endl;
 
-        //saveJsonFile();
+        saveJsonFile("./sdf-mapping.json", sdf_mapping);
         std::cout << "Successfully saved SDF-Mapping!" << std::endl;
 
         if (program.get<bool>("--validate")){
             std::cout << "Validating output JSON files..." << std::endl;
-            //TODO: Input and Schema are empty for now
-            if (validateSdf("", "") == 0)
+            if (validateSdf("./sdf-model.json", "") == 0)
                 std::cout << "SDF-Model JSON is valid!" << std::endl;
             else
                 std::cout << "SDF-Model JSON is not valid!" << std::endl;
-            if (validateSdf("", "") == 0)
+            if (validateSdf("./sdf-mapping.json", "") == 0)
                 std::cout << "SDF-Mapping JSON is valid!" << std::endl;
             else
                 std::cout << "SDF-Mapping JSON is not valid!" << std::endl;
@@ -165,21 +165,21 @@ int main(int argc, char *argv[]) {
         convertSdfToMatter(sdf_model, sdf_mapping, device_xml, cluster_xml);
         std::cout << "Successfully converted SDF to Matter!" << std::endl;
 
+        //TODO: Output filenames are hardcoded for now, schema is also currently empty
         std::cout << "Saving XML files...." << std::endl;
-        //saveXmlFile();
+        saveXmlFile("./device_xml.xml", device_xml);
         std::cout << "Successfully saved Device XML!" << std::endl;
 
-        //saveXmlFile();
+        saveXmlFile("./cluster_xml.xml", cluster_xml);
         std::cout << "Successfully saved Cluster XML!" << std::endl;
 
         if (program.get<bool>("--validate")){
             std::cout << "Validating output XML files..." << std::endl;
-            //TODO: Input and Schema are empty for now
-            if (validateMatter("", "") == 0)
+            if (validateMatter("./device_xml.xml", "") == 0)
                 std::cout << "Device XML is valid!" << std::endl;
             else
                 std::cout << "Device XML is not valid!" << std::endl;
-            if (validateMatter("", "") == 0)
+            if (validateMatter("./cluster_xml.xml", "") == 0)
                 std::cout << "Cluster XML is valid!" << std::endl;
             else
                 std::cout << "Cluster XML is not valid!" << std::endl;
