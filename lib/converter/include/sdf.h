@@ -68,12 +68,17 @@ struct jsoItemType {
 };
 
 /**
+ * Type definition for sdfChoice.
+ */
+typedef std::map<std::string, dataQualityType> sdfChoiceType;
+
+/**
  * Struct which contains data quality information.
  */
 struct dataQualityType : commonQualityType {
     //! JSON schema qualities
     std::string type; // number / string / boolean / integer / array
-    std::map<std::string, dataQualityType> sdfChoice;
+    sdfChoiceType sdfChoice;
     std::list<std::string> enum_;
     std::string const_;
     std::string default_;
@@ -104,11 +109,6 @@ struct dataQualityType : commonQualityType {
  * Type definition for sdfData.
  */
 typedef std::map<std::string, dataQualityType> sdfDataType;
-
-/**
- * Type definition for sdfChoice.
- */
-typedef std::map<std::string, dataQualityType> sdfChoiceType;
 
 /**
  * Struct which contains sdfEvent information.
