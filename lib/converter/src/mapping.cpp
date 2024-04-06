@@ -315,12 +315,12 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node
     sdfThing.label = device.name;
 
     //! Iterate through cluster definitions for the device
-    for (clusterType& cluster : device.clusters){
+    for (auto cluster : device.clusters){
         sdfObjectType sdfObject;
-        //TODO: A different mapping function is needed for this
-        //map_matter_cluster(cluster, sdfObject, cluster_node);
+        map_matter_cluster(cluster, sdfObject, cluster_node);
         sdfThing.sdfObject.insert({cluster.name, sdfObject});
     }
+
     sdfModel.sdfThing = sdfThing;
     return 0;
 }
@@ -349,14 +349,6 @@ int map_matter_to_sdf(deviceType& device, sdfModelType& sdfModel, sdfMappingType
     //! Create a walker to visually represent the tree
     simple_walker walker;
     map_matter_device(device, sdfModel, device_node);
-    //! Iterate through clusters
-    std::list<sdfObjectType> sdfObjectList;
-    auto cluster_node = referenceTree.child("#").child("sdfThing").child(device.name.c_str()).child("sdfObject");
-    for (auto cluster : device.clusters){
-        sdfObjectType sdfObject;
-        map_matter_cluster(cluster, sdfObject, cluster_node);
-        sdfObjectList.push_back(sdfObject);
-    }
     //! Print the resulting tree
     referenceTree.traverse(walker);
     return 0;
