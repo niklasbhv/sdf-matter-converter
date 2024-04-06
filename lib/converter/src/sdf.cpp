@@ -449,6 +449,49 @@ int serializeSdfProperty(const sdfPropertyType& sdfProperty, json& sdf_property_
 
 int serializeSdfObject(const sdfObjectType& sdfObject, json& sdf_object_json)
 {
+    // Serialize the common qualities
+    serializeCommonQualities(sdfObject, sdf_object_json);
+
+    // Serialize the sdfObject specific fields
+    // Serialize the sdfProperties
+    if (!sdfObject.sdfProperty.empty()) {
+        json sdf_property_map_json;
+        for (const auto& sdf_property_map: sdfObject.sdfProperty) {
+            json sdf_property_json;
+            serializeSdfProperty(sdf_property_map.second, sdf_property_json);
+            sdf_property_map_json[sdf_property_map.first] = sdf_property_json;
+        }
+        sdf_object_json["sdfProperty"] = sdf_property_map_json;
+    }
+
+    // Serialize the sdfActions
+    if (!sdfObject.sdfAction.empty()) {
+        json sdf_action_map_json;
+        for (const auto& sdf_action_map: sdfObject.sdfAction) {
+            json sdf_action_json;
+            serializeSdfAction(sdf_action_map.second, sdf_action_json);
+            sdf_action_map_json[sdf_action_map.first] = sdf_action_json;
+        }
+        sdf_object_json["sdfAction"] = sdf_action_map_json;
+    }
+
+    // Serialize the sdfEvents
+    if (!sdfObject.sdfEvent.empty()) {
+        json sdf_event_map_json;
+        for (const auto& sdf_event_map: sdfObject.sdfEvent) {
+            json sdf_event_json;
+            serializeSdfEvent(sdf_event_map.second, sdf_event_json);
+            sdf_event_map_json[sdf_event_map.first] = sdf_event_json;
+        }
+        sdf_object_json["sdfEvent"] = sdf_event_map_json;
+    }
+    if (!sdfObject.sdfData.empty()) {
+        json sdf_data_json;
+        // serializeSdfData(sdfObject.sdfData, sdf_data_json);
+        sdf_object_json["sdfData"] = sdf_data_json;
+    }
+    //minItems
+    //maxItems
     return 0;
 }
 
