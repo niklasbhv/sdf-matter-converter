@@ -321,6 +321,7 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node
         //map_matter_cluster(cluster, sdfObject, cluster_node);
         sdfThing.sdfObject.insert({cluster.name, sdfObject});
     }
+    sdfModel.sdfThing = sdfThing;
     return 0;
 }
 
