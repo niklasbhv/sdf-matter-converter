@@ -454,6 +454,60 @@ int serializeSdfObject(const sdfObjectType& sdfObject, json& sdf_object_json)
 
 int serializeSdfThing(const sdfThingType& sdfThing, json& sdf_thing_json)
 {
+    // Serialize the common qualities
+    serializeCommonQualities(sdfThing, sdf_thing_json);
+
+    // Serialize the sdfThing specific fields
+    // Serialize the sdfObjects
+    if (!sdfThing.sdfObject.empty()) {
+        json sdf_object_map_json;
+        for (const auto& sdf_object_map: sdfThing.sdfObject) {
+            json sdf_object_json;
+            serializeSdfObject(sdf_object_map.second, sdf_object_json);
+            sdf_object_map_json[sdf_object_map.first] = sdf_object_json;
+        }
+        sdf_thing_json["sdfObject"] = sdf_object_map_json;
+    }
+
+    // Serialize the sdfProperties
+    if (!sdfThing.sdfProperty.empty()) {
+        json sdf_property_map_json;
+        for (const auto& sdf_property_map: sdfThing.sdfProperty) {
+            json sdf_property_json;
+            serializeSdfProperty(sdf_property_map.second, sdf_property_json);
+            sdf_property_map_json[sdf_property_map.first] = sdf_property_json;
+        }
+        sdf_thing_json["sdfProperty"] = sdf_property_map_json;
+    }
+
+    // Serialize the sdfActions
+    if (!sdfThing.sdfAction.empty()) {
+        json sdf_action_map_json;
+        for (const auto& sdf_action_map: sdfThing.sdfAction) {
+            json sdf_action_json;
+            serializeSdfAction(sdf_action_map.second, sdf_action_json);
+            sdf_action_map_json[sdf_action_map.first] = sdf_action_json;
+        }
+        sdf_thing_json["sdfAction"] = sdf_action_map_json;
+    }
+
+    // Serialize the sdfEvents
+    if (!sdfThing.sdfEvent.empty()) {
+        json sdf_event_map_json;
+        for (const auto& sdf_event_map: sdfThing.sdfEvent) {
+            json sdf_event_json;
+            serializeSdfEvent(sdf_event_map.second, sdf_event_json);
+            sdf_event_map_json[sdf_event_map.first] = sdf_event_json;
+        }
+        sdf_thing_json["sdfEvent"] = sdf_event_map_json;
+    }
+    if (!sdfThing.sdfData.empty()) {
+        json sdf_data_json;
+        // serializeSdfData(sdfThing.sdfData, sdf_data_json);
+        sdf_thing_json["sdfData"] = sdf_data_json;
+    }
+    //minItems
+    //maxItems
     return 0;
 }
 
