@@ -443,11 +443,39 @@ int serializeSdfData(const sdfDataType& sdfData, json& sdf_data_json)
 
 int serializeSdfEvent(const sdfEventType& sdfEvent, json& sdf_event_json)
 {
+    // Serialize common qualities
+    serializeCommonQualities(sdfEvent,sdf_event_json);
+
+    // Serialize the sdfEvent specific fields
+    json sdf_output_data_json;
+    serializeDataQualities(sdfEvent.sdfOutputData, sdf_output_data_json);
+    sdf_event_json["sdfOutputData"] = sdf_output_data_json;
+
+    json sdf_data_json;
+    serializeSdfData(sdfEvent.sdfData, sdf_data_json);
+    sdf_event_json["sdfData"] = sdf_data_json;
     return 0;
 }
 
 int serializeSdfAction(const sdfActionType& sdfAction, json& sdf_action_json)
 {
+    // Serialize common qualities
+    serializeCommonQualities(sdfAction, sdf_action_json);
+
+    // Serialize the sdfAction specific fields
+    //TODO: Check if these can be empty
+    json sdf_input_data_json;
+    serializeDataQualities(sdfAction.sdfInputData, sdf_input_data_json);
+    sdf_action_json["sdfInputData"] = sdf_input_data_json;
+
+    json sdf_output_data_json;
+    serializeDataQualities(sdfAction.sdfOutputData, sdf_output_data_json);
+    sdf_action_json["sdfOutputData"] = sdf_output_data_json;
+
+    json sdf_data_json;
+    serializeSdfData(sdfAction.sdfData, sdf_data_json);
+    sdf_action_json["sdfData"] = sdf_data_json;
+
     return 0;
 }
 
