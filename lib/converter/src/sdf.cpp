@@ -432,6 +432,11 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
     return 0;
 }
 
+int serializeSdfData(const sdfDataType& sdfData, json& sdf_data_json)
+{
+    return 0;
+}
+
 int serializeSdfEvent(const sdfEventType& sdfEvent, json& sdf_event_json)
 {
     return 0;
@@ -546,12 +551,13 @@ int serializeSdfThing(const sdfThingType& sdfThing, json& sdf_thing_json)
     }
     if (!sdfThing.sdfData.empty()) {
         json sdf_data_json;
-        // serializeSdfData(sdfThing.sdfData, sdf_data_json);
+        serializeSdfData(sdfThing.sdfData, sdf_data_json);
         sdf_thing_json["sdfData"] = sdf_data_json;
     }
     //minItems
     //maxItems
     return 0;
+
 }
 
 int serializeNamespaceBlock(const namespaceType& namespaceBlock, json& namespace_block_json)
