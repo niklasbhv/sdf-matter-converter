@@ -399,6 +399,10 @@ int serializeCommonQualities(const commonQualityType& commonQuality, json& commo
 
 int serializeDataQualities(const dataQualityType& dataQuality, json& data_quality_json)
 {
+    // Serialize common qualities
+    serializeCommonQualities(dataQuality, data_quality_json);
+
+    // Serialite the data quality specific fields
     if (!dataQuality.type.empty())
         data_quality_json["type"] = dataQuality.type;
     //sdfChoice
@@ -449,6 +453,13 @@ int serializeSdfAction(const sdfActionType& sdfAction, json& sdf_action_json)
 
 int serializeSdfProperty(const sdfPropertyType& sdfProperty, json& sdf_property_json)
 {
+    // Serialize data qualities
+    serializeDataQualities(sdfProperty, sdf_property_json);
+
+    // Serialize the sdfProperty specific fields
+    sdf_property_json["readable"] = sdfProperty.readable;
+    sdf_property_json["writable"] = sdfProperty.writable;
+    sdf_property_json["observable"] = sdfProperty.observable;
     return 0;
 }
 
