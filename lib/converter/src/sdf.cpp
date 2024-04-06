@@ -438,6 +438,13 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
 
 int serializeSdfData(const sdfDataType& sdfData, json& sdf_data_json)
 {
+    json sdf_data_map_json;
+    for (const auto& data_quality_map : sdfData){
+        json data_quality_json;
+        serializeDataQualities(data_quality_map.second, data_quality_json);
+        sdf_data_map_json[data_quality_map.first] = data_quality_json;
+    }
+
     return 0;
 }
 
@@ -454,6 +461,7 @@ int serializeSdfEvent(const sdfEventType& sdfEvent, json& sdf_event_json)
     json sdf_data_json;
     serializeSdfData(sdfEvent.sdfData, sdf_data_json);
     sdf_event_json["sdfData"] = sdf_data_json;
+
     return 0;
 }
 
@@ -488,6 +496,7 @@ int serializeSdfProperty(const sdfPropertyType& sdfProperty, json& sdf_property_
     sdf_property_json["readable"] = sdfProperty.readable;
     sdf_property_json["writable"] = sdfProperty.writable;
     sdf_property_json["observable"] = sdfProperty.observable;
+
     return 0;
 }
 
@@ -626,6 +635,7 @@ int serializeInfoBlock(const infoBlockType& infoBlock, json& info_block_json)
         info_block_json["features"] = infoBlock.features;
     if (!infoBlock.$comment.empty())
         info_block_json["$comment"] = infoBlock.$comment;
+
     return 0;
 }
 
