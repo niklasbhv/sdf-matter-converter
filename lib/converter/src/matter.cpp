@@ -52,7 +52,7 @@ int parseEnum(pugi::xml_node& enum_type_node, enumType& enum_)
     return 0;
 }
 
-int parseEvent(const pugi::xml_node& eventNode, eventType event)
+int parseEvent(const pugi::xml_node& eventNode, eventType& event)
 {
     event.description = eventNode.child("description").value();
     for (const pugi::xml_node& accessNode : eventNode.children("access")){
