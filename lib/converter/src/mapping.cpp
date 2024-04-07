@@ -187,51 +187,92 @@ int map_matter_event(eventType& event, sdfEventType& sdfEvent)
 }
 
 //! Matter Command -> sdfAction
-int map_matter_command(commandType& command, sdfActionType& sdfAction)
+//! Used if a client and a server command need to be processed
+int map_matter_command(commandType& client_command, commandType& server_command, sdfActionType& sdfAction)
 {
-    //TODO: As client and server are seperated, they have to be merged after processing all commands
-    sdfAction.label = command.name;
-    sdfAction.description = command.description;
+    sdfAction.label = client_command.name;
+    sdfAction.description = client_command.description;
 
     //sdfAction.sdfData.insert()
     // access
 
-    //! Indicates that the command is a request command
-    if (command.source == "client") {
-        //! Map Command Arguments
-        for (argType &arg: command.arg){
-            dataQualityType dataQualities;
-            //! Common qualities
-            dataQualities.label = arg.name;
-            dataQualities.description = arg.description;
+    // Map client command arguments
+    for (argType &arg: client_command.arg){
+        dataQualityType dataQualities;
+        //! Common qualities
+        dataQualities.label = arg.name;
+        dataQualities.description = arg.description;
 
-            dataQualities.default_ = arg.default_;
-            dataQualities.nullable = arg.isNullable;
-            dataQualities.type = arg.type.name; //TODO: This needs mapping
-            // arraylength
-            // array
-            save_to_mapping("introducedIn", command.introducedIn);
-            //save_to_mapping("removedIn", command.removedIn);
-            // length
-            // presentIf
-            // optional
-            // fieldIf
-            // countArg
-            sdfAction.sdfInputData.sdfChoice.insert({arg.name, dataQualities});
-        }
-    }
-    //! Indicates that the command only contains the returned values in response to a request
-    if (command.source == "server"){
-        //sdfAction.sdfOutputData.
-        //TODO: The command output is in itself another command, they are matched via the response field
-        //The response field contains the name of the responding command
-        //We probably have to search for each reference to differentiate between request and response commands
-        //Maybe they can be identified by the source they're coming from
-        // -> Client : Request
-        // -> Server : Response
+        dataQualities.default_ = arg.default_;
+        dataQualities.nullable = arg.isNullable;
+        dataQualities.type = arg.type.name; //TODO: This needs mapping
+        // arraylength
+        // array
+        save_to_mapping("introducedIn", client_command.introducedIn);
+        //save_to_mapping("removedIn", command.removedIn);
+        // length
+        // presentIf
+        // optional
+        // fieldIf
+        // countArg
+        sdfAction.sdfInputData.sdfChoice.insert({arg.name, dataQualities});
     }
 
+    // Map server command arguments
+    for (argType &arg: server_command.arg) {
+        dataQualityType dataQualities;
+        //! Common qualities
+        dataQualities.label = arg.name;
+        dataQualities.description = arg.description;
 
+        dataQualities.default_ = arg.default_;
+        dataQualities.nullable = arg.isNullable;
+        dataQualities.type = arg.type.name; //TODO: This needs mapping
+        // arraylength
+        // array
+        save_to_mapping("introducedIn", client_command.introducedIn);
+        //save_to_mapping("removedIn", command.removedIn);
+        // length
+        // presentIf
+        // optional
+        // fieldIf
+        // countArg
+        sdfAction.sdfOutputData.sdfChoice.insert({arg.name, dataQualities});
+    }
+    return 0;
+}
+
+//! Matter Command -> sdfAction
+//! Used if only a client command needs to be processed
+int map_matter_command(commandType& client_command, sdfActionType& sdfAction)
+{
+    sdfAction.label = client_command.name;
+    sdfAction.description = client_command.description;
+
+    //sdfAction.sdfData.insert()
+    // access
+
+    // Map client command arguments
+    for (argType &arg: client_command.arg){
+        dataQualityType dataQualities;
+        //! Common qualities
+        dataQualities.label = arg.name;
+        dataQualities.description = arg.description;
+
+        dataQualities.default_ = arg.default_;
+        dataQualities.nullable = arg.isNullable;
+        dataQualities.type = arg.type.name; //TODO: This needs mapping
+        // arraylength
+        // array
+        save_to_mapping("introducedIn", client_command.introducedIn);
+        //save_to_mapping("removedIn", command.removedIn);
+        // length
+        // presentIf
+        // optional
+        // fieldIf
+        // countArg
+        sdfAction.sdfInputData.sdfChoice.insert({arg.name, dataQualities});
+    }
     return 0;
 }
 
@@ -280,10 +321,28 @@ int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml
         sdfObject.sdfProperty.insert({attribute.name, sdfProperty});
     }
 
+    // TODO: Check if standalone server commands are possible
+    // For every Matter client command there might be a corresponding server command that needs to be merged
     for (commandType& command : cluster.commands){
-        sdfActionType sdfAction;
-        map_matter_command(command, sdfAction);
-        sdfObject.sdfAction.insert({command.name, sdfAction});
+        std::cout << "Currently mapping Action: " << command.name << std::endl;
+        bool command_mapped = false;
+        if (command.source == "client"){
+            for (commandType& server_command : cluster.commands){
+                if (command.code == server_command.code and server_command.source == "server"){
+                    sdfActionType sdfAction;
+                    map_matter_command(command, server_command, sdfAction);
+                    sdfObject.sdfAction.insert({command.name, sdfAction});
+                    command_mapped = true;
+                    std::cout << "Mapped client and server command!" << std::endl;
+                }
+            }
+            if(!command_mapped){
+                sdfActionType sdfAction;
+                map_matter_command(command, sdfAction);
+                sdfObject.sdfAction.insert({command.name, sdfAction});
+                std::cout << "Mapped client command!" << std::endl;
+            }
+        }
     }
 
     for (eventType& event : cluster.events){
