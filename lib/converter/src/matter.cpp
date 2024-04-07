@@ -85,7 +85,13 @@ int parseCommand(const pugi::xml_node& commandNode, commandType& command)
 {
     //command.description
     //command.access
-    //command.arg
+    for (pugi::xml_node arg_node : commandNode.children("arg")) {
+        //TODO: Complete these
+        argType arg;
+        arg.name = arg_node.attribute("name").value();
+        arg.type.name = arg_node.attribute("type").value();
+        command.arg.push_back(arg);
+    }
     //command.cli = commandNode.attribute("cli").value();
     command.cliFunctionName = commandNode.attribute("cliFunctionName").value();
     command.code = commandNode.attribute("code").value();
