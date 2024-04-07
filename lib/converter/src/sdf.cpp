@@ -397,15 +397,26 @@ int serializeCommonQualities(const commonQualityType& commonQuality, json& commo
     return 0;
 }
 
+// Function prototype for serializeDataQualities
+int serializeDataQualities(const dataQualityType& dataQuality, json& data_quality_json);
+
 int serializeDataQualities(const dataQualityType& dataQuality, json& data_quality_json)
 {
     // Serialize common qualities
     serializeCommonQualities(dataQuality, data_quality_json);
 
-    // Serialite the data quality specific fields
+    // Serialize the data quality specific fields
     if (!dataQuality.type.empty())
         data_quality_json["type"] = dataQuality.type;
-    //sdfChoice
+    if (!dataQuality.sdfChoice.empty()){
+        json sdf_choice_map_json;
+        for (auto sdf_choice_map : dataQuality.sdfChoice) {
+            json sdf_choice_json;
+            serializeDataQualities(sdf_choice_map.second, sdf_choice_json);
+            sdf_choice_map_json[sdf_choice_map.first] = sdf_choice_json;
+        }
+        data_quality_json["sdfChoice"] = sdf_choice_map_json;
+    }
     //enum_
     if (!dataQuality.const_.empty())
         data_quality_json["const"] = dataQuality.const_;
