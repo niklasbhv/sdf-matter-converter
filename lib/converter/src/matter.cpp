@@ -81,7 +81,7 @@ int parseEvent(const pugi::xml_node& eventNode, eventType event)
     return 0;
 }
 
-int parseCommand(const pugi::xml_node& commandNode, commandType command)
+int parseCommand(const pugi::xml_node& commandNode, commandType& command)
 {
     //command.description
     //command.access
