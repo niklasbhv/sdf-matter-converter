@@ -15,6 +15,7 @@
  */
 
 #include <iostream>
+#include <regex>
 #include "mapping.h"
 #include "matter.h"
 #include "sdf.h"
@@ -162,9 +163,93 @@ int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType, de
     return 0;
 }
 
-int map_matter_type(std::string& matter_type, std::string& sdf_type)
+//! Matter type -> SDF type
+int map_matter_type(std::string& matter_type, dataQualityType& dataQuality)
 {
-    return 0;
+    std::cout << "Searching for Type: " << matter_type << std::endl;
+    //TODO: These seem to randomly be different from the official zcl documentation
+
+    // Unknown type
+    if (std::regex_match(matter_type, std::regex("unk"))){}
+
+    // Data Type
+    if (std::regex_match(matter_type, std::regex("data[0-9]+"))){
+        if (std::regex_match(matter_type, std::regex("data8"))){
+            std::cout << "Found DATA8!" << std::endl;
+        } else if (std::regex_match(matter_type, std::regex("data16"))){
+            std::cout << "Found DATA16!" << std::endl;
+        } else if (std::regex_match(matter_type, std::regex("data24"))){
+            std::cout << "Found DATA24!" << std::endl;
+        } else if (std::regex_match(matter_type, std::regex("data32"))) {
+            std::cout << "Found DATA32!" << std::endl;
+        } else if (std::regex_match(matter_type, std::regex("data40"))) {
+            std::cout << "Found DATA40!" << std::endl;
+        } else if (std::regex_match(matter_type, std::regex("data48"))) {
+            std::cout << "Found DATA48!" << std::endl;
+        } else if (std::regex_match(matter_type, std::regex("data56"))) {
+            std::cout << "Found DATA56!" << std::endl;
+        } else if (std::regex_match(matter_type, std::regex("data64"))) {
+            std::cout << "Found DATA64!" << std::endl;
+        } else {
+            // If the type is not a known standard type
+            return -1;
+        }
+
+        return 0;
+    }
+
+    // Boolean type
+    if (std::regex_search(matter_type, std::regex("bool|boolean", std::regex_constants::icase))){
+        std::cout << "Found Bool!" << std::endl;
+        dataQuality.type = "boolean";
+        return 0;
+    }
+
+    // Bitmap type
+    if (std::regex_match(matter_type, std::regex("map[0-9]+", std::regex_constants::icase))){
+        std::cout << "Found Map!" << std::endl;
+        return 0;
+    }
+
+    // Enum type
+    if (std::regex_match(matter_type, std::regex("enum[0-9]+", std::regex_constants::icase))){
+        std::cout << "Found Enum!" << std::endl;
+        return 0;
+    }
+
+    // Unsigned int type
+    if (std::regex_search(matter_type, std::regex("int[0-9]+u|uint[0-9]+", std::regex_constants::icase))){
+        dataQuality.type = "integer";
+        if (std::regex_search(matter_type, std::regex("int8u|uint8", std::regex_constants::icase))){
+            dataQuality.minimum = 0;
+            dataQuality.maximum = 255;
+            std::cout << "Found UINT8!" << std::endl;
+        }
+        if (std::regex_search(matter_type, std::regex("int16u|uint16", std::regex_constants::icase))) {
+            std::cout << "Found UINT16!" << std::endl;
+            dataQuality.minimum = 0;
+            dataQuality.maximum = 65355;
+        }
+        return 0;
+    }
+
+    // Signed int type
+    if (std::regex_match(matter_type, std::regex("int[0-9]+", std::regex_constants::icase))){
+        std::cout << "Found INT!" << std::endl;
+        dataQuality.type = "integer";
+        return 0;
+    }
+
+    // Array type
+    if (std::regex_match(matter_type, std::regex("array", std::regex_constants::icase))){
+        std::cout << "Found ARRAY!" << std::endl;
+        dataQuality.type = "array";
+        return 0;
+    }
+
+    // If the type is not a known standard type
+    std::cout << "Found Nothing!" << std::endl;
+    return -1;
 };
 
 //! Matter Access Type -> Data Quality
@@ -208,7 +293,7 @@ int map_matter_command(commandType& client_command, commandType& server_command,
 
         dataQualities.default_ = arg.default_;
         dataQualities.nullable = arg.isNullable;
-        dataQualities.type = arg.type.name; //TODO: This needs mapping
+        map_matter_type(arg.type.name, dataQualities);
         // arraylength
         // array
         save_to_mapping("introducedIn", client_command.introducedIn);
@@ -230,7 +315,7 @@ int map_matter_command(commandType& client_command, commandType& server_command,
 
         dataQualities.default_ = arg.default_;
         dataQualities.nullable = arg.isNullable;
-        dataQualities.type = arg.type.name; //TODO: This needs mapping
+        map_matter_type(arg.type.name, dataQualities);
         // arraylength
         // array
         save_to_mapping("introducedIn", client_command.introducedIn);
@@ -264,7 +349,7 @@ int map_matter_command(commandType& client_command, sdfActionType& sdfAction)
 
         dataQualities.default_ = arg.default_;
         dataQualities.nullable = arg.isNullable;
-        dataQualities.type = arg.type.name; //TODO: This needs mapping
+        map_matter_type(arg.type.name, dataQualities);
         // arraylength
         // array
         save_to_mapping("introducedIn", client_command.introducedIn);
@@ -288,7 +373,7 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
         sdfProperty.sdfRequired; //TODO: Create a sdfRef here
     }
 
-    sdfProperty.type = attribute.type; //TODO: This definitely needs mapping
+    map_matter_type(attribute.type, sdfProperty);
     sdfProperty.default_ = attribute.default_;
     sdfProperty.minLength = attribute.min; //TODO: does this match?
     sdfProperty.maxLength = attribute.max; //TODO: does this match?
