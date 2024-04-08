@@ -23,27 +23,27 @@
 
 using json = nlohmann::ordered_json;
 
-int parseCommonQualities(const json& sdf_elem, commonQualityType& commonQuality)
+int parseCommonQualities(const json& common_qualities_json, commonQualityType& commonQuality)
 {
-    if (sdf_elem.contains("description")){
-        sdf_elem.at("description").get_to(commonQuality.description);
+    if (common_qualities_json.contains("description")){
+        common_qualities_json.at("description").get_to(commonQuality.description);
         std::cout << "Common Quality Description: " << commonQuality.description << std::endl;
     }
-    if (sdf_elem.contains("label")){
-        sdf_elem.at("label").get_to(commonQuality.label);
+    if (common_qualities_json.contains("label")){
+        common_qualities_json.at("label").get_to(commonQuality.label);
         std::cout << "Common Quality Label: " << commonQuality.label << std::endl;
     }
-    if (sdf_elem.contains("$comment")){
-        sdf_elem.at("$comment").get_to(commonQuality.$comment);
+    if (common_qualities_json.contains("$comment")){
+        common_qualities_json.at("$comment").get_to(commonQuality.$comment);
         std::cout << "Common Quality $Comment: " << commonQuality.$comment << std::endl;
     }
-    if (sdf_elem.contains("sdfRef")){
-        sdf_elem.at("sdfRef").get_to(commonQuality.sdfRef);
+    if (common_qualities_json.contains("sdfRef")){
+        common_qualities_json.at("sdfRef").get_to(commonQuality.sdfRef);
         std::cout << "Common Quality sdfRef: " << commonQuality.sdfRef << std::endl;
     }
-    if (sdf_elem.contains("sdfRequired")){
+    if (common_qualities_json.contains("sdfRequired")){
         std::list<std::string> sdfRequired;
-        sdf_elem.at("sdfRequired").get_to(commonQuality.sdfRequired);
+        common_qualities_json.at("sdfRequired").get_to(commonQuality.sdfRequired);
         commonQuality.sdfRequired = sdfRequired;
         std::cout << "Common Quality sdfRequired Size: " << commonQuality.sdfRequired.size() << std::endl;
     }
@@ -53,9 +53,9 @@ int parseCommonQualities(const json& sdf_elem, commonQualityType& commonQuality)
 // Function prototype for parseDataQualities
 int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQuality);
 
-int parseSdfChoice(const json& sdfchoice_json, std::map<std::string, dataQualityType> sdfChoiceMap)
+int parseSdfChoice(const json& sdf_choice_json, std::map<std::string, dataQualityType> sdfChoiceMap)
 {
-    for (const auto& choice : sdfchoice_json.items()){
+    for (const auto& choice : sdf_choice_json.items()){
         dataQualityType dataQuality;
         parseDataQualities(choice.value(), dataQuality);
         sdfChoiceMap.insert({choice.key(), dataQuality});
@@ -96,17 +96,17 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
     return 0;
 }
 
-int parseSdfEvent(const json& sdfevent_json, sdfEventType& sdfEvent)
+int parseSdfEvent(const json& sdf_event_json, sdfEventType& sdfEvent)
 {
-    parseCommonQualities(sdfevent_json, sdfEvent);
-    if (sdfevent_json.contains("sdfOutputData")){
+    parseCommonQualities(sdf_event_json, sdfEvent);
+    if (sdf_event_json.contains("sdfOutputData")){
         dataQualityType sdfOutputData;
-        parseDataQualities(sdfevent_json.at("sdfOutputData"), sdfOutputData);
+        parseDataQualities(sdf_event_json.at("sdfOutputData"), sdfOutputData);
         sdfEvent.sdfOutputData = sdfOutputData;
     }
-    if (sdfevent_json.contains("sdfData")){
+    if (sdf_event_json.contains("sdfData")){
         sdfDataType sdfDataMap;
-        for (const auto& data : sdfevent_json.at("sdfData").items()) {
+        for (const auto& data : sdf_event_json.at("sdfData").items()) {
             dataQualityType sdfData;
             parseDataQualities(data.value(), sdfData);
             sdfDataMap.insert({data.key(), sdfData});
@@ -116,22 +116,22 @@ int parseSdfEvent(const json& sdfevent_json, sdfEventType& sdfEvent)
     return 0;
 }
 
-int parseSdfAction(const json& sdfaction_json, sdfActionType& sdfAction)
+int parseSdfAction(const json& sdf_action_json, sdfActionType& sdfAction)
 {
-    parseCommonQualities(sdfaction_json, sdfAction);
-    if (sdfaction_json.contains("sdfInputData")){
+    parseCommonQualities(sdf_action_json, sdfAction);
+    if (sdf_action_json.contains("sdfInputData")){
         dataQualityType sdfInputData;
-        parseDataQualities(sdfaction_json.at("sdfInputData"), sdfInputData);
+        parseDataQualities(sdf_action_json.at("sdfInputData"), sdfInputData);
         sdfAction.sdfInputData = sdfInputData;
     }
-    if (sdfaction_json.contains("sdfOutputData")){
+    if (sdf_action_json.contains("sdfOutputData")){
         dataQualityType sdfOutputData;
-        parseDataQualities(sdfaction_json.at("sdfOutputData"), sdfOutputData);
+        parseDataQualities(sdf_action_json.at("sdfOutputData"), sdfOutputData);
         sdfAction.sdfOutputData = sdfOutputData;
     }
-    if (sdfaction_json.contains("sdfData")){
+    if (sdf_action_json.contains("sdfData")){
         sdfDataType sdfDataMap;
-        for (const auto& data : sdfaction_json.at("sdfData").items()) {
+        for (const auto& data : sdf_action_json.at("sdfData").items()) {
             dataQualityType sdfData;
             parseDataQualities(data.value(), sdfData);
             sdfDataMap.insert({data.key(), sdfData});
@@ -141,30 +141,30 @@ int parseSdfAction(const json& sdfaction_json, sdfActionType& sdfAction)
     return 0;
 }
 
-int parseSdfProperty(const json& sdfproperty_json, sdfPropertyType& sdfProperty)
+int parseSdfProperty(const json& sdf_property_json, sdfPropertyType& sdfProperty)
 {
-    parseDataQualities(sdfproperty_json, sdfProperty);
-    if (sdfproperty_json.contains("readable")){
-        sdfproperty_json.at("readable").get_to(sdfProperty.readable.value());
+    parseDataQualities(sdf_property_json, sdfProperty);
+    if (sdf_property_json.contains("readable")){
+        sdf_property_json.at("readable").get_to(sdfProperty.readable.value());
         std::cout << "sdfProperty readable: " << sdfProperty.readable.value() << std::endl;
     }
-    if (sdfproperty_json.contains("writable")){
-        sdfproperty_json.at("writable").get_to(sdfProperty.writable.value());
+    if (sdf_property_json.contains("writable")){
+        sdf_property_json.at("writable").get_to(sdfProperty.writable.value());
         std::cout << "sdfProperty writable: " << sdfProperty.writable.value() << std::endl;
     }
-    if (sdfproperty_json.contains("observable")){
-        sdfproperty_json.at("observable").get_to(sdfProperty.observable.value());
+    if (sdf_property_json.contains("observable")){
+        sdf_property_json.at("observable").get_to(sdfProperty.observable.value());
         std::cout << "sdfProperty observable: " << sdfProperty.observable.value() << std::endl;
     }
     return 0;
 }
 
-int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
+int parseSdfObject(const json& sdf_object_json, sdfObjectType& sdfObject)
 {
-    parseCommonQualities(sdfobject_json, sdfObject);
-    if (sdfobject_json.contains("sdfProperty")){
+    parseCommonQualities(sdf_object_json, sdfObject);
+    if (sdf_object_json.contains("sdfProperty")){
         std::map<std::string, sdfPropertyType> sdfPropertyMap;
-        for (const auto& property : sdfobject_json.at("sdfProperty").items()) {
+        for (const auto& property : sdf_object_json.at("sdfProperty").items()) {
             sdfPropertyType sdfProperty;
             parseSdfProperty(property.value(), sdfProperty);
             sdfPropertyMap.insert({property.key(), sdfProperty});
@@ -172,9 +172,9 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
         sdfObject.sdfProperty = sdfPropertyMap;
         std::cout << "Property List Size: " << sdfPropertyMap.size() << std::endl;
     }
-    if (sdfobject_json.contains("sdfAction")){
+    if (sdf_object_json.contains("sdfAction")){
         std::map<std::string, sdfActionType> sdfActionMap;
-        for (const auto& action : sdfobject_json.at("sdfAction").items()) {
+        for (const auto& action : sdf_object_json.at("sdfAction").items()) {
             sdfActionType sdfAction;
             parseSdfAction(action.value(), sdfAction);
             sdfActionMap.insert({action.key(), sdfAction});
@@ -182,9 +182,9 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
         sdfObject.sdfAction = sdfActionMap;
         std::cout << "Action List Size: " << sdfActionMap.size() << std::endl;
     }
-    if (sdfobject_json.contains("sdfEvent")){
+    if (sdf_object_json.contains("sdfEvent")){
         std::map<std::string, sdfEventType> sdfEventMap;
-        for (const auto& event : sdfobject_json.at("sdfEvent").items()) {
+        for (const auto& event : sdf_object_json.at("sdfEvent").items()) {
             sdfEventType sdfEvent;
             parseSdfEvent(event.value(), sdfEvent);
             sdfEventMap.insert({event.key(), sdfEvent});
@@ -192,9 +192,9 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
         sdfObject.sdfEvent = sdfEventMap;
         std::cout << "Event List Size: " << sdfEventMap.size() << std::endl;
     }
-    if (sdfobject_json.contains("sdfData")){
+    if (sdf_object_json.contains("sdfData")){
         sdfDataType sdfDataMap;
-        for (const auto& data : sdfobject_json.at("sdfData").items()) {
+        for (const auto& data : sdf_object_json.at("sdfData").items()) {
             dataQualityType sdfData;
             parseDataQualities(data.value(), sdfData);
             sdfDataMap.insert({data.key(), sdfData});
@@ -202,23 +202,23 @@ int parseSdfObject(const json& sdfobject_json, sdfObjectType& sdfObject)
         sdfObject.sdfData = sdfDataMap;
         std::cout << "Data List Size: " << sdfDataMap.size() << std::endl;
     }
-    if (sdfobject_json.contains("minItems")){
-        sdfobject_json.at("minItems").get_to(sdfObject.minItems);
+    if (sdf_object_json.contains("minItems")){
+        sdf_object_json.at("minItems").get_to(sdfObject.minItems);
         std::cout << "sdfObject minItems: " << sdfObject.minItems << std::endl;
     }
-    if (sdfobject_json.contains("maxItems")){
-        sdfobject_json.at("maxItems").get_to(sdfObject.maxItems);
+    if (sdf_object_json.contains("maxItems")){
+        sdf_object_json.at("maxItems").get_to(sdfObject.maxItems);
         std::cout << "sdfObject maxItems: " << sdfObject.maxItems << std::endl;
     }
     return 0;
 }
 
-int parseSdfThing(const json& sdfthing_json, sdfThingType& sdfThing)
+int parseSdfThing(const json& sdf_thing_json, sdfThingType& sdfThing)
 {
-    parseCommonQualities(sdfthing_json, sdfThing);
-    if (sdfthing_json.contains("sdfObject")){
+    parseCommonQualities(sdf_thing_json, sdfThing);
+    if (sdf_thing_json.contains("sdfObject")){
         std::map<std::string, sdfObjectType> sdfObjectMap;
-        for (const auto& object : sdfthing_json.at("sdfProperty").items()) {
+        for (const auto& object : sdf_thing_json.at("sdfProperty").items()) {
             sdfObjectType sdfObject;
             parseSdfObject(object.value(), sdfObject);
             sdfObjectMap.insert({object.key(), sdfObject});
@@ -226,9 +226,9 @@ int parseSdfThing(const json& sdfthing_json, sdfThingType& sdfThing)
         sdfThing.sdfObject = sdfObjectMap;
         std::cout << "Property List Size: " << sdfObjectMap.size() << std::endl;
     }
-    if (sdfthing_json.contains("sdfProperty")){
+    if (sdf_thing_json.contains("sdfProperty")){
         std::map<std::string, sdfPropertyType> sdfPropertyMap;
-        for (const auto& property : sdfthing_json.at("sdfProperty").items()) {
+        for (const auto& property : sdf_thing_json.at("sdfProperty").items()) {
             sdfPropertyType sdfProperty;
             parseSdfProperty(property.value(), sdfProperty);
             sdfPropertyMap.insert({property.key(), sdfProperty});
@@ -236,9 +236,9 @@ int parseSdfThing(const json& sdfthing_json, sdfThingType& sdfThing)
         sdfThing.sdfProperty = sdfPropertyMap;
         std::cout << "Property List Size: " << sdfPropertyMap.size() << std::endl;
     }
-    if (sdfthing_json.contains("sdfAction")){
+    if (sdf_thing_json.contains("sdfAction")){
         std::map<std::string, sdfActionType> sdfActionMap;
-        for (const auto& action : sdfthing_json.at("sdfAction").items()) {
+        for (const auto& action : sdf_thing_json.at("sdfAction").items()) {
             sdfActionType sdfAction;
             parseSdfAction(action.value(), sdfAction);
             sdfActionMap.insert({action.key(), sdfAction});
@@ -246,9 +246,9 @@ int parseSdfThing(const json& sdfthing_json, sdfThingType& sdfThing)
         sdfThing.sdfAction = sdfActionMap;
         std::cout << "Action List Size: " << sdfActionMap.size() << std::endl;
     }
-    if (sdfthing_json.contains("sdfEvent")){
+    if (sdf_thing_json.contains("sdfEvent")){
         std::map<std::string, sdfEventType> sdfEventMap;
-        for (const auto& event : sdfthing_json.at("sdfEvent").items()) {
+        for (const auto& event : sdf_thing_json.at("sdfEvent").items()) {
             sdfEventType sdfEvent;
             parseSdfEvent(event.value(), sdfEvent);
             sdfEventMap.insert({event.key(), sdfEvent});
@@ -256,9 +256,9 @@ int parseSdfThing(const json& sdfthing_json, sdfThingType& sdfThing)
         sdfThing.sdfEvent = sdfEventMap;
         std::cout << "Event List Size: " << sdfEventMap.size() << std::endl;
     }
-    if (sdfthing_json.contains("sdfData")){
+    if (sdf_thing_json.contains("sdfData")){
         sdfDataType sdfDataMap;
-        for (const auto& data : sdfthing_json.at("sdfData").items()) {
+        for (const auto& data : sdf_thing_json.at("sdfData").items()) {
             dataQualityType sdfData;
             parseDataQualities(data.value(), sdfData);
             sdfDataMap.insert({data.key(), sdfData});
@@ -266,12 +266,12 @@ int parseSdfThing(const json& sdfthing_json, sdfThingType& sdfThing)
         sdfThing.sdfData = sdfDataMap;
         std::cout << "Data List Size: " << sdfDataMap.size() << std::endl;
     }
-    if (sdfthing_json.contains("minItems")){
-        sdfthing_json.at("minItems").get_to(sdfThing.minItems);
+    if (sdf_thing_json.contains("minItems")){
+        sdf_thing_json.at("minItems").get_to(sdfThing.minItems);
         std::cout << "sdfThing minItems: " << sdfThing.minItems << std::endl;
     }
-    if (sdfthing_json.contains("maxItems")){
-        sdfthing_json.at("maxItems").get_to(sdfThing.maxItems);
+    if (sdf_thing_json.contains("maxItems")){
+        sdf_thing_json.at("maxItems").get_to(sdfThing.maxItems);
         std::cout << "sdfThing maxItems: " << sdfThing.minItems << std::endl;
     }
     return 0;
@@ -285,54 +285,54 @@ int parseNamespaceBlock(const json& namespace_json, namespaceType& nsp)
     return 0;
 }
 
-int parseInfoBlock(const json& info_json, infoBlockType& infoBlock)
+int parseInfoBlock(const json& info_block_json, infoBlockType& infoBlock)
 {
-    if (info_json.contains("title"))
-        info_json.at("title").get_to(infoBlock.title);
-    if (info_json.contains("description"))
-        info_json.find("description").value().get_to(infoBlock.description);
-    if (info_json.contains("version"))
-        info_json.at("version").get_to(infoBlock.version);
-    if (info_json.contains("modified"))
-        info_json.at("modified").get_to(infoBlock.modified);
-    if (info_json.contains("copyright"))
-        info_json.at("copyright").get_to(infoBlock.copyright);
-    if (info_json.contains("license"))
-        info_json.at("license").get_to(infoBlock.license);
-    if (info_json.contains("features"))
-        info_json.at("features").get_to(infoBlock.features);
-    if (info_json.contains("$comment"))
-        info_json.at("$comment").get_to(infoBlock.$comment);
+    if (info_block_json.contains("title"))
+        info_block_json.at("title").get_to(infoBlock.title);
+    if (info_block_json.contains("description"))
+        info_block_json.find("description").value().get_to(infoBlock.description);
+    if (info_block_json.contains("version"))
+        info_block_json.at("version").get_to(infoBlock.version);
+    if (info_block_json.contains("modified"))
+        info_block_json.at("modified").get_to(infoBlock.modified);
+    if (info_block_json.contains("copyright"))
+        info_block_json.at("copyright").get_to(infoBlock.copyright);
+    if (info_block_json.contains("license"))
+        info_block_json.at("license").get_to(infoBlock.license);
+    if (info_block_json.contains("features"))
+        info_block_json.at("features").get_to(infoBlock.features);
+    if (info_block_json.contains("$comment"))
+        info_block_json.at("$comment").get_to(infoBlock.$comment);
     return 0;
 }
 
-int parseSdfModel(const json& sdf_model, sdfModelType& sdfModel)
+int parseSdfModel(const json& sdf_model_json, sdfModelType& sdfModel)
 {
-    if (sdf_model.contains("info")) {
+    if (sdf_model_json.contains("info")) {
         infoBlockType infoBlock;
-        parseInfoBlock(sdf_model.at("info"), infoBlock);
+        parseInfoBlock(sdf_model_json.at("info"), infoBlock);
         sdfModel.infoBlock = infoBlock;
     }
 
-    if (sdf_model.contains("namespace")) {
-        if (sdf_model.contains("defaultNamespace")) {
+    if (sdf_model_json.contains("namespace")) {
+        if (sdf_model_json.contains("defaultNamespace")) {
             namespaceType nsp;
-            parseNamespaceBlock(sdf_model.at("namespace"), nsp);
-            sdf_model.at("defaultNamespace").get_to(nsp.defaultNamespace);
+            parseNamespaceBlock(sdf_model_json.at("namespace"), nsp);
+            sdf_model_json.at("defaultNamespace").get_to(nsp.defaultNamespace);
             sdfModel.namespaceBlock = nsp;
         }
     }
 
     // Check if the sdf-model contains a sdfThing
-    if (sdf_model.contains("sdfThing")){
+    if (sdf_model_json.contains("sdfThing")){
         std::map<std::string, sdfThingType>sdfThingMap;
         sdfThingType sdfThing;
-        parseSdfThing(sdf_model.at("sdfThing"), sdfThing);
+        parseSdfThing(sdf_model_json.at("sdfThing"), sdfThing);
     }
     // If not, check if the sdf-model contains a sdfObject
-    else if (sdf_model.contains("sdfObject")) {
+    else if (sdf_model_json.contains("sdfObject")) {
         sdfObjectType sdfObject;
-        parseSdfObject(sdf_model.at("sdfObject"), sdfObject);
+        parseSdfObject(sdf_model_json.at("sdfObject"), sdfObject);
     }
     else {
         return -1;
@@ -340,25 +340,25 @@ int parseSdfModel(const json& sdf_model, sdfModelType& sdfModel)
     return 0;
 }
 
-int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping)
+int parseSdfMapping(const json& sdf_mapping_json, sdfMappingType& sdfMapping)
 {
-    if (sdf_mapping.contains("info")) {
+    if (sdf_mapping_json.contains("info")) {
         infoBlockType infoBlock;
-        parseInfoBlock(sdf_mapping.at("info"), infoBlock);
+        parseInfoBlock(sdf_mapping_json.at("info"), infoBlock);
         sdfMapping.infoBlock = infoBlock;
     }
-    if (sdf_mapping.contains("namespace")) {
-        if (sdf_mapping.contains("defaultNamespace")) {
+    if (sdf_mapping_json.contains("namespace")) {
+        if (sdf_mapping_json.contains("defaultNamespace")) {
             namespaceType nsp;
-            parseNamespaceBlock(sdf_mapping.at("namespace"), nsp);
-            sdf_mapping.at("defaultNamespace").get_to(nsp.defaultNamespace);
+            parseNamespaceBlock(sdf_mapping_json.at("namespace"), nsp);
+            sdf_mapping_json.at("defaultNamespace").get_to(nsp.defaultNamespace);
             sdfMapping.namespaceBlock = nsp;
         }
     }
-    if (sdf_mapping.contains("map")) {
+    if (sdf_mapping_json.contains("map")) {
         //TODO: Currently not sure how to implement different types and custom fields
         // Iterate through all items in the map section
-        for (auto& mapping : sdf_mapping.at("map").items()) {
+        for (auto& mapping : sdf_mapping_json.at("map").items()) {
             auto& link = mapping.key();
             pugi::xml_node current_node = mappingTree.root();
             int j = 0;

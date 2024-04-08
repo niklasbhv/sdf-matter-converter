@@ -214,22 +214,22 @@ struct sdfMappingType {
  *
  * This functions parses a sdf-model into an object.
  *
- * @param sdf_model The input sdf-model.
+ * @param sdf_model_json The input sdf-model.
  * @param sdfModel The resulting object.
  * @return 0 on success, negative on failure.
  */
-int parseSdfModel(const json& sdf_model, sdfModelType& sdfModel);
+int parseSdfModel(const json& sdf_model_json, sdfModelType& sdfModel);
 
 /**
  * @brief Parse a sdf-mapping.
  *
  * This function parses a sdf-mapping into an object.
  *
- * @param sdf_mapping The input sdf-mapping.
+ * @param sdf_mapping_json The input sdf-mapping.
  * @param sdfMapping The resulting object.
  * @return 0 on success, negative on failure.
  */
-int parseSdfMapping(const json& sdf_mapping, sdfMappingType& sdfMapping);
+int parseSdfMapping(const json& sdf_mapping_json, sdfMappingType& sdfMapping);
 
 
 /**
