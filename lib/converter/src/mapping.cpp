@@ -377,8 +377,8 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
 
     map_matter_type(attribute.type, sdfProperty);
     sdfProperty.default_ = attribute.default_;
-    sdfProperty.minLength = attribute.min; //TODO: does this match?
-    sdfProperty.maxLength = attribute.max; //TODO: does this match?
+    //sdfProperty.minLength = attribute.min; //TODO: does this match?
+    //sdfProperty.maxLength = attribute.max; //TODO: does this match?
     sdfProperty.nullable = attribute.isNullable;
     // access
     save_to_mapping("code", attribute.code);
