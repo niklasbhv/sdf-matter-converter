@@ -82,19 +82,19 @@ struct dataQualityType : commonQualityType {
     std::list<std::string> enum_;
     std::string const_;
     std::string default_;
-    int minimum = -1; // number
-    int maximum = -1; // number
-    int exclusiveMinimum = -1; // number
-    int exclusiveMaximum = -1; // number
-    int multipleOf = -1; // number
+    std::optional<int> minimum; // number
+    std::optional<int> maximum; // number
+    std::optional<int> exclusiveMinimum; // number
+    std::optional<int> exclusiveMaximum; // number
+    std::optional<int> multipleOf; // number
     //! Text string constraints
-    uint minLength;
-    uint maxLength;
+    std::optional<uint> minLength;
+    std::optional<uint> maxLength;
     std::string pattern;
     std::string format; // date-time / date / time / uri / uri-reference / uuid
     //! Array constraints
-    uint minItems;
-    uint maxItems;
+    std::optional<uint> minItems;
+    std::optional<uint> maxItems;
     bool uniqueItems;
     jsoItemType items;
     //! Additional qualities

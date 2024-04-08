@@ -70,8 +70,10 @@ int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute)
     // length
     // manufacturerCode
     //TODO: Does this match?
-    attribute.max = sdfProperty.maximum;
-    attribute.min = sdfProperty.minimum;
+    if (sdfProperty.maximum.has_value())
+        attribute.max = sdfProperty.maximum.value();
+    if (sdfProperty.minimum.has_value())
+        attribute.min = sdfProperty.minimum.value();
     // reportMaxInterval
     // reportMinInterval
     // reportableChange
