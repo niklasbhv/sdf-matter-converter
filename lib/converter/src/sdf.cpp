@@ -385,24 +385,34 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
         }
         data_quality_json["sdfChoice"] = sdf_choice_map_json;
     }
-    //enum_
+    if (!dataQuality.enum_.empty())
+        data_quality_json["enum"] = dataQuality.enum_;
     if (!dataQuality.const_.empty())
         data_quality_json["const"] = dataQuality.const_;
     if (!dataQuality.default_.empty())
         data_quality_json["default"] = dataQuality.default_;
-    //minimum
-    //maximum
-    //exclusiveMinimum
-    //exclusiveMaximum
-    //multipleOf
-    //minLength
-    //maxLength
+    if (dataQuality.minimum.has_value())
+        data_quality_json["minimum"] = dataQuality.minimum.value();
+    if (dataQuality.maximum.has_value())
+        data_quality_json["maximum"] = dataQuality.maximum.value();
+    if (dataQuality.exclusiveMinimum.has_value())
+        data_quality_json["exclusiveMinimum"] = dataQuality.exclusiveMinimum.value();
+    if (dataQuality.exclusiveMaximum.has_value())
+        data_quality_json["exclusiveMaximum"] = dataQuality.exclusiveMaximum.value();
+    if (dataQuality.multipleOf.has_value())
+        data_quality_json["multipleOf"] = dataQuality.multipleOf.value();
+    if (dataQuality.minLength.has_value())
+        data_quality_json["minLength"] = dataQuality.minLength.value();
+    if (dataQuality.maxLength.has_value())
+        data_quality_json["maxLength"] = dataQuality.maxLength.value();
     if (!dataQuality.pattern.empty())
         data_quality_json["pattern"] = dataQuality.pattern;
     if (!dataQuality.format.empty())
         data_quality_json["format"] = dataQuality.format;
-    //minItems
-    //maxItems
+    if (dataQuality.minItems.has_value())
+        data_quality_json["minItems"] = dataQuality.minItems.value();
+    if (dataQuality.maxItems.has_value())
+        data_quality_json["maxItems"] = dataQuality.maxItems.value();
     //uniqueItems
     //items
     if (!dataQuality.unit.empty())
