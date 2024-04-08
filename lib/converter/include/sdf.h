@@ -206,7 +206,7 @@ struct sdfModelType {
 struct sdfMappingType {
     infoBlockType infoBlock;
     namespaceType namespaceBlock;
-    std::map<std::string, std::string> map;
+    std::map<std::string, std::map<std::string, std::string>> map;
 };
 
 /**

@@ -502,5 +502,11 @@ int map_matter_to_sdf(deviceType& device, sdfModelType& sdfModel, sdfMappingType
     map_matter_device(device, sdfModel, device_node);
     //! Print the resulting tree
     referenceTree.traverse(walker);
+
+    // Initial sdfMapping mapping
+    sdfMapping.infoBlock.title = device.name;
+    sdfMapping.namespaceBlock.namespaces = {{"zcl", ""}};
+    sdfMapping.namespaceBlock.defaultNamespace = "zcl";
+    sdfMapping.map = {{"#/sdfObject/testlink", {{"testfield", "testdata"}}}};
     return 0;
 }
