@@ -365,6 +365,11 @@ int serializeCommonQualities(const commonQualityType& commonQuality, json& commo
     return 0;
 }
 
+//! String to bool helper
+bool to_bool(std::string const& s) {
+    return s != "0";
+}
+
 // Function prototype for serializeDataQualities
 int serializeDataQualities(const dataQualityType& dataQuality, json& data_quality_json);
 
@@ -389,8 +394,21 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
         data_quality_json["enum"] = dataQuality.enum_;
     if (!dataQuality.const_.empty())
         data_quality_json["const"] = dataQuality.const_;
-    if (!dataQuality.default_.empty())
-        data_quality_json["default"] = dataQuality.default_;
+    //TODO: Maybe write a generic helper to cast this
+    if (!dataQuality.default_.empty()) {
+        if (dataQuality.type == "boolean")
+            data_quality_json["default"] = to_bool(dataQuality.default_);
+        else if (dataQuality.type == "number") {
+            float default_ = std::stof(dataQuality.default_);
+            data_quality_json["default"] = default_;
+        } else if (dataQuality.type == "integer") {
+            int default_ = std::stoi(dataQuality.default_);
+            data_quality_json["default"] = default_;
+        } else {
+            //TODO: Does array have to be handled differently
+            data_quality_json["default"] = dataQuality.default_;
+        }
+    }
     if (dataQuality.minimum.has_value())
         data_quality_json["minimum"] = dataQuality.minimum.value();
     if (dataQuality.maximum.has_value())
