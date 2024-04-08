@@ -40,7 +40,7 @@ void generate_sdf_filenames(const std::string& input, std::string& sdf_model_nam
 
 // Helper function that generates device and cluster filenames
 // Generates filenames of the format "path/to/file[-device|-cluster].xml"
-void generate_matter_filenames(std::string& input, std::string& device_xml_name, std::string& cluster_xml_name){
+void generate_matter_filenames(const std::string& input, std::string& device_xml_name, std::string& cluster_xml_name){
     auto last_dot = input.find_last_of('.');
 
     device_xml_name.append(input.substr(0, last_dot));
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
 
         std::string path_device_xml;
         std::string path_cluster_xml;
-        generate_sdf_filenames(program.get<std::string>("-output"), path_device_xml, path_cluster_xml);
+        generate_matter_filenames(program.get<std::string>("-output"), path_device_xml, path_cluster_xml);
 
         std::cout << "Saving XML files...." << std::endl;
         saveXmlFile(path_device_xml.c_str(), device_xml);
