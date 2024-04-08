@@ -40,22 +40,25 @@ int main(int argc, char *argv[]) {
         .default_value(false);
 
     program.add_argument("-sdf-model")
-        .help("Input JSON containing the SDF Model, required for conversion to Matter");
+        .help("Path to the input JSON containing the SDF Model, required for conversion to Matter");
 
     program.add_argument("-sdf-mapping")
-        .help("Input JSON containing the SDF Mapping, required for conversion to Matter");
+        .help("Path tp the input JSON containing the SDF Mapping, required for conversion to Matter");
 
     program.add_argument("-device-xml")
-        .help("Input XML containing the Device Definitions, required for conversion to SDF");
+        .help("Path to the input XML containing the Device Definitions, required for conversion to SDF");
 
     program.add_argument("-cluster-xml")
-        .help("Input XML containing the Cluster Definitions, required for conversion to SDF");
+        .help("Path to the input XML containing the Cluster Definitions, required for conversion to SDF");
 
     program.add_argument("-validate")
-        .help("Validate the output files, requires the schema as for the output files as an input");
+        .help("Validate the output files\n"
+              "Requires the path to the schema for the output files as an input");
 
     program.add_argument("-o", "-output")
-        .help("Specify the output file");
+        .help("Specify the output file\n"
+              "For the Matter to SDF conversion, this will get extended by -mapping for the mapping file\n"
+              "For the SDF to Matter conversion, this will get split up into -device and -clusters");
 
     try {
         program.parse_args(argc, argv);
