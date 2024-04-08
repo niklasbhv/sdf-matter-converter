@@ -124,28 +124,62 @@ int main(int argc, char *argv[]) {
         convertMatterToSdf(device_xml, cluster_xml, sdf_model, sdf_mapping);
         std::cout << "Successfully converted Matter to SDF!" << std::endl;
 
-        std::string path_sdf_model;
-        std::string path_sdf_mapping;
-        generate_sdf_filenames(program.get<std::string>("-output"), path_sdf_model, path_sdf_mapping);
+        if (program.is_used("--round-trip")){
+            std::cout << "Round-tripping flag was set!" << std::endl;
+            std::cout << "Converting SDF to Matter..." << std::endl;
+            pugi::xml_document round_trip_device_xml;
+            pugi::xml_document round_trip_cluster_xml;
+            convertSdfToMatter(sdf_model, sdf_mapping,  round_trip_device_xml, round_trip_cluster_xml);
+            std::cout << "Successfully converted SDF to Matter!" << std::endl;
 
-        std::cout << "Saving JSON files...." << std::endl;
-        saveJsonFile(path_sdf_model.c_str(), sdf_model);
-        std::cout << "Successfully saved SDF-Model!" << std::endl;
+            std::string path_round_trip_device_xml;
+            std::string path_round_trip_cluster_xml;
+            generate_matter_filenames(program.get<std::string>("-output"), path_round_trip_device_xml, path_round_trip_cluster_xml);
 
-        saveJsonFile(path_sdf_mapping.c_str(), sdf_mapping);
-        std::cout << "Successfully saved SDF-Mapping!" << std::endl;
+            std::cout << "Saving XML files...." << std::endl;
+            saveXmlFile(path_round_trip_device_xml.c_str(), device_xml);
+            std::cout << "Successfully saved Device XML!" << std::endl;
 
-        if (program.is_used("-validate")){
-            auto path_schema = program.get<std::string>("-validate");
-            std::cout << "Validating output JSON files..." << std::endl;
-            if (validateSdf(path_sdf_model.c_str(), path_schema.c_str()) == 0)
-                std::cout << "SDF-Model JSON is valid!" << std::endl;
-            else
-                std::cout << "SDF-Model JSON is not valid!" << std::endl;
-            if (validateSdf(path_sdf_mapping.c_str(), path_schema.c_str()) == 0)
-                std::cout << "SDF-Mapping JSON is valid!" << std::endl;
-            else
-                std::cout << "SDF-Mapping JSON is not valid!" << std::endl;
+            saveXmlFile(path_round_trip_cluster_xml.c_str(), cluster_xml);
+            std::cout << "Successfully saved Cluster XML!" << std::endl;
+
+            if (program.is_used("-validate")){
+                auto path_schema = program.get<std::string>("-validate");
+                std::cout << "Validating output XML files..." << std::endl;
+                if (validateMatter(path_round_trip_device_xml.c_str(),  path_schema.c_str()) == 0)
+                    std::cout << "Device XML is valid!" << std::endl;
+                else
+                    std::cout << "Device XML is not valid!" << std::endl;
+                if (validateMatter(path_round_trip_cluster_xml.c_str(),  path_schema.c_str()) == 0)
+                    std::cout << "Cluster XML is valid!" << std::endl;
+                else
+                    std::cout << "Cluster XML is not valid!" << std::endl;
+            }
+
+        }else{
+            std::string path_sdf_model;
+            std::string path_sdf_mapping;
+            generate_sdf_filenames(program.get<std::string>("-output"), path_sdf_model, path_sdf_mapping);
+
+            std::cout << "Saving JSON files...." << std::endl;
+            saveJsonFile(path_sdf_model.c_str(), sdf_model);
+            std::cout << "Successfully saved SDF-Model!" << std::endl;
+
+            saveJsonFile(path_sdf_mapping.c_str(), sdf_mapping);
+            std::cout << "Successfully saved SDF-Mapping!" << std::endl;
+
+            if (program.is_used("-validate")) {
+                auto path_schema = program.get<std::string>("-validate");
+                std::cout << "Validating output JSON files..." << std::endl;
+                if (validateSdf(path_sdf_model.c_str(), path_schema.c_str()) == 0)
+                    std::cout << "SDF-Model JSON is valid!" << std::endl;
+                else
+                    std::cout << "SDF-Model JSON is not valid!" << std::endl;
+                if (validateSdf(path_sdf_mapping.c_str(), path_schema.c_str()) == 0)
+                    std::cout << "SDF-Mapping JSON is valid!" << std::endl;
+                else
+                    std::cout << "SDF-Mapping JSON is not valid!" << std::endl;
+            }
         }
     }
     else if(program.is_used("--sdf-to-matter"))
