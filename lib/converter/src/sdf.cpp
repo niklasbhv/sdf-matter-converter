@@ -683,5 +683,15 @@ int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json)
 
 int serializeSdfMapping(const sdfMappingType& sdfMapping, json& sdf_mapping_json)
 {
+    // Serialize the information block and add it to info
+    json info_block_json;
+    serializeInfoBlock(sdfMapping.infoBlock, info_block_json);
+    sdf_mapping_json["info"] = info_block_json;
+
+    // Serialize the namespace information and append it
+    serializeNamespaceBlock(sdfMapping.namespaceBlock, sdf_mapping_json);
+
+    // Serialize the mapping section
+    sdf_mapping_json["map"] = sdfMapping.map;
     return 0;
 }
