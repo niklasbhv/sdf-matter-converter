@@ -664,7 +664,9 @@ int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json)
     if (sdfModel.sdfThing.has_value()){
         json sdf_thing_json;
         serializeSdfThing(sdfModel.sdfThing.value(), sdf_thing_json);
-        sdf_model_json["sdfThing"] = sdf_thing_json;
+        json sdf_thing_map_json;
+        sdf_thing_map_json[sdfModel.sdfThing.value().label] = sdf_thing_json;
+        sdf_model_json["sdfThing"] = sdf_thing_map_json;
     }
     else if (sdfModel.sdfObject.has_value()){
         json sdf_object_json;
