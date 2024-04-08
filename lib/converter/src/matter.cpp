@@ -28,6 +28,7 @@ int parseBitmap(pugi::xml_node& bitmap_type_node, bitmapType& bitmap)
     bitmap.type = bitmap_type_node.attribute("type").value();
     //TODO: This can be 0 or n-ary
     bitmap.cluster = bitmap_type_node.child("cluster").attribute("code").value();
+
     for (pugi::xml_node field_node : bitmap_type_node.children("field"))
     {
         bitmap.fields.push_back(fieldType{
@@ -37,6 +38,7 @@ int parseBitmap(pugi::xml_node& bitmap_type_node, bitmapType& bitmap)
                 field_node.attribute("fieldId").as_int(),
         });
     }
+
     return 0;
 }
 
@@ -45,16 +47,19 @@ int parseEnum(pugi::xml_node& enum_type_node, enumType& enum_)
     enum_.name = enum_type_node.attribute("name").value();
     enum_.type = enum_type_node.attribute("type").value();
     enum_.cluster = enum_type_node.child("cluster").attribute("code").value();
+
     for (pugi::xml_node item_node : enum_type_node.children("item"))
     {
         enum_.items.insert({item_node.attribute("name").value(), item_node.attribute("value").value()});
     }
+
     return 0;
 }
 
 int parseEvent(const pugi::xml_node& eventNode, eventType& event)
 {
     event.description = eventNode.child("description").value();
+
     for (const pugi::xml_node& accessNode : eventNode.children("access")){
         accessType access;
         access.op = accessNode.attribute("op").value();
@@ -73,11 +78,12 @@ int parseEvent(const pugi::xml_node& eventNode, eventType& event)
         eventField.isNullable = fieldNode.attribute("isNullable").as_bool();
         event.field.push_back(eventField);
     }
+
     event.code = eventNode.attribute("code").value();
     event.name = eventNode.attribute("name").value();
-    std::cout << "Currently parsing Event: " << event.name << std::endl;
     event.side = eventNode.attribute("side").value();
     event.priority = eventNode.attribute("priority").value();
+
     return 0;
 }
 
@@ -85,6 +91,7 @@ int parseCommand(const pugi::xml_node& commandNode, commandType& command)
 {
     //command.description
     //command.access
+
     for (pugi::xml_node arg_node : commandNode.children("arg")) {
         //TODO: Complete these
         argType arg;
@@ -92,6 +99,7 @@ int parseCommand(const pugi::xml_node& commandNode, commandType& command)
         arg.type.name = arg_node.attribute("type").value();
         command.arg.push_back(arg);
     }
+
     //command.cli = commandNode.attribute("cli").value();
     command.cliFunctionName = commandNode.attribute("cliFunctionName").value();
     command.code = commandNode.attribute("code").value();
@@ -102,19 +110,19 @@ int parseCommand(const pugi::xml_node& commandNode, commandType& command)
     command.noDefaultImplementation = commandNode.attribute("noDefaultImplementation").as_bool();
     command.manufacturerCode = commandNode.attribute("manufacturerCode").value();
     command.name = commandNode.attribute("name").value();
-    std::cout << "Currently parsing Command: " << command.name << std::endl;
     command.optional = commandNode.attribute("optional").as_bool();
     command.source = commandNode.attribute("source").value();
     command.restriction = commandNode.attribute("restriction").value();
     command.response = commandNode.attribute("response").value();
+
     return 0;
 }
 
 int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribute)
 {
     attribute.name = attribute_node.child_value();
-    std::cout << "Currently parsing Attribute: " << attribute.name << std::endl;
     attribute.description = attribute_node.child("description").value();
+
     for (const pugi::xml_node& accessNode : attribute_node.children("access")){
         accessType access;
         access.op = accessNode.attribute("op").value();
@@ -122,6 +130,7 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
         access.privilege = accessNode.attribute("privilege").value();
         access.modifier = accessNode.attribute("modifier").value();
     }
+
     attribute.code = attribute_node.attribute("code").value();
     attribute.default_ = attribute_node.attribute("default").value();
     attribute.define = attribute_node.attribute("define").value();
@@ -141,6 +150,7 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
     attribute.reportable = attribute_node.attribute("reportable").as_bool();
     attribute.array = attribute_node.attribute("array").as_bool();
     attribute.isNullable = attribute_node.attribute("isNullable").as_bool();
+
     return 0;
 }
 
@@ -166,10 +176,7 @@ int parseCluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
     // Iterate through all clusters children
     for (auto cluster_node : cluster_xml.children("cluster")){
         // Search for the matching cluster definition
-        std::cout << "Searching for Cluster: " << cluster.name << std::endl;
-        std::cout << "Currently found Cluster: " << cluster_node.child("name").child_value() << std::endl;
         if (cluster.name == cluster_node.child("name").child_value()){
-            std::cout << "Currently parsing Cluster: " << cluster.name << std::endl;
             cluster.domain = cluster_node.child("domain").child_value();
             cluster.description = cluster_node.child("description").child_value();
             cluster.code = cluster_node.child("code").child_value();
@@ -179,61 +186,52 @@ int parseCluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
             // cluster.globalAttribute
 
             // Iterate through all attribute children
-            std::list<attributeType> attributeList;
             for (pugi::xml_node attribute_node: cluster_node.children("attribute")) {
                 attributeType attribute;
                 parseAttribute(attribute_node, attribute);
-                attributeList.push_back(attribute);
+                cluster.attributes.push_back(attribute);
             }
-            cluster.attributes = attributeList;
 
             // Iterate through all command children
-            std::list<commandType> commandList;
             for (pugi::xml_node command_node: cluster_node.children("command")) {
                 commandType command;
                 parseCommand(command_node, command);
-                commandList.push_back(command);
+                cluster.commands.push_back(command);
             }
-            cluster.commands = commandList;
 
             // Iterate through all event children
-            std::list<eventType> eventList;
             for (pugi::xml_node event_node: cluster_node.children("event")) {
                 eventType event;
                 parseEvent(event_node, event);
-                eventList.push_back(event);
+                cluster.events.push_back(event);
             }
-            cluster.events = eventList;
         }
     }
+
     return 0;
 }
 
 int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device)
 {
-        auto device_node = device_xml.child("deviceType");
-        device.name = device_node.child("name").child_value();
-        std::cout << "Device Name: " << device_node.child("name").child_value() << std::endl;
-        device.domain = device_node.child("domain").child_value();
-        std::cout << "Device Domain: " << device.domain << std::endl;
-        device.typeName = device_node.child("typeName").child_value();
-        std::cout << "Device Type: " << device.typeName << std::endl;
-        device.profileId = device_node.child("profileId").child_value();
-        std::cout << "Profile ID: " << device.profileId << std::endl;
-        device.deviceId = device_node.child("deviceId").child_value();
-        std::cout << "Device ID: " << device.deviceId << std::endl;
+    pugi::xml_node device_node = device_xml.child("deviceType");
+    device.name = device_node.child("name").child_value();
+    device.domain = device_node.child("domain").child_value();
+    device.typeName = device_node.child("typeName").child_value();
+    device.profileId = device_node.child("profileId").child_value();
+    device.deviceId = device_node.child("deviceId").child_value();
 
-        // Iterate through all clusters children
-        // Each cluster gets parsed afterward, this way only clusters that are used for a device are parsed
-        for (pugi::xml_node cluster_node: device_node.child("clusters").children()) {
-            clusterType cluster;
-            cluster.name = cluster_node.attribute("cluster").value();
-            cluster.client = cluster_node.attribute("client").as_bool();
-            cluster.server = cluster_node.attribute("server").as_bool();
-            //cluster_node.attribute("clientLocked").value();
-            //cluster_node.attribute("serverLocked").value();
-            parseCluster(cluster_xml, cluster);
-            device.clusters.push_back(cluster);
-        }
+    // Iterate through all clusters children
+    // Each cluster gets parsed afterward, this way only clusters that are used for a device are parsed
+    for (pugi::xml_node cluster_node: device_node.child("clusters").children()) {
+        clusterType cluster;
+        cluster.name = cluster_node.attribute("cluster").value();
+        cluster.client = cluster_node.attribute("client").as_bool();
+        cluster.server = cluster_node.attribute("server").as_bool();
+        //cluster_node.attribute("clientLocked").value();
+        //cluster_node.attribute("serverLocked").value();
+        parseCluster(cluster_xml, cluster);
+        device.clusters.push_back(cluster);
+    }
+
     return 0;
 }
