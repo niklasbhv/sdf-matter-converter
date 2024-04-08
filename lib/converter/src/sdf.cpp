@@ -145,16 +145,16 @@ int parseSdfProperty(const json& sdfproperty_json, sdfPropertyType& sdfProperty)
 {
     parseDataQualities(sdfproperty_json, sdfProperty);
     if (sdfproperty_json.contains("readable")){
-        sdfproperty_json.at("readable").get_to(sdfProperty.readable);
-        std::cout << "sdfProperty readable: " << sdfProperty.readable << std::endl;
+        sdfproperty_json.at("readable").get_to(sdfProperty.readable.value());
+        std::cout << "sdfProperty readable: " << sdfProperty.readable.value() << std::endl;
     }
     if (sdfproperty_json.contains("writable")){
-        sdfproperty_json.at("writable").get_to(sdfProperty.writable);
-        std::cout << "sdfProperty writable: " << sdfProperty.writable << std::endl;
+        sdfproperty_json.at("writable").get_to(sdfProperty.writable.value());
+        std::cout << "sdfProperty writable: " << sdfProperty.writable.value() << std::endl;
     }
     if (sdfproperty_json.contains("observable")){
-        sdfproperty_json.at("observable").get_to(sdfProperty.observable);
-        std::cout << "sdfProperty observable: " << sdfProperty.observable << std::endl;
+        sdfproperty_json.at("observable").get_to(sdfProperty.observable.value());
+        std::cout << "sdfProperty observable: " << sdfProperty.observable.value() << std::endl;
     }
     return 0;
 }
@@ -506,9 +506,12 @@ int serializeSdfProperty(const sdfPropertyType& sdfProperty, json& sdf_property_
     serializeDataQualities(sdfProperty, sdf_property_json);
 
     // Serialize the sdfProperty specific fields
-    sdf_property_json["readable"] = sdfProperty.readable;
-    sdf_property_json["writable"] = sdfProperty.writable;
-    sdf_property_json["observable"] = sdfProperty.observable;
+    if (sdfProperty.readable.has_value())
+        sdf_property_json["readable"] = sdfProperty.readable.value();
+    if (sdfProperty.writable.has_value())
+        sdf_property_json["writable"] = sdfProperty.writable.value();
+    if (sdfProperty.observable.has_value())
+        sdf_property_json["observable"] = sdfProperty.observable.value();
 
     return 0;
 }

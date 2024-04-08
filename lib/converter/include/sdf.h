@@ -131,9 +131,9 @@ struct sdfActionType : commonQualityType {
  * Struct which contains sdfProperty information.
  */
 struct sdfPropertyType : dataQualityType {
-    bool readable = true;
-    bool writable = true;
-    bool observable = true;
+    std::optional<bool> readable;
+    std::optional<bool> writable;
+    std::optional<bool> observable;
 };
 
 /**

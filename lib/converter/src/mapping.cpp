@@ -80,8 +80,11 @@ int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute)
     // reportable
     // array
     attribute.isNullable = sdfProperty.nullable;
-    attribute.readable = sdfProperty.readable;
-    attribute.writable = sdfProperty.writable;
+    //TODO: This will default to false, check documentation for the actual default
+    if (sdfProperty.readable.has_value())
+        attribute.readable = sdfProperty.readable.value();
+    if (sdfProperty.writable.has_value())
+        attribute.writable = sdfProperty.writable.value();
     return 0;
 }
 
@@ -301,9 +304,11 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
     // reportableChange
     save_to_mapping("side", attribute.side);
     // array
-    sdfProperty.readable = attribute.readable;
-    sdfProperty.writable = attribute.writable;
-    sdfProperty.observable = attribute.reportable; //TODO: Does this match
+    if (attribute.readable.has_value())
+        sdfProperty.readable = attribute.readable.value();
+    if (attribute.writable.has_value())
+        sdfProperty.writable = attribute.writable.value();
+    //sdfProperty.observable = attribute.reportable; //TODO: Does this match
     return 0;
 }
 

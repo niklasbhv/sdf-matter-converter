@@ -29,6 +29,7 @@
 #include <map>
 #include <list>
 #include <pugixml.hpp>
+#include <optional>
 
 struct argType;
 
@@ -225,9 +226,9 @@ struct attributeType {
     bool optional; // required
     std::string side; // required
     std::string type; // required
-    bool readable;
-    bool writable;
-    bool reportable;
+    std::optional<bool> readable;
+    std::optional<bool> writable;
+    std::optional<bool> reportable;
     bool array;
     bool isNullable;
 };
