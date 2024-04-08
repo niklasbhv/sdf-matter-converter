@@ -410,7 +410,7 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
         data_quality_json["type"] = dataQuality.type;
     if (!dataQuality.sdfChoice.empty()){
         json sdf_choice_map_json;
-        for (auto sdf_choice_map : dataQuality.sdfChoice) {
+        for (const auto& sdf_choice_map : dataQuality.sdfChoice) {
             json sdf_choice_json;
             serializeDataQualities(sdf_choice_map.second, sdf_choice_json);
             sdf_choice_map_json[sdf_choice_map.first] = sdf_choice_json;
@@ -484,15 +484,18 @@ int serializeSdfAction(const sdfActionType& sdfAction, json& sdf_action_json)
     //TODO: Check if these can be empty
     json sdf_input_data_json;
     serializeDataQualities(sdfAction.sdfInputData, sdf_input_data_json);
-    sdf_action_json["sdfInputData"] = sdf_input_data_json;
+    if (!sdf_input_data_json.is_null())
+        sdf_action_json["sdfInputData"] = sdf_input_data_json;
 
     json sdf_output_data_json;
     serializeDataQualities(sdfAction.sdfOutputData, sdf_output_data_json);
-    sdf_action_json["sdfOutputData"] = sdf_output_data_json;
+    if (!sdf_output_data_json.is_null())
+        sdf_action_json["sdfOutputData"] = sdf_output_data_json;
 
     json sdf_data_json;
     serializeSdfData(sdfAction.sdfData, sdf_data_json);
-    sdf_action_json["sdfData"] = sdf_data_json;
+    if (!sdf_data_json.is_null())
+        sdf_action_json["sdfData"] = sdf_data_json;
 
     return 0;
 }
