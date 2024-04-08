@@ -623,7 +623,7 @@ int serializeSdfThing(const sdfThingType& sdfThing, json& sdf_thing_json)
 int serializeNamespaceBlock(const namespaceType& namespaceBlock, json& namespace_block_json)
 {
     if (!namespaceBlock.namespaces.empty())
-        namespace_block_json["namespaces"] = namespaceBlock.namespaces;
+        namespace_block_json["namespace"] = namespaceBlock.namespaces;
     if (!namespaceBlock.defaultNamespace.empty())
         namespace_block_json["defaultNamespace"] = namespaceBlock.defaultNamespace;
     return 0;
