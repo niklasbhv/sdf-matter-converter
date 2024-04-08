@@ -55,7 +55,6 @@ int validateSdf(const char* path, const char* schema)
     // Validate the json file against the schema
     try {
         auto defaultPatch = validator.validate(json_file);
-        std::cout << "Validation succeeded\n";
     } catch (const std::exception &e) {
         std::cerr << "Validation of schema failed: " << e.what() << "\n";
         return -1;
