@@ -46,7 +46,7 @@ int parseCommonQualities(const json& common_qualities_json, commonQualityType& c
 // Function prototype for parseDataQualities
 int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQuality);
 
-int parseSdfChoice(const json& sdf_choice_json, std::map<std::string, dataQualityType> sdfChoiceMap)
+int parseSdfChoice(const json& sdf_choice_json, std::map<std::string, dataQualityType>& sdfChoiceMap)
 {
     for (const auto& choice : sdf_choice_json.items()){
         dataQualityType dataQuality;
