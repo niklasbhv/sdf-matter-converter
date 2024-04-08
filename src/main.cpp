@@ -24,6 +24,34 @@
 
 using json = nlohmann::ordered_json;
 
+// Helper function that generates sdf-model and sdf-mapping filenames
+// Generates filenames of the format "path/to/file[-model|-mapping].json"
+void generate_sdf_filenames(const std::string& input, std::string& sdf_model_name, std::string& sdf_mapping_name){
+    auto last_dot = input.find_last_of('.');
+
+    sdf_model_name.append(input.substr(0, last_dot));
+    sdf_model_name.append("-model");
+    sdf_model_name.append(input.substr(last_dot));
+
+    sdf_mapping_name.append(input.substr(0, last_dot));
+    sdf_mapping_name.append("-mapping");
+    sdf_mapping_name.append(input.substr(last_dot));
+}
+
+// Helper function that generates device and cluster filenames
+// Generates filenames of the format "path/to/file[-device|-cluster].xml"
+void generate_matter_filenames(std::string& input, std::string& device_xml_name, std::string& cluster_xml_name){
+    auto last_dot = input.find_last_of('.');
+
+    device_xml_name.append(input.substr(0, last_dot));
+    device_xml_name.append("-device");
+    device_xml_name.append(input.substr(last_dot));
+
+    cluster_xml_name.append(input.substr(0, last_dot));
+    cluster_xml_name.append("-cluster");
+    cluster_xml_name.append(input.substr(last_dot));
+}
+
 int main(int argc, char *argv[]) {
     argparse::ArgumentParser program("sdf-matter-converter");
 
@@ -56,8 +84,9 @@ int main(int argc, char *argv[]) {
               "Requires the path to the schema for the output files as an input");
 
     program.add_argument("-o", "-output")
+        .required()
         .help("Specify the output file\n"
-              "For the Matter to SDF conversion, this will get extended by -mapping for the mapping file\n"
+              "For the Matter to SDF conversion, this will get split up into -model and -mapping\n"
               "For the SDF to Matter conversion, this will get split up into -device and -clusters");
 
     try {
@@ -95,22 +124,25 @@ int main(int argc, char *argv[]) {
         convertMatterToSdf(device_xml, cluster_xml, sdf_model, sdf_mapping);
         std::cout << "Successfully converted Matter to SDF!" << std::endl;
 
-        //TODO: Output filenames are hardcoded for now, schema is also currently empty
+        std::string path_sdf_model;
+        std::string path_sdf_mapping;
+        generate_sdf_filenames(program.get<std::string>("-output"), path_sdf_model, path_sdf_mapping);
+
         std::cout << "Saving JSON files...." << std::endl;
-        saveJsonFile("./sdf-model.json", sdf_model);
+        saveJsonFile(path_sdf_model.c_str(), sdf_model);
         std::cout << "Successfully saved SDF-Model!" << std::endl;
 
-        saveJsonFile("./sdf-mapping.json", sdf_mapping);
+        saveJsonFile(path_sdf_mapping.c_str(), sdf_mapping);
         std::cout << "Successfully saved SDF-Mapping!" << std::endl;
 
         if (program.is_used("-validate")){
             auto path_schema = program.get<std::string>("-validate");
             std::cout << "Validating output JSON files..." << std::endl;
-            if (validateSdf("./sdf-model.json", path_schema.c_str()) == 0)
+            if (validateSdf(path_sdf_model.c_str(), path_schema.c_str()) == 0)
                 std::cout << "SDF-Model JSON is valid!" << std::endl;
             else
                 std::cout << "SDF-Model JSON is not valid!" << std::endl;
-            if (validateSdf("./sdf-mapping.json", path_schema.c_str()) == 0)
+            if (validateSdf(path_sdf_mapping.c_str(), path_schema.c_str()) == 0)
                 std::cout << "SDF-Mapping JSON is valid!" << std::endl;
             else
                 std::cout << "SDF-Mapping JSON is not valid!" << std::endl;
@@ -142,22 +174,25 @@ int main(int argc, char *argv[]) {
         convertSdfToMatter(sdf_model, sdf_mapping, device_xml, cluster_xml);
         std::cout << "Successfully converted SDF to Matter!" << std::endl;
 
-        //TODO: Output filenames are hardcoded for now
+        std::string path_device_xml;
+        std::string path_cluster_xml;
+        generate_sdf_filenames(program.get<std::string>("-output"), path_device_xml, path_cluster_xml);
+
         std::cout << "Saving XML files...." << std::endl;
-        saveXmlFile("./device_xml.xml", device_xml);
+        saveXmlFile(path_device_xml.c_str(), device_xml);
         std::cout << "Successfully saved Device XML!" << std::endl;
 
-        saveXmlFile("./cluster_xml.xml", cluster_xml);
+        saveXmlFile(path_cluster_xml.c_str(), cluster_xml);
         std::cout << "Successfully saved Cluster XML!" << std::endl;
 
         if (program.is_used("-validate")){
             auto path_schema = program.get<std::string>("-validate");
             std::cout << "Validating output XML files..." << std::endl;
-            if (validateMatter("./device_xml.xml",  path_schema.c_str()) == 0)
+            if (validateMatter(path_device_xml.c_str(),  path_schema.c_str()) == 0)
                 std::cout << "Device XML is valid!" << std::endl;
             else
                 std::cout << "Device XML is not valid!" << std::endl;
-            if (validateMatter("./cluster_xml.xml",  path_schema.c_str()) == 0)
+            if (validateMatter(path_cluster_xml.c_str(),  path_schema.c_str()) == 0)
                 std::cout << "Cluster XML is valid!" << std::endl;
             else
                 std::cout << "Cluster XML is not valid!" << std::endl;
