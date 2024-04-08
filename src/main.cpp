@@ -35,10 +35,6 @@ int main(int argc, char *argv[]) {
         .help("Convert from SDF to Matter")
         .default_value(false);
 
-    program.add_argument("--validate")
-        .help("Validate the input and output files")
-        .default_value(false);
-
     program.add_argument("--round-trip")
         .help("Use round-tripping to convert from one format to the other and back to the original format")
         .default_value(false);
@@ -54,6 +50,9 @@ int main(int argc, char *argv[]) {
 
     program.add_argument("-cluster-xml")
         .help("Input XML containing the Cluster Definitions, required for conversion to SDF");
+
+    program.add_argument("-validate")
+        .help("Validate the output files, requires the schema as for the output files as an input");
 
     program.add_argument("-o", "-output")
         .help("Specify the output file");
@@ -78,19 +77,6 @@ int main(int argc, char *argv[]) {
         auto path_device_xml = program.get<std::string>("-device-xml");
         auto path_cluster_xml = program.get<std::string>("-cluster-xml");
 
-        if (program.get<bool>("--validate")){
-            std::cout << "Validating input XML files..." << std::endl;
-            //TODO: Schema is empty for now
-            if (validateMatter(path_device_xml.c_str(), "") == 0)
-                std::cout << "Device XML is valid!" << std::endl;
-            else
-                std::cout << "Device XML is not valid!" << std::endl;
-            if (validateMatter(path_cluster_xml.c_str(), "") == 0)
-                std::cout << "Cluster XML is valid!" << std::endl;
-            else
-                std::cout << "Cluster XML is not valid!" << std::endl;
-        }
-
         std::cout << "Loading XML files..." << std::endl;
         pugi::xml_document device_xml;
         loadXmlFile(path_device_xml.c_str(), device_xml);
@@ -114,13 +100,14 @@ int main(int argc, char *argv[]) {
         saveJsonFile("./sdf-mapping.json", sdf_mapping);
         std::cout << "Successfully saved SDF-Mapping!" << std::endl;
 
-        if (program.get<bool>("--validate")){
+        if (program.is_used("-validate")){
+            auto path_schema = program.get<std::string>("-validate");
             std::cout << "Validating output JSON files..." << std::endl;
-            if (validateSdf("./sdf-model.json", "") == 0)
+            if (validateSdf("./sdf-model.json", path_schema.c_str()) == 0)
                 std::cout << "SDF-Model JSON is valid!" << std::endl;
             else
                 std::cout << "SDF-Model JSON is not valid!" << std::endl;
-            if (validateSdf("./sdf-mapping.json", "") == 0)
+            if (validateSdf("./sdf-mapping.json", path_schema.c_str()) == 0)
                 std::cout << "SDF-Mapping JSON is valid!" << std::endl;
             else
                 std::cout << "SDF-Mapping JSON is not valid!" << std::endl;
@@ -137,19 +124,6 @@ int main(int argc, char *argv[]) {
         auto path_sdf_model = program.get<std::string>("-sdf-model");
         auto path_sdf_mapping = program.get<std::string>("-sdf-mapping");
 
-        if (program.get<bool>("--validate")){
-            std::cout << "Validating input JSON files..." << std::endl;
-            //TODO: Schema is empty for now
-            if (validateSdf("", "") == 0)
-                std::cout << "SDF-Model JSON is valid!" << std::endl;
-            else
-                std::cout << "SDF-Model JSON is not valid!" << std::endl;
-            if (validateSdf("", "") == 0)
-                std::cout << "SDF-Mapping JSON is valid!" << std::endl;
-            else
-                std::cout << "SDF-Mapping JSON is not valid!" << std::endl;
-        }
-
         std::cout << "Loading JSON files..." << std::endl;
         json sdf_model;
         loadJsonFile(path_sdf_model.c_str(), sdf_model);
@@ -165,7 +139,7 @@ int main(int argc, char *argv[]) {
         convertSdfToMatter(sdf_model, sdf_mapping, device_xml, cluster_xml);
         std::cout << "Successfully converted SDF to Matter!" << std::endl;
 
-        //TODO: Output filenames are hardcoded for now, schema is also currently empty
+        //TODO: Output filenames are hardcoded for now
         std::cout << "Saving XML files...." << std::endl;
         saveXmlFile("./device_xml.xml", device_xml);
         std::cout << "Successfully saved Device XML!" << std::endl;
@@ -173,13 +147,14 @@ int main(int argc, char *argv[]) {
         saveXmlFile("./cluster_xml.xml", cluster_xml);
         std::cout << "Successfully saved Cluster XML!" << std::endl;
 
-        if (program.get<bool>("--validate")){
+        if (program.is_used("-validate")){
+            auto path_schema = program.get<std::string>("-validate");
             std::cout << "Validating output XML files..." << std::endl;
-            if (validateMatter("./device_xml.xml", "") == 0)
+            if (validateMatter("./device_xml.xml",  path_schema.c_str()) == 0)
                 std::cout << "Device XML is valid!" << std::endl;
             else
                 std::cout << "Device XML is not valid!" << std::endl;
-            if (validateMatter("./cluster_xml.xml", "") == 0)
+            if (validateMatter("./cluster_xml.xml",  path_schema.c_str()) == 0)
                 std::cout << "Cluster XML is valid!" << std::endl;
             else
                 std::cout << "Cluster XML is not valid!" << std::endl;
