@@ -508,6 +508,31 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node
     return 0;
 }
 
+//! Generates a valid mapping from the reference tree
+int generate_mapping(const pugi::xml_node& reference_tree, std::map<std::string, std::map<std::string, std::string>>& map)
+{
+    // Iterate through the entire document
+    for (auto node : reference_tree.children()) {
+
+        // If available, iterate through the attributes of a node
+        std::map<std::string, std::string> attribute_map;
+        for (auto attribute : node.attributes()) {
+            attribute_map.insert({attribute.name(), attribute.value()});
+        }
+
+        // If one or more attributes are found insert them into the map
+        if (!attribute_map.empty())
+            map.insert({node.path(), attribute_map});
+
+        // Recursive call to iterate to all nodes in the tree
+        for (auto child_node : node.children()) {
+            generate_mapping(child_node, map);
+        }
+    }
+
+    return 0;
+}
+
 //! Matter -> SDF
 int map_matter_to_sdf(deviceType& device, sdfModelType& sdfModel, sdfMappingType& sdfMapping)
 {
@@ -521,10 +546,14 @@ int map_matter_to_sdf(deviceType& device, sdfModelType& sdfModel, sdfMappingType
     sdfMapping.infoBlock.title = device.name;
     sdfMapping.namespaceBlock.namespaces = {{"zcl", ""}};
     sdfMapping.namespaceBlock.defaultNamespace = "zcl";
-    sdfMapping.map = {{"#/sdfObject/testlink", {{"testfield", "testdata"}}}};
+    std::map<std::string, std::map<std::string, std::string>> map;
+    generate_mapping(referenceTree.document_element(), map);
+    sdfMapping.map = map;
 
     // Print the resulting tree
     simple_walker walker;
     referenceTree.traverse(walker);
     return 0;
 }
+
+
