@@ -29,6 +29,8 @@ int convertSdfToMatter(const nlohmann::ordered_json& sdf_model, const nlohmann::
 
     deviceType device;
     map_sdf_to_matter(sdfModel, sdfMapping, device);
+
+    serializeDevice(device, device_xml, cluster_xml);
     return 0;
 }
 
