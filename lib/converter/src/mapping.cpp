@@ -281,7 +281,7 @@ int map_matter_access(accessType& access, dataQualityType& dataQuality)
 }
 
 //! Matter Event -> sdfEvent
-int map_matter_event(eventType& event, sdfEventType& sdfEvent)
+int map_matter_event(eventType& event, sdfEventType& sdfEvent, pugi::xml_node& event_node)
 {
     sdfEvent.label = event.name;
     sdfEvent.description = event.description;
@@ -297,7 +297,7 @@ int map_matter_event(eventType& event, sdfEventType& sdfEvent)
 
 //! Matter Command -> sdfAction
 //! Used if a client and a server command need to be processed
-int map_matter_command(commandType& client_command, commandType& server_command, sdfActionType& sdfAction)
+int map_matter_command(commandType& client_command, commandType& server_command, sdfActionType& sdfAction, pugi::xml_node& command_node)
 {
     sdfAction.label = client_command.name;
     sdfAction.description = client_command.description;
@@ -353,7 +353,7 @@ int map_matter_command(commandType& client_command, commandType& server_command,
 
 //! Matter Command -> sdfAction
 //! Used if only a client command needs to be processed
-int map_matter_command(commandType& client_command, sdfActionType& sdfAction)
+int map_matter_command(commandType& client_command, sdfActionType& sdfAction, pugi::xml_node& command_node)
 {
     sdfAction.label = client_command.name;
     sdfAction.description = client_command.description;
@@ -386,7 +386,7 @@ int map_matter_command(commandType& client_command, sdfActionType& sdfAction)
 }
 
 //! Matter Attribute -> sdfProperty
-int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
+int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty, pugi::xml_node& attribute_node)
 {
     sdfProperty.label = attribute.name;
     sdfProperty.description = attribute.description;
@@ -421,46 +421,56 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty)
 //! Matter Cluster -> sdfObject
 int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml_node& clusterNode)
 {
+    // Append the name of the cluster to the tree
+    // Also append sdfProperty, sdfAction and sdfEvent to the tree
+    auto current_cluster_node = clusterNode.append_child(cluster.name.c_str());
+    current_cluster_node.append_child("sdfProperty");
+    current_cluster_node.append_child("sdfAction");
+    current_cluster_node.append_child("sdfEvent");
+
+    // Map individual cluster fields
     sdfObject.label = cluster.name;
-    clusterNode.append_child(cluster.name.c_str());
-    std::cout << "Cluster Name: " << cluster.name << std::endl;
     sdfObject.description = cluster.description;
 
+    // Iterate through the attributes and map them
+    auto attribute_node = current_cluster_node.child("sdfProperty");
     for (attributeType& attribute : cluster.attributes){
         sdfPropertyType sdfProperty;
-        map_matter_attribute(attribute, sdfProperty);
+        map_matter_attribute(attribute, sdfProperty, attribute_node);
         sdfObject.sdfProperty.insert({attribute.name, sdfProperty});
     }
 
     // TODO: Check if standalone server commands are possible
     // For every Matter client command there might be a corresponding server command that needs to be merged
+    // Iterate through the commands and map them
     for (commandType& command : cluster.commands){
-        std::cout << "Currently mapping Action: " << command.name << std::endl;
+        auto command_node = current_cluster_node.child("sdfAction");
         bool command_mapped = false;
         if (command.source == "client"){
             for (commandType& server_command : cluster.commands){
                 if (command.code == server_command.code and server_command.source == "server"){
                     sdfActionType sdfAction;
-                    map_matter_command(command, server_command, sdfAction);
+                    map_matter_command(command, server_command, sdfAction, command_node);
                     sdfObject.sdfAction.insert({command.name, sdfAction});
                     command_mapped = true;
-                    std::cout << "Mapped client and server command!" << std::endl;
                 }
             }
             if(!command_mapped){
                 sdfActionType sdfAction;
-                map_matter_command(command, sdfAction);
+                map_matter_command(command, sdfAction, command_node);
                 sdfObject.sdfAction.insert({command.name, sdfAction});
-                std::cout << "Mapped client command!" << std::endl;
             }
         }
     }
 
+    // Iterate through the events and map them
+    auto event_node = current_cluster_node.child("sdfEvent");
     for (eventType& event : cluster.events){
         sdfEventType sdfEvent;
-        map_matter_event(event, sdfEvent);
+        map_matter_event(event, sdfEvent, event_node);
         sdfObject.sdfEvent.insert({event.name, sdfEvent});
     }
+
     return 0;
 }
 
