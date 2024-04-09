@@ -480,6 +480,11 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node
     // Append a new sdfObject node to the tree
     deviceNode.append_child(device.name.c_str()).append_child("sdfObject");
     auto cluster_node = deviceNode.child(device.name.c_str()).child("sdfObject");
+    cluster_node.append_attribute("domain").set_value(device.domain.c_str());
+    cluster_node.append_attribute("typeName").set_value(device.typeName.c_str());
+    cluster_node.append_attribute("profileId").set_value(device.profileId.c_str());
+    cluster_node.append_attribute("deviceId").set_value(device.deviceId.c_str());
+    // channels
 
     // Map the information block
     sdfModel.infoBlock.title = device.name;
