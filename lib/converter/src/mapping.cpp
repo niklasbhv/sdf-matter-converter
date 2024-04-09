@@ -20,6 +20,19 @@
 #include "matter.h"
 #include "sdf.h"
 
+//! For debug purposes, prints a visual representation of the tree
+struct simple_walker: pugi::xml_tree_walker
+{
+    bool for_each(pugi::xml_node& node) override
+    {
+        for (int i = 0; i < depth(); ++i) std::cout << "--> "; // indentation
+
+        std::cout << node.name() << std::endl;
+
+        return true; // continue traversal
+    }
+};
+
 int resolve_mappings(clusterType& cluster)
 {
     return 0;
@@ -454,20 +467,18 @@ int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml
 //! Matter Device -> SDF-Model
 int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node& deviceNode)
 {
-
-    // Information Block
-    sdfModel.infoBlock.title = device.name;
-    std::cout << "Currently Mapping: " << device.name << std::endl;
-
-    // Append the device node to the tree
+    // Append a new sdfObject node to the tree
     deviceNode.append_child(device.name.c_str()).append_child("sdfObject");
     auto cluster_node = deviceNode.child(device.name.c_str()).child("sdfObject");
 
-    // Namespace Block
+    // Map the information block
+    sdfModel.infoBlock.title = device.name;
+
+    // Map the namespace block
     sdfModel.namespaceBlock.namespaces.insert({"zcl", ""});
     sdfModel.namespaceBlock.defaultNamespace = "zcl";
 
-    // Definition Block
+    // Map the definition block
     sdfThingType sdfThing;
     sdfThing.label = device.name;
 
@@ -477,42 +488,28 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node
         map_matter_cluster(cluster, sdfObject, cluster_node);
         sdfThing.sdfObject.insert({cluster.name, sdfObject});
     }
-
     sdfModel.sdfThing = sdfThing;
+
     return 0;
 }
-
-//! For debug purposes, prints a visual representation of the tree
-struct simple_walker: pugi::xml_tree_walker
-{
-    bool for_each(pugi::xml_node& node) override
-    {
-        for (int i = 0; i < depth(); ++i) std::cout << "--> "; // indentation
-
-        std::cout << node.name() << std::endl;
-
-        return true; // continue traversal
-    }
-};
-
 
 //! Matter -> SDF
 int map_matter_to_sdf(deviceType& device, sdfModelType& sdfModel, sdfMappingType& sdfMapping)
 {
-    //TODO: sdfMapping is currently unused
     pugi::xml_document referenceTree;
     referenceTree.append_child("#").append_child("sdfThing");
     auto device_node = referenceTree.child("#").child("sdfThing");
-    // Create a walker to visually represent the tree
-    simple_walker walker;
+
     map_matter_device(device, sdfModel, device_node);
-    // Print the resulting tree
-    referenceTree.traverse(walker);
 
     // Initial sdfMapping mapping
     sdfMapping.infoBlock.title = device.name;
     sdfMapping.namespaceBlock.namespaces = {{"zcl", ""}};
     sdfMapping.namespaceBlock.defaultNamespace = "zcl";
     sdfMapping.map = {{"#/sdfObject/testlink", {{"testfield", "testdata"}}}};
+
+    // Print the resulting tree
+    simple_walker walker;
+    referenceTree.traverse(walker);
     return 0;
 }
