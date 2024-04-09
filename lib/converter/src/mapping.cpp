@@ -38,6 +38,7 @@ int get_from_mapping(const char* name, T& value)
     return 0;
 }
 
+//! sdfEvent -> Matter event
 int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
 {
     event.name = sdfEvent.label;
@@ -50,6 +51,7 @@ int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
     return 0;
 }
 
+//! sdfAction -> Matter command
 int map_sdf_action(sdfActionType& sdfAction, commandType& command)
 {
     command.name = sdfAction.label;
@@ -58,6 +60,7 @@ int map_sdf_action(sdfActionType& sdfAction, commandType& command)
     return 0;
 }
 
+//! sdfProperty -> Matter attribute
 int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute)
 {
     attribute.name = sdfProperty.label;
@@ -91,9 +94,10 @@ int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute)
     return 0;
 }
 
+//! sdfObject -> Matter cluster
 int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
 {
-    //! Common qualities
+    // Common qualities
     cluster.name = sdfObject.label;
     cluster.description = sdfObject.description;
     save_to_mapping("domain", cluster.domain);
@@ -108,21 +112,21 @@ int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
     save_to_mapping("manufacturerCode", cluster.manufacturerCode);
     // singleton
 
-    //! Iterate through sdfProperties
+    // Iterate through sdfProperties
     for (auto sdfProperty : sdfObject.sdfProperty){
         attributeType attribute;
         map_sdf_property(sdfProperty.second, attribute);
         cluster.attributes.push_back(attribute);
     }
 
-    //! Iterate through sdfActions
+    // Iterate through sdfActions
     for (auto sdfAction : sdfObject.sdfAction){
         commandType command;
         map_sdf_action(sdfAction.second, command);
         cluster.commands.push_back(command);
     }
 
-    //! Iterate through sdfEvents
+    // Iterate through sdfEvents
     for (auto sdfEvent : sdfObject.sdfEvent){
         eventType event;
         map_sdf_event(sdfEvent.second, event);
@@ -131,9 +135,10 @@ int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
     return 0;
 }
 
+//! sdfThing -> Matter device
 int map_sdf_thing(sdfThingType& sdfThing, deviceType& device)
 {
-    //! Common qualities
+    // Common qualities
     device.name = sdfThing.label;
     // domain
     // typeName
@@ -149,9 +154,10 @@ int map_sdf_thing(sdfThingType& sdfThing, deviceType& device)
     return 0;
 }
 
+//! SDF Model + SDF Mapping -> Matter device
 int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType, deviceType& device)
 {
-    //! Make the SDF mapping global
+    // Make the SDF mapping global
     //MappingList.merge(sdfMappingType.map);
 
     std::list<clusterType> clusterList;
@@ -289,7 +295,7 @@ int map_matter_command(commandType& client_command, commandType& server_command,
     // Map client command arguments
     for (argType &arg: client_command.arg){
         dataQualityType dataQualities;
-        //! Common qualities
+        // Common qualities
         dataQualities.label = arg.name;
         dataQualities.description = arg.description;
 
@@ -311,7 +317,7 @@ int map_matter_command(commandType& client_command, commandType& server_command,
     // Map server command arguments
     for (argType &arg: server_command.arg) {
         dataQualityType dataQualities;
-        //! Common qualities
+        // Common qualities
         dataQualities.label = arg.name;
         dataQualities.description = arg.description;
 
@@ -345,7 +351,7 @@ int map_matter_command(commandType& client_command, sdfActionType& sdfAction)
     // Map client command arguments
     for (argType &arg: client_command.arg){
         dataQualityType dataQualities;
-        //! Common qualities
+        // Common qualities
         dataQualities.label = arg.name;
         dataQualities.description = arg.description;
 
@@ -449,23 +455,23 @@ int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml
 int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node& deviceNode)
 {
 
-    //! Information Block
+    // Information Block
     sdfModel.infoBlock.title = device.name;
     std::cout << "Currently Mapping: " << device.name << std::endl;
 
-    //! Append the device node to the tree
+    // Append the device node to the tree
     deviceNode.append_child(device.name.c_str()).append_child("sdfObject");
     auto cluster_node = deviceNode.child(device.name.c_str()).child("sdfObject");
 
-    //! Namespace Block
+    // Namespace Block
     sdfModel.namespaceBlock.namespaces.insert({"zcl", ""});
     sdfModel.namespaceBlock.defaultNamespace = "zcl";
 
-    //! Definition Block
+    // Definition Block
     sdfThingType sdfThing;
     sdfThing.label = device.name;
 
-    //! Iterate through cluster definitions for the device
+    // Iterate through cluster definitions for the device
     for (auto cluster : device.clusters){
         sdfObjectType sdfObject;
         map_matter_cluster(cluster, sdfObject, cluster_node);
@@ -497,10 +503,10 @@ int map_matter_to_sdf(deviceType& device, sdfModelType& sdfModel, sdfMappingType
     pugi::xml_document referenceTree;
     referenceTree.append_child("#").append_child("sdfThing");
     auto device_node = referenceTree.child("#").child("sdfThing");
-    //! Create a walker to visually represent the tree
+    // Create a walker to visually represent the tree
     simple_walker walker;
     map_matter_device(device, sdfModel, device_node);
-    //! Print the resulting tree
+    // Print the resulting tree
     referenceTree.traverse(walker);
 
     // Initial sdfMapping mapping
