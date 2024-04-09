@@ -290,4 +290,17 @@ struct deviceType {
  */
 int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device);
 
+
+/**
+ * @brief Serializes device into xml-file.
+ *
+ * This functions takes a device object and serializes it into a device and a cluster xml.
+ *
+ * @param device The input device object.
+ * @param device_xml The resulting device xml.
+ * @param cluster_xml The resulting cluster xml.
+ * @return 0 on success, negative on failure.
+ */
+int serializeDevice(const deviceType& device, pugi::xml_node& device_xml, pugi::xml_node& cluster_xml);
+
 #endif //MATTER_H
