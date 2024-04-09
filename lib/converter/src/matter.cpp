@@ -236,8 +236,44 @@ int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_
     return 0;
 }
 
+int serializeEvent(const eventType& event, pugi::xml_node& event_xml)
+{
+    return 0;
+}
+
+int serializeCommand(const commandType& command, pugi::xml_node& command_xml)
+{
+    return 0;
+}
+
+int serializeAttribute(const attributeType& attribute, pugi::xml_node& attribute_xml)
+{
+    return 0;
+}
+
 int serializeCluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
 {
+    // TODO: Depending on which of these are necessary, check if fields are empty
+    // domain
+    pugi::xml_node cluster_node = cluster_xml.append_child("configurator").append_child("cluster");
+    cluster_node.append_child("name").set_value(cluster.name.c_str());
+    cluster_node.append_child("domain").set_value(cluster.domain.c_str());
+    cluster_node.append_child("code").set_value(cluster.code.c_str());
+    cluster_node.append_child("define").set_value(cluster.define.c_str());
+    cluster_node.append_child("description").set_value(cluster.description.c_str());
+
+    for (const auto& attribute : cluster.attributes) {
+        serializeAttribute(attribute, cluster_node);
+    }
+
+    for (const auto& command : cluster.commands) {
+        serializeCommand(command, cluster_node);
+    }
+
+    for (const auto& event : cluster.events) {
+        serializeEvent(event, cluster_node);
+    }
+
     return 0;
 }
 
