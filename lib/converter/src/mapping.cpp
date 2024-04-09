@@ -522,7 +522,8 @@ int generate_mapping(const pugi::xml_node& reference_tree, std::map<std::string,
 
         // If one or more attributes are found insert them into the map
         if (!attribute_map.empty())
-            map.insert({node.path(), attribute_map});
+            // Remove the first backslash as it is not needed
+            map.insert({node.path().substr(1), attribute_map});
 
         // Recursive call to iterate to all nodes in the tree
         for (auto child_node : node.children()) {
