@@ -319,9 +319,9 @@ int serializeDevice(const deviceType& device, pugi::xml_node& device_xml, pugi::
     pugi::xml_node clusters_node = device_node.append_child("clusters");
     for (const auto& cluster : device.clusters) {
         pugi::xml_node cluster_node = clusters_node.append_child("include");
-        cluster_node.attribute("cluster").set_value(cluster.name.c_str());
-        cluster_node.attribute("client").set_value(cluster.client);
-        cluster_node.attribute("server").set_value(cluster.server);
+        cluster_node.append_attribute("cluster").set_value(cluster.name.c_str());
+        cluster_node.append_attribute("client").set_value(cluster.client);
+        cluster_node.append_attribute("server").set_value(cluster.server);
         //cluster_node.attribute("clientLocked").set_value(cluster.clientLocked);
         //cluster_node.attribute("serverLocked").set_value(cluster.serverLocked);
         serializeCluster(cluster, cluster_xml);
