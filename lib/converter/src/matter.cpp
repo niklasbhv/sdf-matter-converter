@@ -121,7 +121,9 @@ int parseCommand(const pugi::xml_node& commandNode, commandType& command)
 int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribute)
 {
     attribute.name = attribute_node.child_value();
-    attribute.description = attribute_node.child("description").value();
+    if (attribute.name.empty())
+        attribute.name = attribute_node.child("description").child_value();
+    //attribute.description = attribute_node.child("description").child_value();
 
     for (const pugi::xml_node& accessNode : attribute_node.children("access")){
         accessType access;
