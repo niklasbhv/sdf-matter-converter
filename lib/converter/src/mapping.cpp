@@ -395,28 +395,29 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty,
         attribute_node.append_attribute("introducedIn").set_value(attribute.introducedIn.c_str());
     if (!attribute.manufacturerCode.empty())
         attribute_node.append_attribute("manufacturerCode").set_value(attribute.manufacturerCode.c_str());
+    attribute_node.append_attribute("side").set_value(attribute.side.c_str());
 
     sdfProperty.label = attribute.name;
     sdfProperty.description = attribute.description;
     if (!attribute.optional){
-        sdfProperty.sdfRequired; //TODO: Create a sdfRef here
+        // TODO: Where do sdfRequired definitions of this kind have to go?
+        sdfProperty.sdfRequired = {attribute_node.path().substr(1)};
     }
 
     map_matter_type(attribute.type, sdfProperty);
     sdfProperty.default_ = attribute.default_;
-    //sdfProperty.minLength = attribute.min; //TODO: does this match?
-    //sdfProperty.maxLength = attribute.max; //TODO: does this match?
-    sdfProperty.nullable = attribute.isNullable;
+    // TODO: Do these match?
+    if (attribute.min.has_value())
+        sdfProperty.minLength = attribute.min.value();
+    if (attribute.max.has_value())
+        sdfProperty.maxLength = attribute.max.value();
+    if (attribute.isNullable.has_value())
+        sdfProperty.nullable = attribute.isNullable.value();
     // access
-    save_to_mapping("code", attribute.code);
-    save_to_mapping("define", attribute.define);
-    save_to_mapping("introducedIn", attribute.introducedIn);
     // length
-    save_to_mapping("manufacturerCode", attribute.manufacturerCode);
     // reportMaxInterval
     // reportMinInterval
     // reportableChange
-    save_to_mapping("side", attribute.side);
     // array
     if (attribute.readable.has_value())
         sdfProperty.readable = attribute.readable.value();

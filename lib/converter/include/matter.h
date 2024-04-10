@@ -216,10 +216,10 @@ struct attributeType {
     std::string default_;
     std::string define; // required; zclAttributeDefine -> Mapping file
     std::string introducedIn; // zclSpecVersion -> Mapping file
-    int length;
+    std::optional<int> length;
     std::string  manufacturerCode; // zclCode -> Mapping file
-    int max; //TODO: Check anySimpleType
-    int min; //TODO: Check anySimpleType
+    std::optional<int> max; //TODO: Check anySimpleType
+    std::optional<int> min; //TODO: Check anySimpleType
     // reportMaxInterval //TODO: Check anySimpleType
     // reportMinInterval
     // reportableChange //TODO: Check anySimpleType
@@ -229,8 +229,8 @@ struct attributeType {
     std::optional<bool> readable;
     std::optional<bool> writable;
     std::optional<bool> reportable;
-    bool array;
-    bool isNullable;
+    std::optional<bool> array;
+    std::optional<bool> isNullable;
 };
 
 /**
