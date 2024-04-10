@@ -135,10 +135,13 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
     attribute.default_ = attribute_node.attribute("default").value();
     attribute.define = attribute_node.attribute("define").value();
     attribute.introducedIn = attribute_node.attribute("introducedIn").value();
-    attribute.length = attribute_node.attribute("length").as_int();
+    if (!attribute_node.attribute("length").empty())
+        attribute.length = attribute_node.attribute("length").as_int();
     attribute.manufacturerCode = attribute_node.attribute("manufacturerCode").value();
-    attribute.max = attribute_node.attribute("max").as_int();
-    attribute.min = attribute_node.attribute("min").as_int();
+    if (!attribute_node.attribute("max").empty())
+        attribute.max = attribute_node.attribute("max").as_int();
+    if (!attribute_node.attribute("min").empty())
+        attribute.min = attribute_node.attribute("min").as_int();
     // reportMaxInterval
     // reportMinInterval
     // reportableChange
