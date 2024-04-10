@@ -386,8 +386,16 @@ int map_matter_command(commandType& client_command, sdfActionType& sdfAction, pu
 }
 
 //! Matter Attribute -> sdfProperty
-int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty, pugi::xml_node& attribute_node)
+int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty, pugi::xml_node& sdf_action_node)
 {
+    auto attribute_node = sdf_action_node.append_child(attribute.name.c_str());
+    attribute_node.append_attribute("code").set_value(attribute.code.c_str());
+    attribute_node.append_attribute("define").set_value(attribute.define.c_str());
+    if (!attribute.introducedIn.empty())
+        attribute_node.append_attribute("introducedIn").set_value(attribute.introducedIn.c_str());
+    if (!attribute.manufacturerCode.empty())
+        attribute_node.append_attribute("manufacturerCode").set_value(attribute.manufacturerCode.c_str());
+
     sdfProperty.label = attribute.name;
     sdfProperty.description = attribute.description;
     if (!attribute.optional){
@@ -424,6 +432,7 @@ int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml
     // Append the name of the cluster to the tree
     // Also append sdfProperty, sdfAction and sdfEvent to the tree
     auto cluster_node = sdf_object_node.append_child(cluster.name.c_str());
+    // TODO: Some of these are definitely optional
     cluster_node.append_attribute("domain").set_value(cluster.domain.c_str());
     cluster_node.append_attribute("code").set_value(cluster.code.c_str());
     cluster_node.append_attribute("define").set_value(cluster.define.c_str());
@@ -527,7 +536,9 @@ int generate_mapping(const pugi::xml_node& node, std::map<std::string, std::map<
 
     // If one or more attributes are found insert them into the map
     if (!attribute_map.empty())
-        // Remove the first backslash as it is not needed
+        // Remove the first slash as it is not needed
+        // TODO: Cluster names can contain slashes (e.g. On/Off) which might render the function unusable
+        // TODO: A potential workaround might be to encase such names like sdfObject/[CLUSTER_NAME]/sdfAction
         map.insert({node.path().substr(1), attribute_map});
 
     // Recursive call to iterate to all nodes in the tree
