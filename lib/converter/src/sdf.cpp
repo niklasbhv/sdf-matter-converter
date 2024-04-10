@@ -124,15 +124,15 @@ int parseSdfAction(const json& sdf_action_json, sdfActionType& sdfAction)
 int parseSdfProperty(const json& sdf_property_json, sdfPropertyType& sdfProperty)
 {
     parseDataQualities(sdf_property_json, sdfProperty);
+    //TODO: Currently broken because of optional
+    //if (sdf_property_json.contains("readable"))
+        //sdf_property_json.at("readable").get_to(sdfProperty.readable);
 
-    if (sdf_property_json.contains("readable"))
-        sdf_property_json.at("readable").get_to(sdfProperty.readable.value());
+    //if (sdf_property_json.contains("writable"))
+        //sdf_property_json.at("writable").get_to(sdfProperty.writable);
 
-    if (sdf_property_json.contains("writable"))
-        sdf_property_json.at("writable").get_to(sdfProperty.writable.value());
-
-    if (sdf_property_json.contains("observable"))
-        sdf_property_json.at("observable").get_to(sdfProperty.observable.value());
+    //if (sdf_property_json.contains("observable"))
+        //sdf_property_json.at("observable").get_to(sdfProperty.observable);
 
     return 0;
 }
@@ -187,7 +187,7 @@ int parseSdfThing(const json& sdf_thing_json, sdfThingType& sdfThing)
     parseCommonQualities(sdf_thing_json, sdfThing);
 
     if (sdf_thing_json.contains("sdfObject")){
-        for (const auto& object : sdf_thing_json.at("sdfProperty").items()) {
+        for (const auto& object : sdf_thing_json.at("sdfObject").items()) {
             sdfObjectType sdfObject;
             parseSdfObject(object.value(), sdfObject);
             sdfThing.sdfObject.insert({object.key(), sdfObject});
@@ -288,13 +288,13 @@ int parseSdfModel(const json& sdf_model_json, sdfModelType& sdfModel)
     // Check if the sdf-model contains a sdfThing
     if (sdf_model_json.contains("sdfThing")){
         sdfThingType sdfThing;
-        parseSdfThing(sdf_model_json.at("sdfThing"), sdfThing);
+        parseSdfThing(sdf_model_json.at("sdfThing").front(), sdfThing);
     }
 
     // If not, check if the sdf-model contains a sdfObject
     else if (sdf_model_json.contains("sdfObject")) {
         sdfObjectType sdfObject;
-        parseSdfObject(sdf_model_json.at("sdfObject"), sdfObject);
+        parseSdfObject(sdf_model_json.at("sdfObject").front(), sdfObject);
     }
 
     else {
