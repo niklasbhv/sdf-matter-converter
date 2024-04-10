@@ -289,12 +289,14 @@ int parseSdfModel(const json& sdf_model_json, sdfModelType& sdfModel)
     if (sdf_model_json.contains("sdfThing")){
         sdfThingType sdfThing;
         parseSdfThing(sdf_model_json.at("sdfThing").front(), sdfThing);
+        sdfModel.sdfThing = sdfThing;
     }
 
     // If not, check if the sdf-model contains a sdfObject
     else if (sdf_model_json.contains("sdfObject")) {
         sdfObjectType sdfObject;
         parseSdfObject(sdf_model_json.at("sdfObject").front(), sdfObject);
+        sdfModel.sdfObject = sdfObject;
     }
 
     else {
