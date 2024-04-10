@@ -297,8 +297,16 @@ int map_matter_event(eventType& event, sdfEventType& sdfEvent, pugi::xml_node& e
 
 //! Matter Command -> sdfAction
 //! Used if a client and a server command need to be processed
-int map_matter_command(commandType& client_command, commandType& server_command, sdfActionType& sdfAction, pugi::xml_node& command_node)
+int map_matter_command(commandType& client_command, commandType& server_command, sdfActionType& sdfAction, pugi::xml_node& sdf_action_node)
 {
+    // Append the command node to the tree
+    auto command_node = sdf_action_node.append_child(client_command.name.c_str());
+    command_node.append_attribute("code").set_value(client_command.code.c_str());
+    if (!client_command.introducedIn.empty())
+        command_node.append_attribute("introducedIn").set_value(client_command.introducedIn.c_str());
+    if (!client_command.manufacturerCode.empty())
+        command_node.append_attribute("manufacturerCode").set_value(client_command.manufacturerCode.c_str());
+
     sdfAction.label = client_command.name;
     sdfAction.description = client_command.description;
 
@@ -306,8 +314,10 @@ int map_matter_command(commandType& client_command, commandType& server_command,
     // access
 
     // Map client command arguments
+    auto sdf_input_data_node = command_node.append_child("sdfInputData");
     for (argType &arg: client_command.arg){
         dataQualityType dataQualities;
+        auto arg_node = sdf_input_data_node.append_child(arg.name.c_str());
         // Common qualities
         dataQualities.label = arg.name;
         dataQualities.description = arg.description;
@@ -317,8 +327,10 @@ int map_matter_command(commandType& client_command, commandType& server_command,
         map_matter_type(arg.type.name, dataQualities);
         // arraylength
         // array
-        save_to_mapping("introducedIn", client_command.introducedIn);
-        //save_to_mapping("removedIn", command.removedIn);
+        if (!arg.introducedIn.empty())
+            arg_node.append_attribute("introducedIn").set_value(arg.introducedIn.c_str());
+        if (!arg.removedIn.empty())
+            arg_node.append_attribute("removedIn").set_value(arg.removedIn.c_str());
         // length
         // presentIf
         // optional
@@ -328,8 +340,10 @@ int map_matter_command(commandType& client_command, commandType& server_command,
     }
 
     // Map server command arguments
+    auto sdf_output_data_node = command_node.append_child("sdfOutputData");
     for (argType &arg: server_command.arg) {
         dataQualityType dataQualities;
+        auto arg_node = sdf_output_data_node.append_child(arg.name.c_str());
         // Common qualities
         dataQualities.label = arg.name;
         dataQualities.description = arg.description;
@@ -339,8 +353,10 @@ int map_matter_command(commandType& client_command, commandType& server_command,
         map_matter_type(arg.type.name, dataQualities);
         // arraylength
         // array
-        save_to_mapping("introducedIn", client_command.introducedIn);
-        //save_to_mapping("removedIn", command.removedIn);
+        if (!arg.introducedIn.empty())
+            arg_node.append_attribute("introducedIn").set_value(arg.introducedIn.c_str());
+        if (!arg.removedIn.empty())
+            arg_node.append_attribute("removedIn").set_value(arg.removedIn.c_str());
         // length
         // presentIf
         // optional
@@ -353,8 +369,16 @@ int map_matter_command(commandType& client_command, commandType& server_command,
 
 //! Matter Command -> sdfAction
 //! Used if only a client command needs to be processed
-int map_matter_command(commandType& client_command, sdfActionType& sdfAction, pugi::xml_node& command_node)
+int map_matter_command(commandType& client_command, sdfActionType& sdfAction, pugi::xml_node& sdf_action_node)
 {
+    // Append the command node to the tree
+    auto command_node = sdf_action_node.append_child(client_command.name.c_str());
+    command_node.append_attribute("code").set_value(client_command.code.c_str());
+    if (!client_command.introducedIn.empty())
+        command_node.append_attribute("introducedIn").set_value(client_command.introducedIn.c_str());
+    if (!client_command.manufacturerCode.empty())
+        command_node.append_attribute("manufacturerCode").set_value(client_command.manufacturerCode.c_str());
+
     sdfAction.label = client_command.name;
     sdfAction.description = client_command.description;
 
@@ -362,8 +386,10 @@ int map_matter_command(commandType& client_command, sdfActionType& sdfAction, pu
     // access
 
     // Map client command arguments
+    auto sdf_input_data_node = command_node.append_child("sdfInputData");
     for (argType &arg: client_command.arg){
         dataQualityType dataQualities;
+        auto arg_node = sdf_input_data_node.append_child(arg.name.c_str());
         // Common qualities
         dataQualities.label = arg.name;
         dataQualities.description = arg.description;
@@ -373,8 +399,10 @@ int map_matter_command(commandType& client_command, sdfActionType& sdfAction, pu
         map_matter_type(arg.type.name, dataQualities);
         // arraylength
         // array
-        save_to_mapping("introducedIn", client_command.introducedIn);
-        //save_to_mapping("removedIn", command.removedIn);
+        if (!arg.introducedIn.empty())
+            arg_node.append_attribute("introducedIn").set_value(arg.introducedIn.c_str());
+        if (!arg.removedIn.empty())
+            arg_node.append_attribute("removedIn").set_value(arg.removedIn.c_str());
         // length
         // presentIf
         // optional
@@ -386,9 +414,10 @@ int map_matter_command(commandType& client_command, sdfActionType& sdfAction, pu
 }
 
 //! Matter Attribute -> sdfProperty
-int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty, pugi::xml_node& sdf_action_node)
+int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty, pugi::xml_node& sdf_property_node)
 {
-    auto attribute_node = sdf_action_node.append_child(attribute.name.c_str());
+    // Append the attribute node to the tree
+    auto attribute_node = sdf_property_node.append_child(attribute.name.c_str());
     attribute_node.append_attribute("code").set_value(attribute.code.c_str());
     attribute_node.append_attribute("define").set_value(attribute.define.c_str());
     if (!attribute.introducedIn.empty())
