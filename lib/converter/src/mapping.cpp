@@ -432,14 +432,15 @@ int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml
     // Append the name of the cluster to the tree
     // Also append sdfProperty, sdfAction and sdfEvent to the tree
     auto cluster_node = sdf_object_node.append_child(cluster.name.c_str());
-    // TODO: Some of these are definitely optional
     cluster_node.append_attribute("domain").set_value(cluster.domain.c_str());
     cluster_node.append_attribute("code").set_value(cluster.code.c_str());
     cluster_node.append_attribute("define").set_value(cluster.define.c_str());
     cluster_node.append_attribute("client").set_value(cluster.client);
     cluster_node.append_attribute("server").set_value(cluster.server);
-    cluster_node.append_attribute("introducedIn").set_value(cluster.introducedIn.c_str());
-    cluster_node.append_attribute("manufacturerCode").set_value(cluster.manufacturerCode.c_str());
+    if (!cluster.introducedIn.empty())
+        cluster_node.append_attribute("introducedIn").set_value(cluster.introducedIn.c_str());
+    if (!cluster.manufacturerCode.empty())
+        cluster_node.append_attribute("manufacturerCode").set_value(cluster.manufacturerCode.c_str());
     cluster_node.append_child("sdfProperty");
     cluster_node.append_child("sdfAction");
     cluster_node.append_child("sdfEvent");
