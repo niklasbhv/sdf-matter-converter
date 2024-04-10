@@ -261,11 +261,11 @@ int serializeCluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
     // TODO: Depending on which of these are necessary, check if fields are empty
     // domain
     pugi::xml_node cluster_node = cluster_xml.append_child("configurator").append_child("cluster");
-    cluster_node.append_child("name").set_value(cluster.name.c_str());
-    cluster_node.append_child("domain").set_value(cluster.domain.c_str());
-    cluster_node.append_child("code").set_value(cluster.code.c_str());
-    cluster_node.append_child("define").set_value(cluster.define.c_str());
-    cluster_node.append_child("description").set_value(cluster.description.c_str());
+    cluster_node.append_child("name").text().set(cluster.name.c_str());
+    cluster_node.append_child("domain").text().set(cluster.domain.c_str());
+    cluster_node.append_child("code").text().set(cluster.code.c_str());
+    cluster_node.append_child("define").text().set(cluster.define.c_str());
+    cluster_node.append_child("description").text().set(cluster.description.c_str());
 
     for (const auto& attribute : cluster.attributes) {
         serializeAttribute(attribute, cluster_node);
@@ -286,11 +286,11 @@ int serializeDevice(const deviceType& device, pugi::xml_node& device_xml, pugi::
 {
     // TODO: Depending on which of these are necessary, check if fields are empty
     pugi::xml_node device_node = device_xml.append_child("configurator").append_child("deviceType");
-    device_node.append_child("name").set_value(device.name.c_str());
-    device_node.append_child("domain").set_value(device.domain.c_str());
-    device_node.append_child("typeName").set_value(device.typeName.c_str());
-    device_node.append_child("profileId").set_value(device.profileId.c_str());
-    device_node.append_child("deviceId").set_value(device.deviceId.c_str());
+    device_node.append_child("name").text().set(device.name.c_str());
+    device_node.append_child("domain").text().set(device.domain.c_str());
+    device_node.append_child("typeName").text().set(device.typeName.c_str());
+    device_node.append_child("profileId").text().set(device.profileId.c_str());
+    device_node.append_child("deviceId").text().set(device.deviceId.c_str());
 
     pugi::xml_node clusters_node = device_node.append_child("clusters");
     for (const auto& cluster : device.clusters) {
