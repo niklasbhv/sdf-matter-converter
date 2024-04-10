@@ -68,14 +68,15 @@ int map_sdf_action(sdfActionType& sdfAction, commandType& command)
 }
 
 //! sdfProperty -> Matter attribute
-int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute)
+int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute, pugi::xml_node& sdf_property_node)
 {
+    auto current_action_node = sdf_property_node.append_child(sdfProperty.label.c_str());
     attribute.name = sdfProperty.label;
     attribute.description = sdfProperty.description;
     // access
-    // code
+    resolve_mapping(current_action_node.path().substr(1), "code", attribute.code);
     attribute.default_ = sdfProperty.default_;
-    // define
+    resolve_mapping(current_action_node.path().substr(1), "define", attribute.define);
     // introducedIn
     // length
     // manufacturerCode
@@ -88,7 +89,7 @@ int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute)
     // reportMinInterval
     // reportableChange
     // optional
-    // side
+    resolve_mapping(current_action_node.path().substr(1), "side", attribute.side);
     attribute.type = sdfProperty.type; //TODO: Definitely needs mapping
     // reportable
     // array
@@ -121,9 +122,10 @@ int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster, pugi::xml_nod
     // singleton
 
     // Iterate through sdfProperties
+    auto sdf_property_node = current_object_node.append_child("sdfProperty");
     for (auto sdfProperty : sdfObject.sdfProperty){
         attributeType attribute;
-        map_sdf_property(sdfProperty.second, attribute);
+        map_sdf_property(sdfProperty.second, attribute, sdf_property_node);
         cluster.attributes.push_back(attribute);
     }
 
