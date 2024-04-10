@@ -419,21 +419,28 @@ int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty,
 }
 
 //! Matter Cluster -> sdfObject
-int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml_node& clusterNode)
+int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml_node& sdf_object_node)
 {
     // Append the name of the cluster to the tree
     // Also append sdfProperty, sdfAction and sdfEvent to the tree
-    auto current_cluster_node = clusterNode.append_child(cluster.name.c_str());
-    current_cluster_node.append_child("sdfProperty");
-    current_cluster_node.append_child("sdfAction");
-    current_cluster_node.append_child("sdfEvent");
+    auto cluster_node = sdf_object_node.append_child(cluster.name.c_str());
+    cluster_node.append_attribute("domain").set_value(cluster.domain.c_str());
+    cluster_node.append_attribute("code").set_value(cluster.code.c_str());
+    cluster_node.append_attribute("define").set_value(cluster.define.c_str());
+    cluster_node.append_attribute("client").set_value(cluster.client);
+    cluster_node.append_attribute("server").set_value(cluster.server);
+    cluster_node.append_attribute("introducedIn").set_value(cluster.introducedIn.c_str());
+    cluster_node.append_attribute("manufacturerCode").set_value(cluster.manufacturerCode.c_str());
+    cluster_node.append_child("sdfProperty");
+    cluster_node.append_child("sdfAction");
+    cluster_node.append_child("sdfEvent");
 
     // Map individual cluster fields
     sdfObject.label = cluster.name;
     sdfObject.description = cluster.description;
 
     // Iterate through the attributes and map them
-    auto attribute_node = current_cluster_node.child("sdfProperty");
+    auto attribute_node = cluster_node.child("sdfProperty");
     for (attributeType& attribute : cluster.attributes){
         sdfPropertyType sdfProperty;
         map_matter_attribute(attribute, sdfProperty, attribute_node);
@@ -444,7 +451,7 @@ int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml
     // For every Matter client command there might be a corresponding server command that needs to be merged
     // Iterate through the commands and map them
     for (commandType& command : cluster.commands){
-        auto command_node = current_cluster_node.child("sdfAction");
+        auto command_node = cluster_node.child("sdfAction");
         bool command_mapped = false;
         if (command.source == "client"){
             for (commandType& server_command : cluster.commands){
@@ -464,7 +471,7 @@ int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml
     }
 
     // Iterate through the events and map them
-    auto event_node = current_cluster_node.child("sdfEvent");
+    auto event_node = cluster_node.child("sdfEvent");
     for (eventType& event : cluster.events){
         sdfEventType sdfEvent;
         map_matter_event(event, sdfEvent, event_node);
