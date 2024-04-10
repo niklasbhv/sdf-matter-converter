@@ -253,6 +253,30 @@ int serializeCommand(const commandType& command, pugi::xml_node& command_xml)
 
 int serializeAttribute(const attributeType& attribute, pugi::xml_node& attribute_xml)
 {
+    auto attribute_node = attribute_xml.append_child("attribute");
+    attribute_node.text().set(attribute.name.c_str());
+    // description
+    // access
+    attribute_node.append_attribute("code").set_value(attribute.code.c_str());
+    // default_
+    attribute_node.append_attribute("define").set_value(attribute.define.c_str());
+    // introducedIn
+    // length
+    // manufacturerCode
+    // max
+    // min
+    // reportMaxInterval
+    // reportMinInterval
+    // reportableChange
+    // optional
+    attribute_node.append_attribute("side").set_value(attribute.side.c_str());
+    attribute_node.append_attribute("type").set_value(attribute.type.c_str());
+    // readable
+    // writable
+    // reportable
+    // array
+    // isNullable
+
     return 0;
 }
 
