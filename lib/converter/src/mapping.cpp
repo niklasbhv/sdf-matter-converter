@@ -20,6 +20,8 @@
 #include "matter.h"
 #include "sdf.h"
 
+std::map<std::string, std::map<std::string, std::string>> reference_map;
+
 //! For debug purposes, prints a visual representation of the tree
 struct simple_walker: pugi::xml_tree_walker
 {
@@ -33,21 +35,13 @@ struct simple_walker: pugi::xml_tree_walker
     }
 };
 
-int resolve_mappings(clusterType& cluster)
-{
-    return 0;
-}
-
-int save_to_mapping(const char* name, const std::string& value)
-{
-    //deviceTree.append_attribute(name) = value.c_str();
-    return 0;
-}
-
 template <typename T>
 
-int get_from_mapping(const char* name, T& value)
+// TODO: Check how this function should behave on an not available mapping
+// Generically typed for now as the mapping will later contain different types
+int resolve_mapping(const std::string& reference, const std::string& entry, T& result)
 {
+    result = reference_map.at(reference).at(entry);
     return 0;
 }
 
@@ -113,16 +107,16 @@ int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
     // Common qualities
     cluster.name = sdfObject.label;
     cluster.description = sdfObject.description;
-    save_to_mapping("domain", cluster.domain);
-    save_to_mapping("code", cluster.code);
+    //save_to_mapping("domain", cluster.domain);
+    //save_to_mapping("code", cluster.code);
     // define
     // server
     // client
     // generateCmdHandlers
     // tag
     // globalAttribute
-    save_to_mapping("introducedIn", cluster.introducedIn);
-    save_to_mapping("manufacturerCode", cluster.manufacturerCode);
+    //save_to_mapping("introducedIn", cluster.introducedIn);
+    //save_to_mapping("manufacturerCode", cluster.manufacturerCode);
     // singleton
 
     // Iterate through sdfProperties
@@ -149,14 +143,16 @@ int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
 }
 
 //! sdfThing -> Matter device
-int map_sdf_thing(sdfThingType& sdfThing, deviceType& device)
+int map_sdf_thing(sdfThingType& sdfThing, deviceType& device, pugi::xml_node& sdf_thing_node)
 {
+    auto current_thing_node = sdf_thing_node.append_child(sdfThing.label.c_str());
     // Common qualities
     device.name = sdfThing.label;
-    // domain
-    // typeName
-    save_to_mapping("profileId", device.profileId);
-    save_to_mapping("deviceId", device.deviceId);
+    resolve_mapping(current_thing_node.path().substr(1), "domain", device.domain);
+    resolve_mapping(current_thing_node.path().substr(1), "typeName", device.typeName);
+    resolve_mapping(current_thing_node.path().substr(1), "profileId", device.profileId);
+    resolve_mapping(current_thing_node.path().substr(1), "deviceId", device.deviceId);
+
     // channels
     for (auto sdfObject : sdfThing.sdfObject){
         clusterType cluster;
@@ -170,16 +166,20 @@ int map_sdf_thing(sdfThingType& sdfThing, deviceType& device)
 //! SDF Model + SDF Mapping -> Matter device
 int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType, deviceType& device)
 {
-    // Make the SDF mapping global
-    //MappingList.merge(sdfMappingType.map);
+    // Make the mapping a global variable
+    if (!sdfMappingType.map.empty())
+        reference_map = sdfMappingType.map;
 
-    std::list<clusterType> clusterList;
+    // Initialize a reference tree used to resolve json references
+    pugi::xml_document reference_tree;
+    auto sdf_thing_node = reference_tree.append_child("#").append_child("sdfThing");
+
+
     if (sdfModel.sdfThing.has_value()){
-        map_sdf_thing(sdfModel.sdfThing.value(), device);
+        map_sdf_thing(sdfModel.sdfThing.value(), device, sdf_thing_node);
     } else if (sdfModel.sdfObject.has_value()){
         // TODO: If no sdfThings are present, a new device with a single cluster has to be created
     }
-    // TODO: How do we handle SDF Mappings?
 
     return 0;
 }

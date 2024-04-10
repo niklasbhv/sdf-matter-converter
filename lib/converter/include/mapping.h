@@ -30,16 +30,6 @@
 #include "sdf.h"
 
 /**
- * Stores the tree structure used for sdf-mapping.
- */
-inline pugi::xml_document mappingTree;
-
-/**
- * Stores the current node of the mapping tree
- */
-inline pugi::xml_node mappingTreeCurrentNode = mappingTree.root();
-
-/**
  * @brief Map a sdf-model and sdf-mapping to a matter object.
  *
  * This function maps a sdf-model and sdf-mapping onto a matter device and cluster definition.
