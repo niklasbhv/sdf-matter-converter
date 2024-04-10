@@ -102,14 +102,15 @@ int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute)
 }
 
 //! sdfObject -> Matter cluster
-int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster)
+int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster, pugi::xml_node& sdf_object_node)
 {
+    auto current_object_node = sdf_object_node.append_child(sdfObject.label.c_str());
     // Common qualities
     cluster.name = sdfObject.label;
     cluster.description = sdfObject.description;
-    //save_to_mapping("domain", cluster.domain);
-    //save_to_mapping("code", cluster.code);
-    // define
+    resolve_mapping(current_object_node.path().substr(1), "domain", cluster.domain);
+    resolve_mapping(current_object_node.path().substr(1), "code", cluster.code);
+    resolve_mapping(current_object_node.path().substr(1), "define", cluster.define);
     // server
     // client
     // generateCmdHandlers
@@ -152,11 +153,12 @@ int map_sdf_thing(sdfThingType& sdfThing, deviceType& device, pugi::xml_node& sd
     resolve_mapping(current_thing_node.path().substr(1), "typeName", device.typeName);
     resolve_mapping(current_thing_node.path().substr(1), "profileId", device.profileId);
     resolve_mapping(current_thing_node.path().substr(1), "deviceId", device.deviceId);
-
     // channels
+
+    auto sdf_object_node = current_thing_node.append_child("sdfObject");
     for (auto sdfObject : sdfThing.sdfObject){
         clusterType cluster;
-        map_sdf_object(sdfObject.second, cluster);
+        map_sdf_object(sdfObject.second, cluster, sdf_object_node);
         device.clusters.push_back(cluster);
     }
     //TODO: How do we handle Properties, Actions and Events of a sdfThing?
