@@ -281,13 +281,15 @@ int map_matter_access(accessType& access, dataQualityType& dataQuality)
 }
 
 //! Matter Event -> sdfEvent
-int map_matter_event(eventType& event, sdfEventType& sdfEvent, pugi::xml_node& event_node)
+int map_matter_event(eventType& event, sdfEventType& sdfEvent, pugi::xml_node& sdf_event_node)
 {
+    // Append the event node to the tree
+    auto event_node = sdf_event_node.append_child(event.name.c_str());
+    event_node.append_attribute("code").set_value(event.code.c_str());
+    event_node.append_attribute("side").set_value(event.side.c_str());
     sdfEvent.label = event.name;
     sdfEvent.description = event.description;
     // access
-    save_to_mapping("code", event.code);
-    save_to_mapping("side", event.side);
     // priority
     for (eventFieldType& eventField : event.field){
         sdfEvent.sdfOutputData.sdfChoice.insert({});
