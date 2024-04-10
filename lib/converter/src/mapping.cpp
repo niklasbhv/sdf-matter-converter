@@ -475,15 +475,16 @@ int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml
 }
 
 //! Matter Device -> SDF-Model
-int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node& deviceNode)
+int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node& sdf_thing_node)
 {
     // Append a new sdfObject node to the tree
-    deviceNode.append_child(device.name.c_str()).append_child("sdfObject");
-    auto cluster_node = deviceNode.child(device.name.c_str()).child("sdfObject");
-    cluster_node.append_attribute("domain").set_value(device.domain.c_str());
-    cluster_node.append_attribute("typeName").set_value(device.typeName.c_str());
-    cluster_node.append_attribute("profileId").set_value(device.profileId.c_str());
-    cluster_node.append_attribute("deviceId").set_value(device.deviceId.c_str());
+    sdf_thing_node.append_child(device.name.c_str()).append_child("sdfObject");
+    auto device_node = sdf_thing_node.child(device.name.c_str());
+    device_node.append_attribute("domain").set_value(device.domain.c_str());
+    device_node.append_attribute("typeName").set_value(device.typeName.c_str());
+    device_node.append_attribute("profileId").set_value(device.profileId.c_str());
+    device_node.append_attribute("deviceId").set_value(device.deviceId.c_str());
+    auto sdf_object_node = device_node.child("sdfObject");
     // channels
 
     // Map the information block
@@ -500,7 +501,7 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node
     // Iterate through cluster definitions for the device
     for (auto cluster : device.clusters){
         sdfObjectType sdfObject;
-        map_matter_cluster(cluster, sdfObject, cluster_node);
+        map_matter_cluster(cluster, sdfObject, sdf_object_node);
         sdfThing.sdfObject.insert({cluster.name, sdfObject});
     }
     sdfModel.sdfThing = sdfThing;
@@ -509,26 +510,22 @@ int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node
 }
 
 //! Generates a valid mapping from the reference tree
-int generate_mapping(const pugi::xml_node& reference_tree, std::map<std::string, std::map<std::string, std::string>>& map)
+int generate_mapping(const pugi::xml_node& node, std::map<std::string, std::map<std::string, std::string>>& map)
 {
-    // Iterate through the entire document
-    for (auto node : reference_tree.children()) {
+    // If available, iterate through the attributes of a node
+    std::map<std::string, std::string> attribute_map;
+    for (auto attribute : node.attributes()) {
+        attribute_map.insert({attribute.name(), attribute.value()});
+    }
 
-        // If available, iterate through the attributes of a node
-        std::map<std::string, std::string> attribute_map;
-        for (auto attribute : node.attributes()) {
-            attribute_map.insert({attribute.name(), attribute.value()});
-        }
+    // If one or more attributes are found insert them into the map
+    if (!attribute_map.empty())
+        // Remove the first backslash as it is not needed
+        map.insert({node.path().substr(1), attribute_map});
 
-        // If one or more attributes are found insert them into the map
-        if (!attribute_map.empty())
-            // Remove the first backslash as it is not needed
-            map.insert({node.path().substr(1), attribute_map});
-
-        // Recursive call to iterate to all nodes in the tree
-        for (auto child_node : node.children()) {
-            generate_mapping(child_node, map);
-        }
+    // Recursive call to iterate to all nodes in the tree
+    for (auto child_node : node.children()) {
+        generate_mapping(child_node, map);
     }
 
     return 0;
