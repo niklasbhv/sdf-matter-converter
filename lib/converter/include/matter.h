@@ -72,7 +72,12 @@ struct accessType{
  * Used to define optional features.
  */
 struct featureMapType {
-
+    u_int8_t bit;
+    conformanceType conformance;
+    //! Capitalized, short code
+    std::string code;
+    std::string name;
+    std::string summary;
 };
 
 /**
