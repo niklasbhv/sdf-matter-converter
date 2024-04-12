@@ -32,6 +32,27 @@
 #include <optional>
 
 /**
+ * Struct which represents the quality column.
+ */
+struct qualityType {
+    //! X -> Nullable.
+    bool nullable;
+    //! N -> Non-Volatile.
+    bool non_volatile;
+    //! F -> Fixed.
+    bool fixed;
+    //! S -> Scene.
+    bool scene;
+    //! P -> Reportable.
+    bool reportable;
+    //! C -> Changes Omitted.
+    bool changes_omitted;
+    //! I -> Singleton.
+    bool singleton;
+    //! Any of the above can be negated by using !.
+};
+
+/**
  * Type used to store revision information.
  * Maps a revision onto a summary of changes.
  */
@@ -91,7 +112,14 @@ struct eventType {
  * Struct which contains Matter command information.
  */
 struct commandType {
-
+    int id;
+    std::string name;
+    //! clientToServer or serverToClient
+    std::string direction;
+    //! N, Y, or name of the response command
+    std::string response; // Also indicates, whether the command is a response or request command
+    accessType access;
+    conformanceType conformance;
 };
 
 /**
