@@ -34,22 +34,34 @@
 /**
  * Struct which represents the quality column.
  */
-struct qualityType {
+struct otherQualityType {
     //! X -> Nullable.
-    bool nullable;
+    std::optional<bool> nullable;
     //! N -> Non-Volatile.
-    bool non_volatile;
+    std::optional<bool> non_volatile;
     //! F -> Fixed.
-    bool fixed;
+    std::optional<bool> fixed;
     //! S -> Scene.
-    bool scene;
+    std::optional<bool> scene;
     //! P -> Reportable.
-    bool reportable;
+    std::optional<bool> reportable;
     //! C -> Changes Omitted.
-    bool changes_omitted;
+    std::optional<bool> changes_omitted;
     //! I -> Singleton.
-    bool singleton;
+    std::optional<bool> singleton;
     //! Any of the above can be negated by using !.
+};
+
+enum composedDeviceType{};
+
+enum numericDataType{};
+
+enum octetStringDataType{};
+
+enum listDataType{};
+
+struct constraintType {
+    // TODO: Dependent on the input type, make this generic
 };
 
 /**
@@ -62,6 +74,11 @@ typedef std::map<u_int8_t, std::string> revisionType;
  * Struct which represents feature conformance.
  */
 struct conformanceType {
+    //! M -> Mandatory
+    //! O -> Optional
+    //! P -> Provisional
+    //! D -> Deprecated
+    //! X -> Disallowed
     bool mandatory;
     bool supported;
 };
@@ -69,23 +86,57 @@ struct conformanceType {
 /**
  * Struct which represents access qualities.
  */
-struct accessType{
-    //! Each access is a combination of [RW + FS + VOMA + T] seperated by spaces
+struct accessType {
+    //! Each access is a combination of [RW FS VOMA T] seperated by spaces
     //! R -> Read
     //! W -> Write
     //! RW -> Read + Write
-    bool read;
-    bool write;
+    std::optional<bool> read;
+    std::optional<bool> write;
     //! Fabric
     //! F -> Fabric Scoped Quality
     //! S -> Fabric Sensitive Quality
+    std::optional<bool> fabric_scoped;
+    std::optional<bool> fabric_sensitive;
     //! Privileges
     //! V -> Read or Invoke access requires view privilege
     //! O -> Read, Write or Invoke access requires operate privilege
     //! M -> Read, Write or Invoke access requires manage privilege
     //! A -> Read, Write or Invoke access requires administer privilege
+    std::optional<bool> requires_view_privilege;
+    std::optional<bool> requires_operate_privilege;
+    std::optional<bool> requires_manage_privilege;
+    std::optional<bool> requires_administer_privilege;
     //! Timed
     //! T -> Write or Invoke Access with timed interaction only
+    std::optional<bool> timed;
+};
+
+/**
+ * Struct which represents the common data.
+ */
+struct commonDataQualityType {
+    //! Unique identifier.
+    int id;
+    //! CamelCase name of the element.
+    std::string name;
+    //! Field is being stripped as it is deprecated, use name instead.
+    //! Defines dependencies.
+    conformanceType conformance;
+    //! Defines how an element is accessed.
+    accessType access;
+    //! Short summary of the element.
+    std::string summary;
+};
+
+struct dataType : otherQualityType {
+    std::string dataType;
+    // TODO: Create a constraint type
+    std::string constraint;
+    accessType access;
+    // TODO: Make struct generic
+    std::string default_;
+    conformanceType conformance;
 };
 
 /**
@@ -104,43 +155,57 @@ struct featureMapType {
 /**
  * Struct which contains Matter event information.
  */
-struct eventType {
-
+struct eventType : commonDataQualityType{
+    //! 0 -> DEBUG, 1 -> INFO, 2 -> CRITICAL
+    u_int8_t priority;
+    u_int8_t number;
+    int timestamp;
+    // data -> struct
 };
 
 /**
  * Struct which contains Matter command information.
  */
-struct commandType {
-    int id;
-    std::string name;
+struct commandType : commonDataQualityType{
+    std::string default_;
     //! clientToServer or serverToClient
     std::string direction;
     //! N, Y, or name of the response command
     std::string response; // Also indicates, whether the command is a response or request command
-    accessType access;
-    conformanceType conformance;
 };
 
+// TODO: Generics and lists dont seem, to be a good combination, keeping string for now
 /**
  * Struct which contains Matter attribute information.
  */
-struct attributeType {
-
+struct attributeType : commonDataQualityType {
+    std::string type;
+    otherQualityType other_qualities;
+    std::string default_;
 };
 
 /**
  * Struct which contains Matter cluster information.
  */
-struct clusterType {
-
+struct clusterType : commonDataQualityType{
+    int revision;
+    revisionType revision_history;
+    // TODO: Change this into a enum
+    std::string classification;
+    std::list<attributeType> attributes;
+    std::list<commandType> commands;
+    std::list<eventType> events;
 };
 
 /**
  *  Struct which contains Matter device information.
  */
-struct deviceType {
-
+struct deviceType : commonDataQualityType{
+    int revision;
+    revisionType revision_history;
+    // TODO: Change this into a enum
+    std::string classification;
+    std::list<clusterType> clusters;
 };
 
 
