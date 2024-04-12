@@ -31,6 +31,9 @@
 #include <pugixml.hpp>
 #include <optional>
 
+//! Map a revision to a summary of revision
+typedef std::map<u_int8_t, std::string> revisionType;
+
 struct accessType{
     //! Each access is a combination of [RW + FS + VOMA + T] seperated by spaces
     //! R -> Read
