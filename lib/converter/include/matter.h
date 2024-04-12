@@ -31,9 +31,23 @@
 #include <pugixml.hpp>
 #include <optional>
 
-//! Map a revision to a summary of revision
+/**
+ * Type used to store revision information.
+ * Maps a revision onto a summary of changes.
+ */
 typedef std::map<u_int8_t, std::string> revisionType;
 
+/**
+ * Struct which represents feature conformance.
+ */
+struct conformanceType {
+    bool mandatory;
+    bool supported;
+};
+
+/**
+ * Struct which represents access qualities.
+ */
 struct accessType{
     //! Each access is a combination of [RW + FS + VOMA + T] seperated by spaces
     //! R -> Read
@@ -54,35 +68,43 @@ struct accessType{
 };
 
 /**
- * @brief Struct which contains Matter event information
+ * Struct which represents FeatureMap Attribute.
+ * Used to define optional features.
+ */
+struct featureMapType {
+
+};
+
+/**
+ * Struct which contains Matter event information.
  */
 struct eventType {
 
 };
 
 /**
- * @brief Struct which contains Matter command information
+ * Struct which contains Matter command information.
  */
 struct commandType {
 
 };
 
 /**
- * @brief Struct which contains Matter attribute information
+ * Struct which contains Matter attribute information.
  */
 struct attributeType {
 
 };
 
 /**
- * @brief Struct which contains Matter cluster information.
+ * Struct which contains Matter cluster information.
  */
 struct clusterType {
 
 };
 
 /**
- *  @brief Struct which contains Matter device information.
+ *  Struct which contains Matter device information.
  */
 struct deviceType {
 
