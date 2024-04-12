@@ -127,10 +127,22 @@ struct serverType{
 };
 
 struct accessType{
-    std::string op;
-    std::string role;
-    std::string privilege;
-    std::string modifier;
+    //! Each access is a combination of [RW + FS + VOMA + T] seperated by spaces
+    //! R -> Read
+    //! W -> Write
+    //! RW -> Read + Write
+    bool read;
+    bool write;
+    //! Fabric
+    //! F -> Fabric Scoped Quality
+    //! S -> Fabric Sensitive Quality
+    //! Privileges
+    //! V -> Read or Invoke access requires view privilege
+    //! O -> Read, Write or Invoke access requires operate privilege
+    //! M -> Read, Write or Invoke access requires manage privilege
+    //! A -> Read, Write or Invoke access requires administer privilege
+    //! Timed
+    //! T -> Write or Invoke Access with timed interaction only
 };
 
 struct fieldType{
