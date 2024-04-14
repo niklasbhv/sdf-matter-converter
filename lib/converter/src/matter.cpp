@@ -36,12 +36,44 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
 
 int parseCluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
 {
+    // Search for the matching cluster inside the cluster xml definitions
+    for (const auto& cluster_node : cluster_xml.child("cluster")) {
+        // Match the cluster definitions with their unique id
+        if (cluster_node.attribute("id").as_int() == cluster.id) {
+            cluster.revision = cluster_node.attribute("revision").as_int();
+
+            // Iterate through all revisions and parse them individually
+            for (const auto& revision_node : cluster_node.child("revisionHistory").children()) {
+                cluster.revision_history.insert({revision_node.attribute("revision").as_int(), revision_node.attribute("summary").value()});
+            }
+            // classification
+            // Iterate through all attributes and parse them individually
+            for (const auto& attribute_node : cluster_node.children("attribute")) {
+                attributeType attribute;
+                parseAttribute(attribute_node, attribute);
+                cluster.attributes.push_back(attribute);
+            }
+
+            // Iterate through all commands and parse them individually
+            for (const auto& command_node : cluster_node.children("command")) {
+                commandType command;
+                parseCommand(command_node, command);
+                cluster.commands.push_back(command);
+            }
+
+            // Iterate through all events and parse them individually
+            for (const auto& event_node : cluster_node.children("event")) {
+                eventType event;
+                parseEvent(event_node, event);
+                cluster.events.push_back(event);
+            }
+        }
+    }
     return 0;
 }
 
 int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device)
 {
-
     auto device_node = device_xml.child("deviceType");
 
     device.id = device_node.attribute("id").as_int();
