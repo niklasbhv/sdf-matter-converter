@@ -180,7 +180,7 @@ struct commandType : commonDataQualityType{
  */
 struct attributeType : commonDataQualityType {
     std::string type;
-    otherQualityType other_qualities;
+    otherQualityType qualities;
     std::string default_;
 };
 

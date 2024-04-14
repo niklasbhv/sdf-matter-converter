@@ -31,6 +31,22 @@ int parseCommand(const pugi::xml_node& commandNode, commandType& command)
 
 int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribute)
 {
+    attribute.id = attribute_node.attribute("id").as_int();
+    attribute.name = attribute_node.attribute("name").value();
+    // conformance
+    // access
+    // summary
+    attribute.type = attribute_node.attribute("type").value();
+    // TODO: As these are optional, check their presence to ensure the correct function of optional
+    auto quality_node = attribute_node.child("quality");
+    attribute.qualities.nullable = quality_node.attribute("nullable").as_bool();
+    attribute.qualities.non_volatile = quality_node.attribute("nonVolatile").as_bool();
+    attribute.qualities.fixed = quality_node.attribute("fixed").as_bool();
+    attribute.qualities.scene = quality_node.attribute("scene").as_bool();
+    attribute.qualities.reportable = quality_node.attribute("reportable").as_bool();
+    attribute.qualities.changes_omitted = quality_node.attribute("changeOmitted").as_bool();
+    attribute.qualities.singleton = quality_node.attribute("singleton").as_bool();
+    attribute.default_ = attribute_node.attribute("default").value();
     return 0;
 }
 
@@ -48,27 +64,28 @@ int parseCluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
             }
             // classification
             // Iterate through all attributes and parse them individually
-            for (const auto& attribute_node : cluster_node.children("attribute")) {
+            for (const auto& attribute_node : cluster_node.child("attributes").children()) {
                 attributeType attribute;
                 parseAttribute(attribute_node, attribute);
                 cluster.attributes.push_back(attribute);
             }
 
             // Iterate through all commands and parse them individually
-            for (const auto& command_node : cluster_node.children("command")) {
+            for (const auto& command_node : cluster_node.child("commands").children()) {
                 commandType command;
                 parseCommand(command_node, command);
                 cluster.commands.push_back(command);
             }
 
             // Iterate through all events and parse them individually
-            for (const auto& event_node : cluster_node.children("event")) {
+            for (const auto& event_node : cluster_node.child("events").children()) {
                 eventType event;
                 parseEvent(event_node, event);
                 cluster.events.push_back(event);
             }
         }
     }
+
     return 0;
 }
 
