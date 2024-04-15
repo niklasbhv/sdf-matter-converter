@@ -43,6 +43,12 @@ int parseConformance(const pugi::xml_node& conformance_node, conformanceType& co
 
 int parseAccess(const pugi::xml_node& access_node, accessType& access)
 {
+    if (!access_node.attribute("read").empty())
+        access.read = access_node.attribute("read").as_bool();
+    if (!access_node.attribute("write").empty())
+        access.write = access_node.attribute("write").as_bool();
+    // TODO: Seems like read and write have separate privileges, check specification
+
     return 0;
 }
 
