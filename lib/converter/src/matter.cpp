@@ -43,6 +43,7 @@ int parseConformance(const pugi::xml_node& conformance_node, conformanceType& co
 
 int parseFeatureMap(const pugi::xml_node& feature_map_node, std::list<featureMapType>& featureMapList)
 {
+    // Iterate through all features and parse them individually
     for (const auto& feature : feature_map_node.children()) {
         featureMapType featureMap;
         featureMap.bit = feature.attribute("bit").as_int();

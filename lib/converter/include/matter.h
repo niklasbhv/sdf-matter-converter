@@ -139,6 +139,29 @@ struct dataType : otherQualityType {
     conformanceType conformance;
 };
 
+// TODO: Temporary, derived from the xml definitions
+struct enumItemType {
+    int value;
+    std::string name;
+    std::string summary;
+    conformanceType conformance;
+};
+
+// TODO: Temporary, derived from the xml definitions
+struct bitmapBitfieldType {
+    int bit;
+    std::string name;
+    std::string summary;
+    conformanceType conformance;
+};
+
+// TODO: Temporary, derived from the xml definitions
+struct structFieldType {
+    int id;
+    std::string name;
+    std::string type;
+};
+
 /**
  * Struct which represents FeatureMap Attribute.
  * Used to define optional features.
