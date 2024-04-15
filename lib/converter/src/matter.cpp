@@ -41,32 +41,47 @@ int parseConformance(const pugi::xml_node& conformance_node, conformanceType& co
     return 0;
 }
 
-int parseEnumItem(const pugi::xml_node& enum_item_node, enumItemType& item)
+int parseEnumItems(const pugi::xml_node& enum_node, std::list<enumItemType>& items)
 {
-    item.value = enum_item_node.attribute("value").as_int();
-    item.name = enum_item_node.attribute("name").value();
-    item.summary = enum_item_node.attribute("summary").value();
-    parseConformance(enum_item_node, item.conformance);
+    // Iterate through all enum items and parse them individually
+    for (const auto& enum_item_node : enum_node.children()) {
+        enumItemType item;
+        item.value = enum_item_node.attribute("value").as_int();
+        item.name = enum_item_node.attribute("name").value();
+        item.summary = enum_item_node.attribute("summary").value();
+        parseConformance(enum_item_node, item.conformance);
+        items.push_back(item);
+    }
 
     return 0;
 }
 
-int parseBitfield(const pugi::xml_node& bitfield_node, bitmapBitfieldType& bitfield)
+int parseBitfields(const pugi::xml_node& bitmap_node, std::list<bitmapBitfieldType>& bitfields)
 {
-    bitfield.bit = bitfield_node.attribute("bit").as_int();
-    bitfield.name = bitfield_node.attribute("name").value();
-    bitfield.summary = bitfield_node.attribute("summary").value();
-    parseConformance(bitfield_node, bitfield.conformance);
+    // Iterate through all bitfields and parse them individually
+    for (const auto& bitfield_node : bitmap_node.children()) {
+        bitmapBitfieldType bitfield;
+        bitfield.bit = bitfield_node.attribute("bit").as_int();
+        bitfield.name = bitfield_node.attribute("name").value();
+        bitfield.summary = bitfield_node.attribute("summary").value();
+        parseConformance(bitfield_node, bitfield.conformance);
+        bitfields.push_back(bitfield);
+    }
 
     return 0;
 }
 
-int parseStructField(const pugi::xml_node& struct_field_node, structFieldType& structField)
+int parseStructFields(const pugi::xml_node& struct_node, std::list<structFieldType>& struct_fields)
 {
-    structField.id = struct_field_node.attribute("id").as_int();
-    structField.name = struct_field_node.attribute("name").value();
-    structField.type = struct_field_node.attribute("type").value();
-    parseConformance(struct_field_node, structField.conformance);
+    // Iterate through all struct fields and parse them individually
+    for (const auto& struct_field_node : struct_node.children()) {
+        structFieldType struct_field;
+        struct_field.id = struct_field_node.attribute("id").as_int();
+        struct_field.name = struct_field_node.attribute("name").value();
+        struct_field.type = struct_field_node.attribute("type").value();
+        parseConformance(struct_field_node, struct_field.conformance);
+        struct_fields.push_back(struct_field);
+    }
 
     return 0;
 }
@@ -203,7 +218,34 @@ int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_
     }
 
     // TODO:  Insert classification
-    // Iterate through all clusters needed by the device and parse them
+    // Parse the feature map
+    parseFeatureMap(device_xml, device.features);
+
+    // Parse all data types and add them to a map
+    auto data_type_node = device_xml.child("dataTypes");
+
+    // Iterate through all enums and parse them individually
+    for (const auto& enum_node : data_type_node.children("enum")) {
+        std::list<enumItemType> items;
+        parseEnumItems(enum_node, items);
+        device.enums[enum_node.attribute("name").value()] = items;
+    }
+
+    // Iterate through all bitmaps and parse them individually
+    for (const auto& bitmap_node : data_type_node.children("bitmap")) {
+        std::list<bitmapBitfieldType> bitfields;
+        parseBitfields(bitmap_node, bitfields);
+        device.bitmaps[bitmap_node.attribute("name").value()] = bitfields;
+    }
+
+    // Iterate through all structs and parse them individually
+    for (const auto& struct_node : data_type_node.children("struct")) {
+        std::list<structFieldType> struct_fields;
+        parseStructFields(struct_node, struct_fields);
+        device.structs[struct_node.attribute("name").value()] = struct_fields;
+    }
+
+    // Iterate through all clusters needed by the device and parse them individually
     for (const auto& cluster_node : device_xml.child("clusters").children("cluster")) {
         clusterType cluster;
         cluster.id = cluster_node.attribute("id").as_int();

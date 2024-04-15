@@ -231,9 +231,9 @@ struct deviceType : commonDataQualityType{
     std::string classification;
     std::list<clusterType> clusters;
     std::list<featureMapType> features;
-    std::map<std::string, enumItemType> enums;
-    std::map<std::string, bitmapBitfieldType> bitmaps;
-    std::map<std::string, structFieldType> structs;
+    std::map<std::string, std::list<enumItemType>> enums;
+    std::map<std::string, std::list<bitmapBitfieldType>> bitmaps;
+    std::map<std::string, std::list<structFieldType>> structs;
 };
 
 
