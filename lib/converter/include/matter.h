@@ -30,6 +30,7 @@
 #include <list>
 #include <pugixml.hpp>
 #include <optional>
+#include "matter_constants.h"
 
 /**
  * Struct which represents the quality column.
@@ -52,16 +53,22 @@ struct otherQualityType {
     //! Any of the above can be negated by using !.
 };
 
-enum composedDeviceType{};
-
-enum numericDataType{};
-
-enum octetStringDataType{};
-
-enum listDataType{};
-
 struct constraintType {
     // TODO: Dependent on the input type, make this generic
+    //! The interpretation for each of these values depends on the data type its applied to
+    //! Exact value.
+    std::optional<int> exact_value;
+    //! For range constraints -> x to y.
+    std::optional<std::tuple<int, int>> range;
+    //! Minimum value.
+    std::optional<int> min;
+    //! Maximum value.
+    std::optional<int> max;
+    //! No constraints.
+    std::optional<bool> all;
+    // UNION
+    // List Constraint
+    // Char Constraint
 };
 
 /**
@@ -84,7 +91,7 @@ struct conformanceType {
     std::optional<bool> deprecated;
     //! X -> Disallowed
     std::optional<bool> disallowed;
-    //! Represents the boolean expression
+    //! Represents the boolean expression.
     std::string expression;
 };
 
@@ -181,21 +188,33 @@ struct featureMapType {
     std::string summary;
 };
 
+struct eventFieldType{
+    u_int32_t id;
+    std::string name;
+    std::string type;
+    std::string default_;
+    accessType access;
+    conformanceType conformance;
+    otherQualityType qualities;
+    constraintType constraints;
+};
+
 /**
  * Struct which contains Matter event information.
  */
-struct eventType : commonDataQualityType{
+struct eventType : commonDataQualityType {
     //! 0 -> DEBUG, 1 -> INFO, 2 -> CRITICAL
     u_int8_t priority;
-    u_int8_t number;
-    int timestamp;
+    u_int64_t number;
+    //! Either system-time-ms or posix-ms
+    u_int64_t timestamp;
     // data -> struct
 };
 
 /**
  * Struct which contains Matter command information.
  */
-struct commandType : commonDataQualityType{
+struct commandType : commonDataQualityType {
     std::string default_;
     //! clientToServer or serverToClient
     std::string direction;
