@@ -31,6 +31,15 @@ int parseAccess(const pugi::xml_node& access_node, accessType& access)
 
 int parseEvent(const pugi::xml_node& event_node, eventType& event)
 {
+    event.id = event_node.attribute("id").as_int();
+    event.name = event_node.attribute("name").value();
+    parseConformance(event_node, event.conformance);
+    parseAccess(event_node, event.access);
+    // TODO: Where is summary defined?
+    // summary
+    // TODO: Priority needs to be cast from string
+    // priority
+    // TODO: This definitely needs further additions
     return 0;
 }
 
