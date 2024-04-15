@@ -25,18 +25,24 @@ int parseConformance(const pugi::xml_node& conformance_node, conformanceType& co
     // Mandatory conform
     if (!conformance_node.child("mandatoryConform").empty()) {
         conformance.mandatory = true;
-        conformance.supported = true;
     }
     // Optional conform
     else if (!conformance_node.child("optionalConform").empty()) {
-        conformance.mandatory = false;
-        conformance.supported = true;
+        conformance.optional = true;
     }
+    // TODO: Check the attribute names for these
     // Provisional conform
-
+    else if (!conformance_node.child("provisionalConform").empty()) {
+        conformance.provisional = true;
+    }
     // Deprecated conform
-
+    else if (!conformance_node.child("deprecatedConform").empty()) {
+        conformance.deprecated = true;
+    }
     // Disallowed conform
+    else if (!conformance_node.child("disallowedConform").empty()) {
+        conformance.disallowed = true;
+    }
 
     return 0;
 }
@@ -162,6 +168,7 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
     attribute.qualities.changes_omitted = quality_node.attribute("changeOmitted").as_bool();
     attribute.qualities.singleton = quality_node.attribute("singleton").as_bool();
     attribute.default_ = attribute_node.attribute("default").value();
+
     return 0;
 }
 

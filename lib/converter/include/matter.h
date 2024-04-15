@@ -75,12 +75,17 @@ typedef std::map<u_int8_t, std::string> revisionType;
  */
 struct conformanceType {
     //! M -> Mandatory
+    std::optional<bool> mandatory;
     //! O -> Optional
+    std::optional<bool> optional;
     //! P -> Provisional
+    std::optional<bool> provisional;
     //! D -> Deprecated
+    std::optional<bool> deprecated;
     //! X -> Disallowed
-    bool mandatory;
-    bool supported;
+    std::optional<bool> disallowed;
+    //! Represents the boolean expression
+    std::string expression;
 };
 
 /**
@@ -117,7 +122,7 @@ struct accessType {
  */
 struct commonDataQualityType {
     //! Unique identifier.
-    int id;
+    u_int32_t id;
     //! CamelCase name of the element.
     std::string name;
     //! Field is being stripped as it is deprecated, use name instead.
@@ -157,7 +162,7 @@ struct bitmapBitfieldType {
 
 // TODO: Temporary, derived from the xml definitions
 struct structFieldType {
-    int id;
+    u_int32_t id;
     std::string name;
     std::string type;
     conformanceType conformance;
