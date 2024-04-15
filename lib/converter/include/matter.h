@@ -142,12 +142,14 @@ struct commonDataQualityType {
 };
 
 struct dataType : otherQualityType {
-    std::string dataType;
-    // TODO: Create a constraint type
-    std::string constraint;
+    matter_data_type dataType;
+    constraintType constraint;
     accessType access;
-    // TODO: Make struct generic
-    std::string default_;
+    union {
+        int default_int;
+        bool default_bool;
+        std::string default_string;
+    };
     conformanceType conformance;
 };
 
@@ -188,11 +190,15 @@ struct featureMapType {
     std::string summary;
 };
 
-struct eventFieldType{
+struct eventFieldType {
     u_int32_t id;
     std::string name;
-    std::string type;
-    std::string default_;
+    matter_data_type type;
+    union {
+        int default_int;
+        bool default_bool;
+        std::string default_string;
+    };
     accessType access;
     conformanceType conformance;
     otherQualityType qualities;
@@ -227,9 +233,13 @@ struct commandType : commonDataQualityType {
  * Struct which contains Matter attribute information.
  */
 struct attributeType : commonDataQualityType {
-    std::string type;
+    matter_data_type type;
     otherQualityType qualities;
-    std::string default_;
+    union {
+        int default_int;
+        bool default_bool;
+        std::string default_string;
+    };
 };
 
 /**
