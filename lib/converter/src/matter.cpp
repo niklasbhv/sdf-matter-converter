@@ -19,11 +19,13 @@
 #include <pugixml.hpp>
 #include "matter.h"
 
-int parseConformance(const pugi::xml_node& conformance_node, conformanceType& conformance){
+int parseConformance(const pugi::xml_node& conformance_node, conformanceType& conformance)
+{
     return 0;
 }
 
-int parseAccess(const pugi::xml_node& access_node, accessType& access){
+int parseAccess(const pugi::xml_node& access_node, accessType& access)
+{
     return 0;
 }
 
@@ -34,6 +36,16 @@ int parseEvent(const pugi::xml_node& event_node, eventType& event)
 
 int parseCommand(const pugi::xml_node& command_node, commandType& command)
 {
+    command.id = command_node.attribute("id").as_int();
+    command.name = command_node.attribute("name").value();
+    parseConformance(command_node, command.conformance);
+    parseAccess(command_node.child("access"), command.access);
+    // TODO: Where is summary defined?
+    // summary
+    // default
+    command.direction = command_node.attribute("direction").value();
+    command.response = command_node.attribute("response").value();
+
     return 0;
 }
 
