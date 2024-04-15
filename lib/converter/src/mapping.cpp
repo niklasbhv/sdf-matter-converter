@@ -41,43 +41,79 @@ template <typename T>
 // Generically typed for now as the mapping will later contain different types
 int resolve_mapping(const std::string& reference, const std::string& entry, T& result)
 {
-    result = reference_map.at(reference).at(entry);
+    // Be aware that this function removes the first character from the reference string
+    result = reference_map.at(reference.substr(1)).at(entry);
     return 0;
 }
 
 //! sdfEvent -> Matter event
-int map_sdf_event(sdfEventType& sdfEvent, eventType& event)
+int map_sdf_event(const sdfEventType& sdfEvent, eventType& event)
 {
     return 0;
 }
 
 //! sdfAction -> Matter command
-int map_sdf_action(sdfActionType& sdfAction, commandType& command)
+int map_sdf_action(const sdfActionType& sdfAction, commandType& command)
 {
     return 0;
 }
 
 //! sdfProperty -> Matter attribute
-int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute, pugi::xml_node& sdf_property_node)
+int map_sdf_property(const sdfPropertyType& sdfProperty, attributeType& attribute, pugi::xml_node& sdf_property_node)
 {
     return 0;
 }
 
 //! sdfObject -> Matter cluster
-int map_sdf_object(sdfObjectType& sdfObject, clusterType& cluster, pugi::xml_node& sdf_object_node)
+int map_sdf_object(const sdfObjectType& sdfObject, clusterType& cluster, pugi::xml_node& sdf_object_node)
 {
     return 0;
 }
 
 //! sdfThing -> Matter device
-int map_sdf_thing(sdfThingType& sdfThing, deviceType& device, pugi::xml_node& sdf_thing_node)
+int map_sdf_thing(const sdfThingType& sdfThing, deviceType& device, pugi::xml_node& sdf_thing_node)
 {
+    // Add the current sdfThing to the reference tree
+    auto current_thing_node = sdf_thing_node.append_child(sdfThing.label.c_str());
+    // TODO: Find a way to make the mapping compatible with multiple types
+    // resolve_mapping(current_thing_node.path(), "id" ,device.id);
+    device.name = sdfThing.label;
+    // conformance
+    // access
+    device.summary = sdfThing.description;
+    // revision
+    // revision_history
+
+    // Iterate through all sdfObjects and map them individually
+    for (const auto& sdfObject : sdfThing.sdfObject) {
+        clusterType cluster;
+        auto sdf_object_node = current_thing_node.append_child("sdfObject");
+        map_sdf_object(sdfObject.second, cluster, sdf_object_node);
+        device.clusters.push_back(cluster);
+    }
+
     return 0;
 }
 
 //! SDF Model + SDF Mapping -> Matter device
-int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType, deviceType& device)
+int map_sdf_to_matter(const sdfModelType& sdfModel, const sdfMappingType& sdfMappingType, deviceType& device)
 {
+    // Make the mapping a global variable
+    if (!sdfMappingType.map.empty())
+        reference_map = sdfMappingType.map;
+
+    // Initialize a reference tree used to resolve json references
+    pugi::xml_document reference_tree;
+    auto reference_root_node = reference_tree.append_child("#");
+
+    if (sdfModel.sdfThing.has_value()){
+        auto sdf_thing_node = reference_tree.append_child("sdfThing");
+        map_sdf_thing(sdfModel.sdfThing.value(), device, sdf_thing_node);
+    } else if (sdfModel.sdfObject.has_value()){
+        auto sdf_object_node = reference_tree.append_child("sdfObject");
+        // TODO: Special case, initialize a device with a single cluster
+    }
+
     return 0;
 }
 
@@ -171,46 +207,46 @@ int map_matter_type(std::string& matter_type, dataQualityType& dataQuality)
 };
 
 //! Matter Access Type -> Data Quality
-int map_matter_access(accessType& access, dataQualityType& dataQuality)
+int map_matter_access(const accessType& access, dataQualityType& dataQuality)
 {
     //TODO: Can access be represented like this?
     return 0;
 }
 
 //! Matter Event -> sdfEvent
-int map_matter_event(eventType& event, sdfEventType& sdfEvent, pugi::xml_node& sdf_event_node)
+int map_matter_event(const eventType& event, sdfEventType& sdfEvent, pugi::xml_node& sdf_event_node)
 {
     return 0;
 }
 
 //! Matter Command -> sdfAction
 //! Used if a client and a server command need to be processed
-int map_matter_command(commandType& client_command, commandType& server_command, sdfActionType& sdfAction, pugi::xml_node& sdf_action_node)
+int map_matter_command(const commandType& client_command, commandType& server_command, sdfActionType& sdfAction, pugi::xml_node& sdf_action_node)
 {
     return 0;
 }
 
 //! Matter Command -> sdfAction
 //! Used if only a client command needs to be processed
-int map_matter_command(commandType& client_command, sdfActionType& sdfAction, pugi::xml_node& sdf_action_node)
+int map_matter_command(const commandType& client_command, sdfActionType& sdfAction, pugi::xml_node& sdf_action_node)
 {
     return 0;
 }
 
 //! Matter Attribute -> sdfProperty
-int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty, pugi::xml_node& sdf_property_node)
+int map_matter_attribute(const attributeType& attribute, sdfPropertyType& sdfProperty, pugi::xml_node& sdf_property_node)
 {
     return 0;
 }
 
 //! Matter Cluster -> sdfObject
-int map_matter_cluster(clusterType& cluster, sdfObjectType& sdfObject, pugi::xml_node& sdf_object_node)
+int map_matter_cluster(const clusterType& cluster, sdfObjectType& sdfObject, pugi::xml_node& sdf_object_node)
 {
     return 0;
 }
 
 //! Matter Device -> SDF-Model
-int map_matter_device(deviceType& device, sdfModelType& sdfModel, pugi::xml_node& sdf_thing_node)
+int map_matter_device(const deviceType& device, sdfModelType& sdfModel, pugi::xml_node& sdf_thing_node)
 {
     return 0;
 }
@@ -240,7 +276,7 @@ int generate_mapping(const pugi::xml_node& node, std::map<std::string, std::map<
 }
 
 //! Matter -> SDF
-int map_matter_to_sdf(deviceType& device, sdfModelType& sdfModel, sdfMappingType& sdfMapping)
+int map_matter_to_sdf(const deviceType& device, sdfModelType& sdfModel, sdfMappingType& sdfMapping)
 {
     pugi::xml_document referenceTree;
     referenceTree.append_child("#").append_child("sdfThing");

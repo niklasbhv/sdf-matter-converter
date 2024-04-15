@@ -39,7 +39,7 @@
  * @param device The resulting device definition.
  * @return 0 on success, negative on failure.
  */
-int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType, deviceType& device);
+int map_sdf_to_matter(const sdfModelType& sdfModel, const sdfMappingType& sdfMappingType, deviceType& device);
 
 /**
  * @brief Map a device and cluster definition to a sdf-object.
@@ -51,6 +51,6 @@ int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType, de
  * @param sdfMapping The resulting sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int map_matter_to_sdf(deviceType& device, sdfModelType& sdfModel, sdfMappingType& sdfMapping);
+int map_matter_to_sdf(const deviceType& device, sdfModelType& sdfModel, sdfMappingType& sdfMapping);
 
 #endif //MAPPING_H
