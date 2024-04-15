@@ -19,12 +19,20 @@
 #include <pugixml.hpp>
 #include "matter.h"
 
-int parseEvent(const pugi::xml_node& eventNode, eventType& event)
+int parseConformance(const pugi::xml_node& conformance_node, conformanceType& conformance){
+    return 0;
+}
+
+int parseAccess(const pugi::xml_node& access_node, accessType& access){
+    return 0;
+}
+
+int parseEvent(const pugi::xml_node& event_node, eventType& event)
 {
     return 0;
 }
 
-int parseCommand(const pugi::xml_node& commandNode, commandType& command)
+int parseCommand(const pugi::xml_node& command_node, commandType& command)
 {
     return 0;
 }
@@ -33,8 +41,9 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
 {
     attribute.id = attribute_node.attribute("id").as_int();
     attribute.name = attribute_node.attribute("name").value();
-    // conformance
-    // access
+    parseConformance(attribute_node, attribute.conformance);
+    parseAccess(attribute_node.child("access"), attribute.access);
+    // TODO: Where is summary defined?
     // summary
     attribute.type = attribute_node.attribute("type").value();
     // TODO: As these are optional, check their presence to ensure the correct function of optional
