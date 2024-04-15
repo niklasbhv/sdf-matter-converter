@@ -21,6 +21,23 @@
 
 int parseConformance(const pugi::xml_node& conformance_node, conformanceType& conformance)
 {
+    // TODO: These can be combined with logic operations to create complex expressions, should be caught
+    // Mandatory conform
+    if (!conformance_node.child("mandatoryConform").empty()) {
+        conformance.mandatory = true;
+        conformance.supported = true;
+    }
+    // Optional conform
+    else if (!conformance_node.child("optionalConform").empty()) {
+        conformance.mandatory = false;
+        conformance.supported = true;
+    }
+    // Provisional conform
+
+    // Deprecated conform
+
+    // Disallowed conform
+
     return 0;
 }
 
@@ -40,6 +57,7 @@ int parseEvent(const pugi::xml_node& event_node, eventType& event)
     // TODO: Priority needs to be cast from string
     // priority
     // TODO: This definitely needs further additions
+
     return 0;
 }
 
