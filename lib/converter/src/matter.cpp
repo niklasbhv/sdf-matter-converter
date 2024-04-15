@@ -41,6 +41,21 @@ int parseConformance(const pugi::xml_node& conformance_node, conformanceType& co
     return 0;
 }
 
+int parseFeatureMap(const pugi::xml_node& feature_map_node, std::list<featureMapType>& featureMapList)
+{
+    for (const auto& feature : feature_map_node.children()) {
+        featureMapType featureMap;
+        featureMap.bit = feature.attribute("bit").as_int();
+        parseConformance(feature_map_node, featureMap.conformance);
+        featureMap.code = feature.attribute("code").value();
+        featureMap.name = feature.attribute("name").value();
+        featureMap.summary = feature.attribute("summary").value();
+        featureMapList.push_back(featureMap);
+    }
+
+    return 0;
+}
+
 int parseAccess(const pugi::xml_node& access_node, accessType& access)
 {
     if (!access_node.attribute("read").empty())
