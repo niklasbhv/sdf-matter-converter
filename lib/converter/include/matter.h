@@ -160,6 +160,7 @@ struct structFieldType {
     int id;
     std::string name;
     std::string type;
+    conformanceType conformance;
 };
 
 /**
@@ -229,6 +230,10 @@ struct deviceType : commonDataQualityType{
     // TODO: Change this into a enum
     std::string classification;
     std::list<clusterType> clusters;
+    std::list<featureMapType> features;
+    std::map<std::string, enumItemType> enums;
+    std::map<std::string, bitmapBitfieldType> bitmaps;
+    std::map<std::string, structFieldType> structs;
 };
 
 

@@ -41,6 +41,36 @@ int parseConformance(const pugi::xml_node& conformance_node, conformanceType& co
     return 0;
 }
 
+int parseEnumItem(const pugi::xml_node& enum_item_node, enumItemType& item)
+{
+    item.value = enum_item_node.attribute("value").as_int();
+    item.name = enum_item_node.attribute("name").value();
+    item.summary = enum_item_node.attribute("summary").value();
+    parseConformance(enum_item_node, item.conformance);
+
+    return 0;
+}
+
+int parseBitfield(const pugi::xml_node& bitfield_node, bitmapBitfieldType& bitfield)
+{
+    bitfield.bit = bitfield_node.attribute("bit").as_int();
+    bitfield.name = bitfield_node.attribute("name").value();
+    bitfield.summary = bitfield_node.attribute("summary").value();
+    parseConformance(bitfield_node, bitfield.conformance);
+
+    return 0;
+}
+
+int parseStructField(const pugi::xml_node& struct_field_node, structFieldType& structField)
+{
+    structField.id = struct_field_node.attribute("id").as_int();
+    structField.name = struct_field_node.attribute("name").value();
+    structField.type = struct_field_node.attribute("type").value();
+    parseConformance(struct_field_node, structField.conformance);
+
+    return 0;
+}
+
 int parseFeatureMap(const pugi::xml_node& feature_map_node, std::list<featureMapType>& featureMapList)
 {
     // Iterate through all features and parse them individually
