@@ -153,6 +153,7 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
 {
     attribute.id = attribute_node.attribute("id").as_int();
     attribute.name = attribute_node.attribute("name").value();
+    std::cout << attribute.name << std::endl;
     parseConformance(attribute_node, attribute.conformance);
     parseAccess(attribute_node.child("access"), attribute.access);
     // TODO: Where is summary defined?
@@ -167,7 +168,7 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
     attribute.qualities.reportable = quality_node.attribute("reportable").as_bool();
     attribute.qualities.changes_omitted = quality_node.attribute("changeOmitted").as_bool();
     attribute.qualities.singleton = quality_node.attribute("singleton").as_bool();
-    attribute.default_ = attribute_node.attribute("default").value();
+    attribute.default_ = quality_node.attribute("default").value();
 
     return 0;
 }
@@ -175,38 +176,39 @@ int parseAttribute(const pugi::xml_node& attribute_node, attributeType& attribut
 int parseCluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
 {
     // Search for the matching cluster inside the cluster xml definitions
-    for (const auto& cluster_node : cluster_xml.child("cluster")) {
-        // Match the cluster definitions with their unique id
-        if (cluster_node.attribute("id").as_int() == cluster.id) {
-            cluster.revision = cluster_node.attribute("revision").as_int();
+    //for (const auto& cluster_node : cluster_xml.children("cluster")) {
+    // Match the cluster definitions with their unique id
+    if (cluster_xml.attribute("id").as_int() == cluster.id) {
+        std::cout << "MATCHED CLUSTER" << std::endl;
+        cluster.revision = cluster_xml.attribute("revision").as_int();
 
-            // Iterate through all revisions and parse them individually
-            for (const auto& revision_node : cluster_node.child("revisionHistory").children()) {
-                cluster.revision_history.insert({revision_node.attribute("revision").as_int(), revision_node.attribute("summary").value()});
-            }
-            // classification
-            // Iterate through all attributes and parse them individually
-            for (const auto& attribute_node : cluster_node.child("attributes").children()) {
-                attributeType attribute;
-                parseAttribute(attribute_node, attribute);
-                cluster.attributes.push_back(attribute);
-            }
+        // Iterate through all revisions and parse them individually
+        for (const auto& revision_node : cluster_xml.child("revisionHistory").children()) {
+            cluster.revision_history.insert({revision_node.attribute("revision").as_int(), revision_node.attribute("summary").value()});
+        }
+        // classification
+        // Iterate through all attributes and parse them individually
+        for (const auto& attribute_node : cluster_xml.child("attributes").children()) {
+            attributeType attribute;
+            parseAttribute(attribute_node, attribute);
+            cluster.attributes.push_back(attribute);
+        }
 
-            // Iterate through all commands and parse them individually
-            for (const auto& command_node : cluster_node.child("commands").children()) {
-                commandType command;
-                parseCommand(command_node, command);
-                cluster.commands.push_back(command);
-            }
+        // Iterate through all commands and parse them individually
+        for (const auto& command_node : cluster_xml.child("commands").children()) {
+            commandType command;
+            parseCommand(command_node, command);
+            cluster.commands.push_back(command);
+        }
 
-            // Iterate through all events and parse them individually
-            for (const auto& event_node : cluster_node.child("events").children()) {
-                eventType event;
-                parseEvent(event_node, event);
-                cluster.events.push_back(event);
-            }
+        // Iterate through all events and parse them individually
+        for (const auto& event_node : cluster_xml.child("events").children()) {
+            eventType event;
+            parseEvent(event_node, event);
+            cluster.events.push_back(event);
         }
     }
+    //}
 
     return 0;
 }
@@ -218,6 +220,7 @@ int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_
     device.id = device_node.attribute("id").as_int();
     device.name = device_node.attribute("name").value();
     device.revision = device_node.attribute("revision").as_int();
+    std::cout << device.name << std::endl;
 
     // Iterate through all revisions and parse them individually
     for (const auto& revision_node : device_xml.child("revisionHistory").children()) {
