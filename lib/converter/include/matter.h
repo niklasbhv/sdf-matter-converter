@@ -30,6 +30,7 @@
 #include <list>
 #include <pugixml.hpp>
 #include <optional>
+#include <variant>
 #include "matter_constants.h"
 
 /**
@@ -145,11 +146,7 @@ struct dataType : otherQualityType {
     matter_data_type dataType;
     constraintType constraint;
     accessType access;
-    union {
-        int default_int;
-        bool default_bool;
-        std::string default_string;
-    };
+    std::variant<u_int64_t, int64_t, double, std::string, bool> default_;
     conformanceType conformance;
 };
 
@@ -194,11 +191,7 @@ struct eventFieldType {
     u_int32_t id;
     std::string name;
     matter_data_type type;
-    union {
-        int default_int;
-        bool default_bool;
-        std::string default_string;
-    };
+    std::variant<u_int64_t, int64_t, double, std::string, bool> default_;
     accessType access;
     conformanceType conformance;
     otherQualityType qualities;
@@ -221,7 +214,7 @@ struct eventType : commonDataQualityType {
  * Struct which contains Matter command information.
  */
 struct commandType : commonDataQualityType {
-    std::string default_;
+    std::variant<u_int64_t, int64_t, double, std::string, bool> default_;
     //! clientToServer or serverToClient
     std::string direction;
     //! N, Y, or name of the response command
@@ -235,11 +228,7 @@ struct commandType : commonDataQualityType {
 struct attributeType : commonDataQualityType {
     matter_data_type type;
     otherQualityType qualities;
-    union {
-        int default_int;
-        bool default_bool;
-        std::string default_string;
-    };
+    std::variant<u_int64_t, int64_t, double, std::string, bool> default_;
 };
 
 /**
