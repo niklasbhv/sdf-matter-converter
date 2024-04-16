@@ -33,6 +33,8 @@
 #include <variant>
 #include "matter_constants.h"
 
+typedef std::variant<unsigned int, int, double, std::string, bool> defaultType;
+
 /**
  * Struct which represents the quality column.
  */
@@ -143,10 +145,10 @@ struct commonDataQualityType {
 };
 
 struct dataType : otherQualityType {
-    matter_data_type dataType;
+    std::string dataType;
     constraintType constraint;
     accessType access;
-    std::variant<unsigned int, int, double, std::string, bool> default_;
+    std::string default_;
     conformanceType conformance;
 };
 
@@ -190,8 +192,8 @@ struct featureMapType {
 struct eventFieldType {
     u_int32_t id;
     std::string name;
-    matter_data_type type;
-    std::variant<unsigned int, int, double, std::string, bool> default_;
+    std::string type;
+    std::string default_;
     accessType access;
     conformanceType conformance;
     otherQualityType qualities;
@@ -214,7 +216,7 @@ struct eventType : commonDataQualityType {
  * Struct which contains Matter command information.
  */
 struct commandType : commonDataQualityType {
-    std::variant<unsigned int, int, double, std::string, bool> default_;
+    std::string default_;
     //! clientToServer or serverToClient
     std::string direction;
     //! N, Y, or name of the response command
@@ -226,94 +228,9 @@ struct commandType : commonDataQualityType {
  * Struct which contains Matter attribute information.
  */
 struct attributeType : commonDataQualityType {
-    matter_data_type type;
+    std::string type;
     otherQualityType qualities;
-    std::variant<unsigned int, int, double, std::string, bool> default_;
-
-    // Setter function used to store the correct value depending on the stored type
-    // It's crucial to use this function as it ensures the usage of the correctly typed default value
-    // TODO: Test if map should really be int
-    // TODO: Check struct and list as there does not seem to be
-    void setDefault(pugi::xml_attribute default_node) {
-        switch (type) {
-            case (BOOL):
-                default_ = default_node.as_bool();
-                break;
-            case (MAP8):
-                default_ = default_node.as_int();
-                break;
-            case (MAP16):
-                default_ = default_node.as_int();
-                break;
-            case (MAP32):
-                default_ = default_node.as_int();
-                break;
-            case (MAP64):
-                default_ = default_node.as_int();
-                break;
-            case (UINT8):
-                default_ = default_node.as_uint();
-                break;
-            case (UINT16):
-                default_ = default_node.as_uint();
-                break;
-            case (UINT24):
-                default_ = default_node.as_uint();
-                break;
-            case (UINT32):
-                default_ = default_node.as_uint();
-                break;
-            case (UINT40):
-                default_ = default_node.as_uint();
-                break;
-            case (UINT48):
-                default_ = default_node.as_uint();
-                break;
-            case (UINT56):
-                default_ = default_node.as_uint();
-                break;
-            case (UINT64):
-                default_ = default_node.as_uint();
-                break;
-            case (INT8):
-                default_ = default_node.as_int();
-                break;
-            case (INT16):
-                default_ = default_node.as_int();
-                break;
-            case (INT24):
-                default_ = default_node.as_int();
-                break;
-            case (INT32):
-                default_ = default_node.as_int();
-                break;
-            case (INT40):
-                default_ = default_node.as_int();
-                break;
-            case (INT48):
-                default_ = default_node.as_int();
-                break;
-            case (INT56):
-                default_ = default_node.as_int();
-                break;
-            case (INT64):
-                default_ = default_node.as_int();
-                break;
-            case (SINGLE):
-                default_ = default_node.as_float();
-                break;
-            case (DOUBLE):
-                default_ = default_node.as_double();
-                break;
-            case (OCTSTR):
-                default_ = default_node.value();
-                break;
-            case (LIST):
-            case (STRUCT):
-            default:
-                default_ = default_node.value();
-        }
-    };
+    std::string default_;
 };
 
 /**
