@@ -52,9 +52,10 @@ enum matter_data_type {
     OCTSTR,
     LIST,
     STRUCT,
+    UNKNOWN,
 };
 
-std::string to_string(matter_data_type data_type) {
+inline std::string toString(matter_data_type data_type) {
     switch (data_type)
     {
         case (BOOL):
@@ -110,11 +111,11 @@ std::string to_string(matter_data_type data_type) {
         case (STRUCT):
             return "struct";
         default:
-            return "";
+            return "unknown";
     }
 }
 
-matter_data_type from_string(const std::string& data_type) {
+inline matter_data_type fromString(const std::string& data_type) {
     if (data_type == "bool")
         return BOOL;
     if (data_type == "map8")
@@ -167,6 +168,7 @@ matter_data_type from_string(const std::string& data_type) {
         return LIST;
     if (data_type == "struct")
         return STRUCT;
+    return UNKNOWN;
 }
 
 enum matter_priority_type {
