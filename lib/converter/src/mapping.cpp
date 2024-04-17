@@ -235,6 +235,45 @@ int map_matter_attribute(const attributeType& attribute, sdfPropertyType& sdfPro
 //! Matter Cluster -> sdfObject
 int map_matter_cluster(const clusterType& cluster, sdfObjectType& sdfObject, pugi::xml_node& sdf_object_node)
 {
+    // Append the name of the cluster to the tree
+    // Also append sdfProperty, sdfAction and sdfEvent to the tree
+    auto cluster_node = sdf_object_node.append_child(cluster.name.c_str());
+    cluster_node.append_child("sdfProperty");
+    cluster_node.append_child("sdfAction");
+    cluster_node.append_child("sdfEvent");
+
+    // cluster.id
+    sdfObject.label = cluster.name;
+    // cluster.conformance
+    // cluster.access
+    sdfObject.description = cluster.summary;
+    // cluster.revision -> sdfData
+    // cluster.revision_history -> sdfData
+
+    // Iterate through the attributes and map them
+    auto attribute_node = cluster_node.child("sdfProperty");
+    for (const auto& attribute : cluster.attributes){
+        sdfPropertyType sdfProperty;
+        map_matter_attribute(attribute, sdfProperty, attribute_node);
+        sdfObject.sdfProperty.insert({attribute.name, sdfProperty});
+    }
+
+    // Iterate through the commands and map them
+    auto command_node = cluster_node.child("sdfAction");
+    for (const auto& command : cluster.commands){
+        sdfActionType sdfAction;
+        map_matter_command(command, sdfAction, command_node);
+        sdfObject.sdfAction.insert({command.name, sdfAction});
+    }
+
+    // Iterate through the events and map them
+    auto event_node = cluster_node.child("sdfEvent");
+    for (const auto& event : cluster.events){
+        sdfEventType sdfEvent;
+        map_matter_event(event, sdfEvent, event_node);
+        sdfObject.sdfEvent.insert({event.name, sdfEvent});
+    }
+
     return 0;
 }
 
