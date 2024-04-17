@@ -285,6 +285,42 @@ int serializeAttribute(const attributeType& attribute, pugi::xml_node& attribute
 
 int serializeCluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
 {
+    // Create the cluster node
+    pugi::xml_node cluster_node = cluster_xml.append_child("cluster");
+
+    cluster_node.append_attribute("id").set_value(cluster.id);
+    cluster_node.append_attribute("name").set_value(cluster.name.c_str());
+    // conformance
+    // access
+    // summary
+    // classification
+
+    // Iterate through all revisions and serialize them individually
+    auto revision_history_node = cluster_node.append_child("revisionHistory");
+    for (const auto& revision : cluster.revision_history) {
+        auto revision_node = revision_history_node.append_child("revision");
+        revision_node.append_attribute("revision").set_value(revision.first);
+        revision_node.append_attribute("summary").set_value(revision.second.c_str());
+    }
+
+    // Iterate through all attributes and serialize them individually
+    auto attribute_node = cluster_node.append_child("attributes");
+    for (const auto& attribute : cluster.attributes) {
+        serializeAttribute(attribute, attribute_node);
+    }
+
+    // Iterate through all commands and serialize them individually
+    auto command_node = cluster_node.append_child("commands");
+    for (const auto& command : cluster.commands) {
+        serializeCommand(command, command_node);
+    }
+
+    // Iterate through all events and serialize them individually
+    auto event_node = cluster_node.append_child("events");
+    for (const auto& event : cluster.events) {
+        serializeEvent(event, event_node);
+    }
+
     return 0;
 }
 
