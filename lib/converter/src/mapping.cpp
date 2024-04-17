@@ -145,52 +145,53 @@ int map_matter_type(const std::string& matter_type, dataQualityType& dataQuality
     }
     if (matter_type.substr(0, 3) == "int") {
         // TODO: These boundaries change if the corresponding value is nullable
+        // TODO: As these boundaries get calculated, it might be better to define these boundaries with macros
         dataQuality.type = "integer";
         dataQuality.minimum = 0;
         if (matter_type.substr(3) == "8") {
-            dataQuality.maximum = 2^8-1;
+            dataQuality.maximum = pow(2, 8)-1;
         } else if (matter_type.substr(3) == "16") {
-            dataQuality.maximum = 2^16-1;
+            dataQuality.maximum = pow(2, 16)-1;
         } else if (matter_type.substr(3) == "24") {
-            dataQuality.maximum = 2^24-1;
+            dataQuality.maximum = pow(2, 24)-1;
         } else if (matter_type.substr(3) == "32") {
-            dataQuality.maximum = 2^32-1;
+            dataQuality.maximum = pow(2, 32)-1;
         } else if (matter_type.substr(3) == "40") {
-            dataQuality.maximum = 2^40-1;
+            dataQuality.maximum = pow(2, 40)-1;
         } else if (matter_type.substr(3) == "48") {
-            dataQuality.maximum = 2^48-1;
+            dataQuality.maximum = pow(2, 48)-1;
         } else if (matter_type.substr(3) == "56") {
-            dataQuality.maximum = 2^56-1;
+            dataQuality.maximum = pow(2, 56)-1;
         } else if (matter_type.substr(3) == "64") {
-            dataQuality.maximum = 2^64-1;
+            dataQuality.maximum = pow(2, 64)-1;
         }
     }
     if (matter_type.substr(0, 4) == "uint") {
         dataQuality.type = "integer";
         if (matter_type.substr(4) == "8") {
-            dataQuality.minimum = -2^7;
-            dataQuality.maximum = 2^7-1;
+            dataQuality.minimum = -pow(2, 7);
+            dataQuality.maximum = pow(2, 7)-1;
         } else if (matter_type.substr(4) == "16") {
-            dataQuality.minimum = -2^15;
-            dataQuality.maximum = 2^15-1;
+            dataQuality.minimum = -pow(2, 15);
+            dataQuality.maximum = pow(2, 15)-1;
         } else if (matter_type.substr(4) == "24") {
-            dataQuality.minimum = -2^23;
-            dataQuality.maximum = 2^23-1;
+            dataQuality.minimum = -pow(2, 23);
+            dataQuality.maximum = pow(2, 23)-1;
         } else if (matter_type.substr(4) == "32") {
-            dataQuality.minimum = -2^31;
-            dataQuality.maximum = 2^31-1;
+            dataQuality.minimum = -pow(2, 31);
+            dataQuality.maximum = pow(2, 31)-1;
         } else if (matter_type.substr(4) == "40") {
-            dataQuality.minimum = -2^39;
-            dataQuality.maximum = 2^39-1;
+            dataQuality.minimum = -pow(2, 39);
+            dataQuality.maximum = pow(2, 39)-1;
         } else if (matter_type.substr(4) == "48") {
-            dataQuality.minimum = -2^47;
-            dataQuality.maximum = 2^47-1;
+            dataQuality.minimum = -pow(2, 47);
+            dataQuality.maximum = pow(2, 47)-1;
         } else if (matter_type.substr(4) == "56") {
-            dataQuality.minimum = -2^55;
-            dataQuality.maximum = 2^55-1;
+            dataQuality.minimum = -pow(2, 55);
+            dataQuality.maximum = pow(2, 55)-1;
         } else if (matter_type.substr(4) == "64") {
-            dataQuality.minimum = -2^63;
-            dataQuality.maximum = 2^63-1;
+            dataQuality.minimum = -pow(2, 63);
+            dataQuality.maximum = pow(2, 63)-1;
         }
     }
 
