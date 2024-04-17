@@ -209,6 +209,19 @@ int map_matter_access(const accessType& access, dataQualityType& dataQuality)
 //! Matter Event -> sdfEvent
 int map_matter_event(const eventType& event, sdfEventType& sdfEvent, pugi::xml_node& sdf_event_node)
 {
+    // Append the event node to the tree
+    auto event_node = sdf_event_node.append_child(event.name.c_str());
+
+    // event.id
+    sdfEvent.label = event.name;
+    // event.conformance
+    // event.access
+    sdfEvent.description = event.summary;
+    // event.priority
+    // event.number
+    // event.timestamp
+    // event.data
+
     return 0;
 }
 
