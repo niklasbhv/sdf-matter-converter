@@ -290,5 +290,37 @@ int serializeCluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
 
 int serializeDevice(const deviceType& device, pugi::xml_node& device_xml, pugi::xml_node& cluster_xml)
 {
+    // Create the device node
+    auto device_node = device_xml.append_child("deviceType");
+    device_node.append_attribute("id").set_value(device.id);
+    device_node.append_attribute("name").set_value(device.name.c_str());
+    // conformance
+    // access
+    // summary
+    device_node.append_attribute("revision").set_value(device.revision);
+
+    // Iterate through all revisions and serialize them individually
+    auto revision_history_node = device_node.append_child("revisionHistory");
+    for (const auto& revision : device.revision_history) {
+        auto revision_node = revision_history_node.append_child("revision");
+        revision_node.append_attribute("revision").set_value(revision.first);
+        revision_node.append_attribute("summary").set_value(revision.second.c_str());
+    }
+    // classification
+    // Iterate through all clusters and serialize them individually
+    auto clusters_node = device_node.append_child("clusters");
+    for (const auto& cluster : device.clusters) {
+        serializeCluster(cluster, cluster_xml);
+    }
+
+    // Iterate through all features and parse them individually
+    auto features_node = device_node.append_child("features");
+    for (const auto& feature : device.features) {
+        // feature
+    }
+    // enums
+    // bitmaps
+    // structs
+
     return 0;
 }
