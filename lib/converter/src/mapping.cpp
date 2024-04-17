@@ -118,7 +118,7 @@ int map_sdf_to_matter(const sdfModelType& sdfModel, const sdfMappingType& sdfMap
 }
 
 //! Matter type -> SDF type
-int map_matter_type(std::string& matter_type, dataQualityType& dataQuality)
+int map_matter_type(const std::string& matter_type, dataQualityType& dataQuality)
 {
     // TODO: Custom types should be handled here
     // TODO: Maybe also set the default value here?
@@ -229,6 +229,28 @@ int map_matter_command(const commandType& client_command, sdfActionType& sdfActi
 //! Matter Attribute -> sdfProperty
 int map_matter_attribute(const attributeType& attribute, sdfPropertyType& sdfProperty, pugi::xml_node& sdf_property_node)
 {
+    // Append the attribute node to the tree
+    auto attribute_node = sdf_property_node.append_child(attribute.name.c_str());
+
+    // attribute.id
+    sdfProperty.label = attribute.name;
+    // attribute.conformance
+    // attribute.access
+    sdfProperty.description = attribute.summary;
+
+    // Map the Matter type to a fitting SDF type
+    map_matter_type(attribute.type, sdfProperty);
+    if (attribute.qualities.nullable.has_value())
+        // TODO: In this case the boundaries for some types have to be changed
+        sdfProperty.nullable = attribute.qualities.nullable.value();
+    // attribute.qualities.non_volatile
+    // attribute.qualities.fixed
+    // attribute.qualities.scene
+    // attribute.qualities.reportable
+    // attribute.qualities.changed_omitted
+    // attribute.qualities.singleton
+    sdfProperty.default_ = attribute.default_;
+
     return 0;
 }
 
