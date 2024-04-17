@@ -20,7 +20,17 @@
 #include "matter.h"
 #include "sdf.h"
 
+/*
+ * Map containing the elements of the sdf mapping
+ * This map is used to resolve the elements outsourced into the map
+ */
 std::map<std::string, std::map<std::string, std::string>> reference_map;
+
+/*
+ * List containing required sdf elements
+ * This list gets filled while mapping and afterward appended to the corresponding sdfModel
+ */
+std::list<std::string> sdf_required_list;
 
 //! For debug purposes, prints a visual representation of the tree
 struct simple_walker: pugi::xml_tree_walker
@@ -198,12 +208,30 @@ int map_matter_type(const std::string& matter_type, dataQualityType& dataQuality
     // If the type is not a known standard type
     std::cout << "Found: " << matter_type << std::endl;
     return 0;
-};
+}
 
 //! Matter Access Type -> Data Quality
 int map_matter_access(const accessType& access, dataQualityType& dataQuality)
 {
     //TODO: Can access be represented like this?
+    return 0;
+}
+
+/**
+ * @brief Adds element to sdfRequired depending on the conformance.
+ *
+ * This function adds the current element to sdfRequired it is set to mandatory via its conformance.
+ *
+ * @param conformance The conformance to check.
+ * @param current_node The reference tree node of the current element.
+ * @return 0 on success, negative on failure.
+ */
+int map_matter_conformance(const conformanceType& conformance, const pugi::xml_node current_node) {
+    if (conformance.mandatory.has_value()) {
+        if (conformance.mandatory.value()) {
+            sdf_required_list.push_back(current_node.path().substr(1));
+        }
+    }
     return 0;
 }
 
@@ -215,7 +243,7 @@ int map_matter_event(const eventType& event, sdfEventType& sdfEvent, pugi::xml_n
 
     // event.id
     sdfEvent.label = event.name;
-    // event.conformance
+    map_matter_conformance(event.conformance, event_node);
     // event.access
     sdfEvent.description = event.summary;
     // event.priority
@@ -242,7 +270,7 @@ int map_matter_command(const commandType& client_command, sdfActionType& sdfActi
 
     // client_command.id
     sdfAction.label = client_command.name;
-    // client_command.conformance
+    map_matter_conformance(client_command.conformance, command_node);
     // client_command.access
     sdfAction.description = client_command.summary;
     // client_command.default_
@@ -260,7 +288,7 @@ int map_matter_attribute(const attributeType& attribute, sdfPropertyType& sdfPro
 
     // attribute.id
     sdfProperty.label = attribute.name;
-    // attribute.conformance
+    map_matter_conformance(attribute.conformance, attribute_node);
     // attribute.access
     sdfProperty.description = attribute.summary;
 
@@ -292,7 +320,7 @@ int map_matter_cluster(const clusterType& cluster, sdfObjectType& sdfObject, pug
 
     // cluster.id
     sdfObject.label = cluster.name;
-    // cluster.conformance
+    map_matter_conformance(cluster.conformance, cluster_node);
     // cluster.access
     sdfObject.description = cluster.summary;
     // cluster.revision -> sdfData
@@ -337,7 +365,7 @@ int map_matter_device(const deviceType& device, sdfModelType& sdfModel, pugi::xm
     // device.enums -> sdfData
     // device.bitmaps -> sdfData
     // device.structs -> sdfData
-    // device.conformance
+    map_matter_conformance(device.conformance, device_node);
     // device.access
     // TODO: We need to be able to create a JSON object for more complex structures like revisionHistory
     // device.revisionHistory -> sdfData
@@ -375,6 +403,7 @@ int map_matter_device(const deviceType& device, sdfModelType& sdfModel, pugi::xm
         map_matter_cluster(cluster, sdfObject, sdf_object_node);
         sdfThing.sdfObject.insert({cluster.name, sdfObject});
     }
+    sdfThing.sdfRequired = sdf_required_list;
     sdfModel.sdfThing = sdfThing;
 
     return 0;
