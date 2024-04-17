@@ -120,90 +120,39 @@ int map_sdf_to_matter(const sdfModelType& sdfModel, const sdfMappingType& sdfMap
 //! Matter type -> SDF type
 int map_matter_type(std::string& matter_type, dataQualityType& dataQuality)
 {
-    std::cout << "Searching for Type: " << matter_type << std::endl;
-    //TODO: These seem to randomly be different from the official zcl documentation
+    // TODO: Custom types should be handled here
+    // TODO: Maybe also set the default value here?
+    if (matter_type == "bool") {
 
-    // Unknown type
-    if (std::regex_match(matter_type, std::regex("unk"))){}
-
-    // Data Type
-    if (std::regex_match(matter_type, std::regex("data[0-9]+"))){
-        if (std::regex_match(matter_type, std::regex("data8"))){
-            std::cout << "Found DATA8!" << std::endl;
-        } else if (std::regex_match(matter_type, std::regex("data16"))){
-            std::cout << "Found DATA16!" << std::endl;
-        } else if (std::regex_match(matter_type, std::regex("data24"))){
-            std::cout << "Found DATA24!" << std::endl;
-        } else if (std::regex_match(matter_type, std::regex("data32"))) {
-            std::cout << "Found DATA32!" << std::endl;
-        } else if (std::regex_match(matter_type, std::regex("data40"))) {
-            std::cout << "Found DATA40!" << std::endl;
-        } else if (std::regex_match(matter_type, std::regex("data48"))) {
-            std::cout << "Found DATA48!" << std::endl;
-        } else if (std::regex_match(matter_type, std::regex("data56"))) {
-            std::cout << "Found DATA56!" << std::endl;
-        } else if (std::regex_match(matter_type, std::regex("data64"))) {
-            std::cout << "Found DATA64!" << std::endl;
-        } else {
-            // If the type is not a known standard type
-            return -1;
-        }
-
-        return 0;
     }
+    if (matter_type == "single") {
 
-    // Boolean type
-    if (std::regex_search(matter_type, std::regex("bool|boolean", std::regex_constants::icase))){
-        std::cout << "Found Bool!" << std::endl;
-        dataQuality.type = "boolean";
-        return 0;
     }
+    if (matter_type == "double") {
 
-    // Bitmap type
-    if (std::regex_match(matter_type, std::regex("map[0-9]+", std::regex_constants::icase))){
-        std::cout << "Found Map!" << std::endl;
-        return 0;
     }
+    if (matter_type == "octstr") {
 
-    // Enum type
-    if (std::regex_match(matter_type, std::regex("enum[0-9]+", std::regex_constants::icase))){
-        std::cout << "Found Enum!" << std::endl;
-        return 0;
     }
+    if (matter_type == "list") {
 
-    // Unsigned int type
-    if (std::regex_search(matter_type, std::regex("int[0-9]+u|uint[0-9]+", std::regex_constants::icase))){
-        dataQuality.type = "integer";
-        if (std::regex_search(matter_type, std::regex("int8u|uint8", std::regex_constants::icase))){
-            dataQuality.minimum = 0;
-            dataQuality.maximum = 255;
-            std::cout << "Found UINT8!" << std::endl;
-        }
-        if (std::regex_search(matter_type, std::regex("int16u|uint16", std::regex_constants::icase))) {
-            std::cout << "Found UINT16!" << std::endl;
-            dataQuality.minimum = 0;
-            dataQuality.maximum = 65355;
-        }
-        return 0;
     }
+    if (matter_type == "struct") {
 
-    // Signed int type
-    if (std::regex_match(matter_type, std::regex("int[0-9]+", std::regex_constants::icase))){
-        std::cout << "Found INT!" << std::endl;
-        dataQuality.type = "integer";
-        return 0;
     }
+    if (matter_type.substr(0, 3) == "map") {
 
-    // Array type
-    if (std::regex_match(matter_type, std::regex("array", std::regex_constants::icase))){
-        std::cout << "Found ARRAY!" << std::endl;
-        dataQuality.type = "array";
-        return 0;
+    }
+    if (matter_type.substr(0, 3) == "int") {
+
+    }
+    if (matter_type.substr(0, 4) == "uint") {
+
     }
 
     // If the type is not a known standard type
-    std::cout << "Found Nothing!" << std::endl;
-    return -1;
+    std::cout << "Found: " << matter_type << std::endl;
+    return 0;
 };
 
 //! Matter Access Type -> Data Quality
