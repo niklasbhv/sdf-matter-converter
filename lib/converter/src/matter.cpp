@@ -215,11 +215,9 @@ int parseCluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
 
 int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device)
 {
-    auto device_node = device_xml.child("deviceType");
-
-    device.id = device_node.attribute("id").as_int();
-    device.name = device_node.attribute("name").value();
-    device.revision = device_node.attribute("revision").as_int();
+    device.id = device_xml.attribute("id").as_int();
+    device.name = device_xml.attribute("name").value();
+    device.revision = device_xml.attribute("revision").as_int();
     std::cout << device.name << std::endl;
 
     // Iterate through all revisions and parse them individually
