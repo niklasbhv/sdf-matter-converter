@@ -280,6 +280,16 @@ int serializeCommand(const commandType& command, pugi::xml_node& command_xml)
 
 int serializeAttribute(const attributeType& attribute, pugi::xml_node& attribute_xml)
 {
+    auto attribute_node = attribute_xml.append_child("attribute");
+    attribute_node.append_attribute("id").set_value(attribute.id);
+    attribute_node.append_attribute("name").set_value(attribute.name.c_str());
+    // conformance
+    // access
+    // summary
+    attribute_node.attribute("type").set_value(attribute.type.c_str());
+    // qualities
+    attribute_node.attribute("default").set_value(attribute.default_.c_str());
+
     return 0;
 }
 
