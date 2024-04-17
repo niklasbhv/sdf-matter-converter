@@ -236,6 +236,9 @@ int map_matter_command(const commandType& client_command, commandType& server_co
 //! Used if only a client command needs to be processed
 int map_matter_command(const commandType& client_command, sdfActionType& sdfAction, pugi::xml_node& sdf_action_node)
 {
+    // Append the command node to the tree
+    auto command_node = sdf_action_node.append_child(client_command.name.c_str());
+
     // client_command.id
     sdfAction.label = client_command.name;
     // client_command.conformance
