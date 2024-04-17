@@ -415,7 +415,9 @@ int map_matter_to_sdf(const deviceType& device, sdfModelType& sdfModel, sdfMappi
 
     // Initial sdfMapping mapping
     sdfMapping.infoBlock.title = device.name;
-    sdfMapping.namespaceBlock.namespaces = {{"zcl", ""}};
+    sdfMapping.infoBlock.description = device.summary;
+    sdfMapping.infoBlock.version = std::to_string(device.revision);
+    sdfMapping.namespaceBlock.namespaces = {{"zcl", "https://zcl.example.com/sdf"}};
     sdfMapping.namespaceBlock.defaultNamespace = "zcl";
     std::map<std::string, std::map<std::string, std::string>> map;
     generate_mapping(referenceTree.document_element(), map);
@@ -424,6 +426,7 @@ int map_matter_to_sdf(const deviceType& device, sdfModelType& sdfModel, sdfMappi
     // Print the resulting tree
     simple_walker walker;
     referenceTree.traverse(walker);
+
     return 0;
 }
 
