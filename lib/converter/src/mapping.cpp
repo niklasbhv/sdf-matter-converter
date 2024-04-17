@@ -238,18 +238,58 @@ int map_matter_cluster(const clusterType& cluster, sdfObjectType& sdfObject, pug
     return 0;
 }
 
-//! Matter Device -> SDF-Model
+//! Matter Device -> SDF-Model (sdfThing)
 int map_matter_device(const deviceType& device, sdfModelType& sdfModel, pugi::xml_node& sdf_thing_node)
 {
     // Append a new sdfObject node to the tree
     sdf_thing_node.append_child(device.name.c_str()).append_child("sdfObject");
     auto device_node = sdf_thing_node.child(device.name.c_str());
     device_node.append_attribute("id").set_value(device.id);
-    // conformance
-    // access
-    sdfModel.infoBlock.title = device.name;
-    device_node.append_attribute("revision").set_value(device.revision);
+    // device.classification -> sdfMapping
+    // device.features -> sdfData
+    // device.enums -> sdfData
+    // device.bitmaps -> sdfData
+    // device.structs -> sdfData
+    // device.conformance
+    // device.access
     // TODO: We need to be able to create a JSON object for more complex structures like revisionHistory
+    // device.revisionHistory -> sdfData
+
+    // Map the information block
+    sdfModel.infoBlock.title = device.name;
+    sdfModel.infoBlock.description = device.summary;
+    sdfModel.infoBlock.version = std::to_string(device.revision);
+    // sdfModel.infoBlock.modified
+    // sdfModel.infoBlock.copyright <-- Maybe parse from the comment?
+    // sdfModel.infoBlock.license <-- Maybe parse from the comment?
+    // sdfModel.infoBlock.features <-- This can definitely be parsed from the features section
+    // sdfModel.infoBlock.$comment
+
+    // Map the namespace block
+    sdfModel.namespaceBlock.namespaces.insert({"zcl", "https://zcl.example.com/sdf"});
+    sdfModel.namespaceBlock.defaultNamespace = "zcl";
+
+    // Map the definition block
+    sdfThingType sdfThing;
+    sdfThing.label = device.name;
+    sdfThing.description = device.summary;
+    // sdfThing.$comment
+    // sdfThing.sdfRef
+    // sdfThing.sdfRequired
+    // sdfThing.sdfProperty
+    // sdfThing.sdfAction
+    // sdfThing.sdfEvent
+    // sdfThing.minItems
+    // sdfThing.maxItems
+    // Iterate through cluster definitions for the device
+    auto sdf_object_node = device_node.child("sdfObject");
+    for (const auto& cluster : device.clusters){
+        sdfObjectType sdfObject;
+        map_matter_cluster(cluster, sdfObject, sdf_object_node);
+        sdfThing.sdfObject.insert({cluster.name, sdfObject});
+    }
+    sdfModel.sdfThing = sdfThing;
+
     return 0;
 }
 
