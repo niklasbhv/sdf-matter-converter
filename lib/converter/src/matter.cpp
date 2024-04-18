@@ -292,6 +292,15 @@ int serialize_conformance(const conformanceType& conformance, pugi::xml_node& cu
 
 int serialize_access(const accessType& access, pugi::xml_node& current_node)
 {
+    // TODO: What happens if none of the attributes are set?
+    auto access_node = current_node.append_child("access");
+
+    if (access.read.has_value())
+        access_node.append_attribute("read").set_value(access.read.value());
+    if (access.write.has_value())
+        access_node.append_attribute("write").set_value(access.write.value());
+    // TODO: The format of the remaining types has to be checked
+
     return 0;
 }
 
@@ -307,7 +316,7 @@ int serializeCommand(const commandType& command, pugi::xml_node& command_xml)
     command_node.append_attribute("id").set_value(command.id);
     command_node.append_attribute("name").set_value(command.name.c_str());
     serialize_conformance(command.conformance, command_node);
-    // access
+    serialize_access(command.access, command_node);
     if (!command.summary.empty())
         command_node.append_attribute("summary").set_value(command.summary.c_str());
     if (!command.default_.empty())
@@ -325,7 +334,7 @@ int serializeAttribute(const attributeType& attribute, pugi::xml_node& attribute
     attribute_node.append_attribute("id").set_value(attribute.id);
     attribute_node.append_attribute("name").set_value(attribute.name.c_str());
     serialize_conformance(attribute.conformance, attribute_node);
-    // access
+    serialize_access(attribute.access, attribute_node);
     if (!attribute.summary.empty())
         attribute_node.append_attribute("summary").set_value(attribute.summary.c_str());
     attribute_node.attribute("type").set_value(attribute.type.c_str());
@@ -342,8 +351,8 @@ int serializeCluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
 
     cluster_node.append_attribute("id").set_value(cluster.id);
     cluster_node.append_attribute("name").set_value(cluster.name.c_str());
-    serialize_conformance(cluster.conformance, cluster_node)
-    // access
+    serialize_conformance(cluster.conformance, cluster_node);
+    serialize_access(cluster.access, cluster_node);
     if (!cluster.summary.empty())
         cluster_node.append_attribute("summary").set_value(cluster.summary.c_str());
     // classification
@@ -384,7 +393,7 @@ int serializeDevice(const deviceType& device, pugi::xml_node& device_xml, pugi::
     device_node.append_attribute("id").set_value(device.id);
     device_node.append_attribute("name").set_value(device.name.c_str());
     serialize_conformance(device.conformance, device_node);
-    // access
+    serialize_access(device.access, device_node);
     if (!device.summary.empty())
         device_node.append_attribute("summary").set_value(device.summary.c_str());
     device_node.append_attribute("revision").set_value(device.revision);
