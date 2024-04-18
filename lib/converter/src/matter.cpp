@@ -268,6 +268,33 @@ int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_
     return 0;
 }
 
+int serialize_conformance(const conformanceType& conformance, pugi::xml_node& current_node)
+{
+    if (conformance.mandatory.has_value()) {
+        if (conformance.mandatory.value())
+            current_node.append_child("mandatoryConformance");
+    } else if (conformance.optional.has_value()) {
+        if (conformance.optional.value())
+            current_node.append_child("optionalConformance");
+    } else if (conformance.provisional.has_value()) {
+        if (conformance.provisional.value())
+            current_node.append_child("provisionalConformance");
+    } else if (conformance.deprecated.has_value()) {
+        if (conformance.deprecated.value())
+            current_node.append_child("deprecatedConformance");
+    } else if (conformance.disallowed.has_value()) {
+        if (conformance.disallowed.value())
+            current_node.append_child("disallowedConformance");
+    }
+    // expression
+    return 0;
+}
+
+int serialize_access(const accessType& access, pugi::xml_node& current_node)
+{
+    return 0;
+}
+
 int serializeEvent(const eventType& event, pugi::xml_node& event_xml)
 {
     return 0;
@@ -279,10 +306,10 @@ int serializeCommand(const commandType& command, pugi::xml_node& command_xml)
 
     command_node.append_attribute("id").set_value(command.id);
     command_node.append_attribute("name").set_value(command.name.c_str());
+    serialize_conformance(command.conformance, command_node);
+    // access
     if (!command.summary.empty())
         command_node.append_attribute("summary").set_value(command.summary.c_str());
-    // conformance
-    // access
     if (!command.default_.empty())
         command_node.append_attribute("default").set_value(command.default_.c_str());
     command_node.append_attribute("direction").set_value(command.direction.c_str());
@@ -294,11 +321,13 @@ int serializeCommand(const commandType& command, pugi::xml_node& command_xml)
 int serializeAttribute(const attributeType& attribute, pugi::xml_node& attribute_xml)
 {
     auto attribute_node = attribute_xml.append_child("attribute");
+
     attribute_node.append_attribute("id").set_value(attribute.id);
     attribute_node.append_attribute("name").set_value(attribute.name.c_str());
-    // conformance
+    serialize_conformance(attribute.conformance, attribute_node);
     // access
-    // summary
+    if (!attribute.summary.empty())
+        attribute_node.append_attribute("summary").set_value(attribute.summary.c_str());
     attribute_node.attribute("type").set_value(attribute.type.c_str());
     // qualities
     attribute_node.attribute("default").set_value(attribute.default_.c_str());
@@ -309,13 +338,14 @@ int serializeAttribute(const attributeType& attribute, pugi::xml_node& attribute
 int serializeCluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
 {
     // Create the cluster node
-    pugi::xml_node cluster_node = cluster_xml.append_child("cluster");
+    auto cluster_node = cluster_xml.append_child("cluster");
 
     cluster_node.append_attribute("id").set_value(cluster.id);
     cluster_node.append_attribute("name").set_value(cluster.name.c_str());
-    // conformance
+    serialize_conformance(cluster.conformance, cluster_node)
     // access
-    // summary
+    if (!cluster.summary.empty())
+        cluster_node.append_attribute("summary").set_value(cluster.summary.c_str());
     // classification
 
     // Iterate through all revisions and serialize them individually
@@ -349,13 +379,14 @@ int serializeCluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
 
 int serializeDevice(const deviceType& device, pugi::xml_node& device_xml, pugi::xml_node& cluster_xml)
 {
-    // Create the device node
     auto device_node = device_xml.append_child("deviceType");
+
     device_node.append_attribute("id").set_value(device.id);
     device_node.append_attribute("name").set_value(device.name.c_str());
-    // conformance
+    serialize_conformance(device.conformance, device_node);
     // access
-    // summary
+    if (!device.summary.empty())
+        device_node.append_attribute("summary").set_value(device.summary.c_str());
     device_node.append_attribute("revision").set_value(device.revision);
 
     // Iterate through all revisions and serialize them individually
