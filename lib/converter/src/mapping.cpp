@@ -57,13 +57,13 @@ int resolve_mapping(const std::string& reference, const std::string& entry, T& r
 }
 
 //! sdfEvent -> Matter event
-int map_sdf_event(const sdfEventType& sdfEvent, eventType& event)
+int map_sdf_event(const sdfEventType& sdfEvent, eventType& event, pugi::xml_node& sdf_event_node)
 {
     return 0;
 }
 
 //! sdfAction -> Matter command
-int map_sdf_action(const sdfActionType& sdfAction, commandType& command)
+int map_sdf_action(const sdfActionType& sdfAction, commandType& command, pugi::xml_node& sdf_action_node)
 {
     return 0;
 }
@@ -77,6 +77,40 @@ int map_sdf_property(const sdfPropertyType& sdfProperty, attributeType& attribut
 //! sdfObject -> Matter cluster
 int map_sdf_object(const sdfObjectType& sdfObject, clusterType& cluster, pugi::xml_node& sdf_object_node)
 {
+    auto current_object_node = sdf_object_node.append_child(sdfObject.label.c_str());
+    // id
+    cluster.name = sdfObject.label;
+    // conformance
+    // access
+    cluster.summary = sdfObject.description;
+    // revision
+    // revision_history
+    // classification
+
+    // Iterate through all sdfProperties and parse them individually
+    auto sdf_property_node = current_object_node.append_child("sdfProperty");
+    for (const auto& sdfProperty : sdfObject.sdfProperty) {
+        attributeType attribute;
+        map_sdf_property(sdfProperty.second, attribute, sdf_property_node);
+        cluster.attributes.push_back(attribute);
+    }
+
+    // Iterate through all sdfActions and parse them individually
+    auto sdf_action_node = current_object_node.append_child("sdfAction");
+    for (const auto& sdfAction : sdfObject.sdfAction) {
+        commandType command;
+        map_sdf_action(sdfAction.second, command, sdf_action_node);
+        cluster.commands.push_back(command);
+    }
+
+    // Iterate through all sdfEvents and parse them individually
+    auto sdf_event_node = current_object_node.append_child("sdfEvent");
+    for (const auto& sdfEvent : sdfObject.sdfEvent) {
+        eventType event;
+        map_sdf_event(sdfEvent.second, event, sdf_event_node);
+        cluster.events.push_back(event);
+    }
+
     return 0;
 }
 
