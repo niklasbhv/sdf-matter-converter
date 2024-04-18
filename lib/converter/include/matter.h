@@ -272,7 +272,7 @@ struct deviceType : commonDataQualityType{
  * @param device The resulting device.
  * @return 0 on success, negative on failure.
  */
-int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device);
+int parse_device(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device);
 
 
 /**
@@ -285,6 +285,6 @@ int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_
  * @param cluster_xml The resulting cluster xml.
  * @return 0 on success, negative on failure.
  */
-int serializeDevice(const deviceType& device, pugi::xml_node& device_xml, pugi::xml_node& cluster_xml);
+int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi::xml_node& cluster_xml);
 
 #endif //MATTER_H

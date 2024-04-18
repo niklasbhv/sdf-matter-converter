@@ -30,14 +30,14 @@ int convertSdfToMatter(const nlohmann::ordered_json& sdf_model, const nlohmann::
     deviceType device;
     map_sdf_to_matter(sdfModel, sdfMapping, device);
 
-    serializeDevice(device, device_xml, cluster_xml);
+    serialize_device(device, device_xml, cluster_xml);
     return 0;
 }
 
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping)
 {
     deviceType device;
-    parseDevice(device_xml.document_element(), cluster_xml.document_element(), device);
+    parse_device(device_xml.document_element(), cluster_xml.document_element(), device);
 
     sdfModelType sdfModel;
     sdfMappingType sdfMapping;
