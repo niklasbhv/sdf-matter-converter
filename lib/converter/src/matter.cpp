@@ -275,6 +275,19 @@ int serializeEvent(const eventType& event, pugi::xml_node& event_xml)
 
 int serializeCommand(const commandType& command, pugi::xml_node& command_xml)
 {
+    auto command_node = command_xml.append_child("command");
+
+    command_node.append_attribute("id").set_value(command.id);
+    command_node.append_attribute("name").set_value(command.name.c_str());
+    if (!command.summary.empty())
+        command_node.append_attribute("summary").set_value(command.summary.c_str());
+    // conformance
+    // access
+    if (!command.default_.empty())
+        command_node.append_attribute("default").set_value(command.default_.c_str());
+    command_node.append_attribute("direction").set_value(command.direction.c_str());
+    command_node.append_attribute("response").set_value(command.response.c_str());
+
     return 0;
 }
 
