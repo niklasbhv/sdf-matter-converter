@@ -71,6 +71,23 @@ int map_sdf_action(const sdfActionType& sdfAction, commandType& command, pugi::x
 //! sdfProperty -> Matter attribute
 int map_sdf_property(const sdfPropertyType& sdfProperty, attributeType& attribute, pugi::xml_node& sdf_property_node)
 {
+    auto current_property_node = sdf_property_node.append_child(sdfProperty.label.c_str());
+
+    // TODO: Currently constraints are missing, they are essential for the mapping
+    // attribute.id
+    attribute.name = sdfProperty.label;
+    // conformance
+    attribute.access.write = sdfProperty.writable;
+    attribute.access.read = sdfProperty.readable;
+    // TODO: Additional access attributes have to be mapped
+    attribute.summary = sdfProperty.description;
+    // TODO: Create type mapper from SDF to Matter
+    // type
+    attribute.default_ = sdfProperty.default_;
+    attribute.qualities.nullable = sdfProperty.nullable;
+    // TODO: Check if this should in this case be set or ignored
+    attribute.qualities.fixed = !sdfProperty.const_.empty();
+
     return 0;
 }
 
