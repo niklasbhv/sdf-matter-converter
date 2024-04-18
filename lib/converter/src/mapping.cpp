@@ -65,6 +65,15 @@ int map_sdf_event(const sdfEventType& sdfEvent, eventType& event, pugi::xml_node
 //! sdfAction -> Matter command
 int map_sdf_action(const sdfActionType& sdfAction, commandType& command, pugi::xml_node& sdf_action_node)
 {
+    auto current_action_node = sdf_action_node.append_child(sdfAction.label.c_str());
+
+    // TODO: As client and server commands are seperated, we have to create two new commands
+    // TODO: Currently this only handles a single command
+    // command.id
+    command.name = sdfAction.label;
+    // conformance
+    // access
+    command.summary = sdfAction.description;
     return 0;
 }
 
