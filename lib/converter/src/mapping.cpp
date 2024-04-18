@@ -59,6 +59,14 @@ int resolve_mapping(const std::string& reference, const std::string& entry, T& r
 //! sdfEvent -> Matter event
 int map_sdf_event(const sdfEventType& sdfEvent, eventType& event, pugi::xml_node& sdf_event_node)
 {
+    auto current_event_node = sdf_event_node.append_child(sdfEvent.label.c_str());
+
+    // event.id
+    event.name = sdfEvent.label;
+    // conformance
+    // access
+    event.summary = sdfEvent.description;
+
     return 0;
 }
 
