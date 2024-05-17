@@ -342,7 +342,7 @@ int map_matter_event(const eventType& event, sdfEventType& sdfEvent, pugi::xml_n
 
     // event.id
     sdfEvent.label = event.name;
-    map_matter_conformance(event.conformance, event_node);
+    map_matter_conformance(event.conformance, event_node, sdf_event_node);
     // event.access
     sdfEvent.description = event.summary;
     // event.priority
@@ -369,7 +369,7 @@ int map_matter_command(const commandType& client_command, sdfActionType& sdfActi
 
     // client_command.id
     sdfAction.label = client_command.name;
-    map_matter_conformance(client_command.conformance, command_node);
+    map_matter_conformance(client_command.conformance, command_node, sdf_action_node);
     // client_command.access
     sdfAction.description = client_command.summary;
     // client_command.default_
@@ -387,7 +387,7 @@ int map_matter_attribute(const attributeType& attribute, sdfPropertyType& sdfPro
 
     // attribute.id
     sdfProperty.label = attribute.name;
-    map_matter_conformance(attribute.conformance, attribute_node);
+    map_matter_conformance(attribute.conformance, attribute_node, sdf_property_node);
     // attribute.access
     sdfProperty.description = attribute.summary;
 
@@ -419,7 +419,7 @@ int map_matter_cluster(const clusterType& cluster, sdfObjectType& sdfObject, pug
 
     // cluster.id
     sdfObject.label = cluster.name;
-    map_matter_conformance(cluster.conformance, cluster_node);
+    map_matter_conformance(cluster.conformance, cluster_node, sdf_object_node);
     // cluster.access
     sdfObject.description = cluster.summary;
     // cluster.revision -> sdfData
@@ -464,7 +464,7 @@ int map_matter_device(const deviceType& device, sdfModelType& sdfModel, pugi::xm
     // device.enums -> sdfData
     // device.bitmaps -> sdfData
     // device.structs -> sdfData
-    map_matter_conformance(device.conformance, device_node);
+    map_matter_conformance(device.conformance, device_node, sdf_thing_node);
     // device.access
     // TODO: We need to be able to create a JSON object for more complex structures like revisionHistory
     // device.revisionHistory -> sdfData
