@@ -56,11 +56,13 @@ struct otherQualityType {
     //! Any of the above can be negated by using !.
 };
 
+struct constraintType;
+
 struct constraintType {
-    // TODO: Dependent on the input type, make this generic
+    std::string type;
     //! The interpretation for each of these values depends on the data type its applied to
     //! Exact value.
-    std::optional<int> exact_value;
+    std::optional<int> value;
     //! For range constraints -> x to y.
     std::optional<std::tuple<int, int>> range;
     //! Minimum value.
@@ -68,10 +70,18 @@ struct constraintType {
     //! Maximum value.
     std::optional<int> max;
     //! No constraints.
+    //! Same as min to max.
     std::optional<bool> all;
-    // UNION
-    // List Constraint
-    // Char Constraint
+    //! In case of a Union of multiple constraints, these get "chained" to each other
+    //std::optional<constraintType> constraint;
+    //! Used for list_constraint[entry_constraint].
+    //! List constraint is mapped to the above qualities, entry constraint is mapped to the below quality.
+    std::optional<bool> entry_constraint;
+    //! char_constraint[z].
+    //! char_constraint is the string constraint in bytes.
+    //! z is the maximum number of unicode codepoints.
+    //! char_constraint gets mapped with the above qualities, z is mapped to the below quality.
+    std::optional<int> max_unicode_endpoints;
 };
 
 /**
