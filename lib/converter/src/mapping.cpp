@@ -320,11 +320,16 @@ int map_matter_access(const accessType& access, dataQualityType& dataQuality)
  * @param current_node The reference tree node of the current element.
  * @return 0 on success, negative on failure.
  */
-int map_matter_conformance(const conformanceType& conformance, const pugi::xml_node current_node) {
+int map_matter_conformance(const conformanceType& conformance, const pugi::xml_node current_node, pugi::xml_node& sdf_node) {
     if (conformance.mandatory.has_value()) {
         if (conformance.mandatory.value()) {
             sdf_required_list.push_back(current_node.path().substr(1));
         }
+    }
+    // TODO: Currently there seems to be no way to handle conformance based on the selected feature
+    // That's why the boolean expression is outsourced to the mapping file
+    if (conformance.condition.has_value()) {
+        sdf_node.append_attribute("condition").set_value(conformance.condition.value().c_str());
     }
     return 0;
 }

@@ -105,7 +105,7 @@ struct conformanceType {
     //! X -> Disallowed
     std::optional<bool> disallowed;
     //! Represents the boolean expression.
-    std::string expression;
+    std::optional<std::string> condition;
 };
 
 /**
