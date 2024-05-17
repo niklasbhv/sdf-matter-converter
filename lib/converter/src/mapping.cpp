@@ -281,8 +281,26 @@ int map_matter_type(const std::string& matter_type, dataQualityType& dataQuality
 }
 
 //! Matter Constraint -> Data Quality
-int map_matter_constraint()
+int map_matter_constraint(const constraintType& constraint, dataQualityType dataQuality)
 {
+    //TODO: The constraint depends on the given data type
+    if (constraint.type == "desc") {
+        // TODO: What do we do here?
+    } else if (constraint.type == "between") {
+        if (constraint.range.has_value()) {
+            dataQuality.minimum = std::get<0>(constraint.range.value());
+            dataQuality.maximum = std::get<1>(constraint.range.value());
+        }
+    } else if (constraint.type == "min") {
+        if (constraint.min.has_value()) {
+            dataQuality.minimum = constraint.min.value();
+        }
+    } else if (constraint.type == "max") {
+        if (constraint.max.has_value()) {
+            dataQuality.maximum = constraint.max.value();
+        }
+    }
+    // TODO: This list is currently not exhaustive
     return 0;
 }
 
