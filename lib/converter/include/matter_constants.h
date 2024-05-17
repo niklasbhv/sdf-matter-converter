@@ -25,6 +25,44 @@
 #ifndef MATTER_CONSTANTS_H
 #define MATTER_CONSTANTS_H
 
+//! Max and Min Type boundaries if value is not nullable
+//! For nullable values, max has to be decreased by one
+#define MATTER_INT_8_MIN 0
+#define MATTER_INT_8_MAX 255
+#define MATTER_INT_16_MIN 0
+#define MATTER_INT_16_MAX 65535
+#define MATTER_INT_24_MIN 0
+#define MATTER_INT_24_MAX 16777215
+#define MATTER_INT_32_MIN 0
+#define MATTER_INT_32_MAX 4294967295
+#define MATTER_INT_40_MIN 0
+#define MATTER_INT_40_MAX 1099511627775
+#define MATTER_INT_48_MIN 0
+#define MATTER_INT_48_MAX 281474976710655
+#define MATTER_INT_56_MIN 0
+#define MATTER_INT_56_MAX 72057594037927935
+#define MATTER_INT_64_MIN 0
+#define MATTER_INT_64_MAX 18446744073709551615
+
+//! Max and Min Type boundaries if value is not nullable
+//! For nullable values, min has to be increased by one
+#define MATTER_U_INT_8_MIN -128
+#define MATTER_U_INT_8_MAX 127
+#define MATTER_U_INT_16_MIN -32768
+#define MATTER_U_INT_16_MAX 32767
+#define MATTER_U_INT_24_MIN -8388608
+#define MATTER_U_INT_24_MAX 8388607
+#define MATTER_U_INT_32_MIN -2147483648
+#define MATTER_U_INT_32_MAX 2147483647
+#define MATTER_U_INT_40_MIN -549755813888
+#define MATTER_U_INT_40_MAX 549755813887
+#define MATTER_U_INT_48_MIN -140737488355328
+#define MATTER_U_INT_48_MAX 140737488355327
+#define MATTER_U_INT_56_MIN -36028797018963968
+#define MATTER_U_INT_56_MAX 36028797018963967
+#define MATTER_U_INT_64_MIN -9223372036854775808
+#define MATTER_U_INT_64_MAX 9223372036854775807
+
 enum matter_data_type {
     BOOL,
     MAP8,
@@ -54,6 +92,9 @@ enum matter_data_type {
     STRUCT,
     UNKNOWN,
 };
+
+template <matter_data_type> struct MapToMatterDataType_t;
+template <> struct MapToMatterDataType_t<matter_data_type::BOOL> { using type = bool; };
 
 inline std::string toString(matter_data_type data_type) {
     switch (data_type)
@@ -183,5 +224,111 @@ enum numeric_data_type {
 enum octet_string_data_type {};
 
 enum list_data_type {};
+
+/*
+ *     void setDefault(pugi::xml_attribute default_node) {
+        switch (type) {
+            case (BOOL):
+                default_ = default_node.as_bool();
+                break;
+            case (MAP8):
+                default_ = default_node.as_int();
+                break;
+            case (MAP16):
+                default_ = default_node.as_int();
+                break;
+            case (MAP32):
+                default_ = default_node.as_int();
+                break;
+            case (MAP64):
+                default_ = default_node.as_int();
+                break;
+            case (UINT8):
+                default_ = default_node.as_uint();
+                break;
+            case (UINT16):
+                default_ = default_node.as_uint();
+                break;
+            case (UINT24):
+                default_ = default_node.as_uint();
+                break;
+            case (UINT32):
+                default_ = default_node.as_uint();
+                break;
+            case (UINT40):
+                default_ = default_node.as_uint();
+                break;
+            case (UINT48):
+                default_ = default_node.as_uint();
+                break;
+            case (UINT56):
+                default_ = default_node.as_uint();
+                break;
+            case (UINT64):
+                default_ = default_node.as_uint();
+                break;
+            case (INT8):
+                default_ = default_node.as_int();
+                break;
+            case (INT16):
+                default_ = default_node.as_int();
+                break;
+            case (INT24):
+                default_ = default_node.as_int();
+                break;
+            case (INT32):
+                default_ = default_node.as_int();
+                break;
+            case (INT40):
+                default_ = default_node.as_int();
+                break;
+            case (INT48):
+                default_ = default_node.as_int();
+                break;
+            case (INT56):
+                default_ = default_node.as_int();
+                break;
+            case (INT64):
+                default_ = default_node.as_int();
+                break;
+            case (SINGLE):
+                default_ = default_node.as_float();
+                break;
+            case (DOUBLE):
+                default_ = default_node.as_double();
+                break;
+            case (OCTSTR):
+                default_ = default_node.value();
+                break;
+            case (LIST):
+            case (STRUCT):
+            default:
+                default_ = default_node.value();
+        }
+
+            template<typename T> auto getDefault(){
+        if (std::holds_alternative<unsigned int>(default_)) {
+            return std::get<unsigned int>(default_);
+        } else if (std::holds_alternative<int>(default_)) {
+            return std::get<int>(default_);
+        } else if (std::holds_alternative<double>(default_)) {
+            return std::get<bool>(default_);
+        } else if (std::holds_alternative<std::string>(default_)) {
+            return std::get<std::string>(default_);
+        } else if (std::holds_alternative<bool>(default_)) {
+            return std::get<bool>(default_);
+        }
+            if (std::holds_alternative<unsigned int>(attribute.default_)) {
+        std::cout << std::get<unsigned int>(attribute.default_) << std::endl;
+    } else if (std::holds_alternative<int>(attribute.default_)) {
+        std::cout << std::get<int>(attribute.default_) << std::endl;
+    } else if (std::holds_alternative<double>(attribute.default_)) {
+        std::cout << std::get<double>(attribute.default_) << std::endl;
+    } else if (std::holds_alternative<std::string>(attribute.default_)) {
+        std::cout << std::get<std::string>(attribute.default_) << std::endl;
+    } else if (std::holds_alternative<bool>(attribute.default_)) {
+        std::cout << std::get<bool>(attribute.default_) << std::endl;
+    }
+ */
 
 #endif //MATTER_CONSTANTS_H

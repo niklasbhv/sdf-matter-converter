@@ -113,6 +113,9 @@ int map_sdf_object(const sdfObjectType& sdfObject, clusterType& cluster, pugi::x
 {
     auto current_object_node = sdf_object_node.append_child(sdfObject.label.c_str());
     // id
+    //std::string id_variable;
+    //resolve_mapping(current_object_node.path(), "id", id_variable);
+    //cluster.id = std::stoi(id_variable);
     cluster.name = sdfObject.label;
     // conformance
     // access
@@ -223,58 +226,63 @@ int map_matter_type(const std::string& matter_type, dataQualityType& dataQuality
     }
     if (matter_type.substr(0, 3) == "int") {
         // TODO: These boundaries change if the corresponding value is nullable
-        // TODO: As these boundaries get calculated, it might be better to define these boundaries with macros
         dataQuality.type = "integer";
         dataQuality.minimum = 0;
         if (matter_type.substr(3) == "8") {
-            dataQuality.maximum = pow(2, 8)-1;
+            dataQuality.maximum = MATTER_INT_8_MAX;
         } else if (matter_type.substr(3) == "16") {
-            dataQuality.maximum = pow(2, 16)-1;
+            dataQuality.maximum = MATTER_INT_16_MAX;
         } else if (matter_type.substr(3) == "24") {
-            dataQuality.maximum = pow(2, 24)-1;
+            dataQuality.maximum = MATTER_INT_24_MAX;
         } else if (matter_type.substr(3) == "32") {
-            dataQuality.maximum = pow(2, 32)-1;
+            dataQuality.maximum = MATTER_INT_32_MAX;
         } else if (matter_type.substr(3) == "40") {
-            dataQuality.maximum = pow(2, 40)-1;
+            dataQuality.maximum = MATTER_INT_40_MAX;
         } else if (matter_type.substr(3) == "48") {
-            dataQuality.maximum = pow(2, 48)-1;
+            dataQuality.maximum = MATTER_INT_48_MAX;
         } else if (matter_type.substr(3) == "56") {
-            dataQuality.maximum = pow(2, 56)-1;
+            dataQuality.maximum = MATTER_INT_56_MAX;
         } else if (matter_type.substr(3) == "64") {
-            dataQuality.maximum = pow(2, 64)-1;
+            dataQuality.maximum = MATTER_INT_64_MAX;
         }
     }
     if (matter_type.substr(0, 4) == "uint") {
         dataQuality.type = "integer";
         if (matter_type.substr(4) == "8") {
-            dataQuality.minimum = -pow(2, 7);
-            dataQuality.maximum = pow(2, 7)-1;
+            dataQuality.minimum = MATTER_U_INT_8_MIN;
+            dataQuality.maximum = MATTER_U_INT_8_MAX;
         } else if (matter_type.substr(4) == "16") {
-            dataQuality.minimum = -pow(2, 15);
-            dataQuality.maximum = pow(2, 15)-1;
+            dataQuality.minimum = MATTER_U_INT_16_MIN;
+            dataQuality.maximum = MATTER_U_INT_16_MAX;
         } else if (matter_type.substr(4) == "24") {
-            dataQuality.minimum = -pow(2, 23);
-            dataQuality.maximum = pow(2, 23)-1;
+            dataQuality.minimum = MATTER_U_INT_24_MIN;
+            dataQuality.maximum = MATTER_U_INT_24_MAX;
         } else if (matter_type.substr(4) == "32") {
-            dataQuality.minimum = -pow(2, 31);
-            dataQuality.maximum = pow(2, 31)-1;
+            dataQuality.minimum = MATTER_U_INT_32_MIN;
+            dataQuality.maximum = MATTER_U_INT_32_MAX;
         } else if (matter_type.substr(4) == "40") {
-            dataQuality.minimum = -pow(2, 39);
-            dataQuality.maximum = pow(2, 39)-1;
+            dataQuality.minimum = MATTER_U_INT_40_MIN;
+            dataQuality.maximum = MATTER_U_INT_40_MAX;
         } else if (matter_type.substr(4) == "48") {
-            dataQuality.minimum = -pow(2, 47);
-            dataQuality.maximum = pow(2, 47)-1;
+            dataQuality.minimum = MATTER_U_INT_48_MIN;
+            dataQuality.maximum = MATTER_U_INT_48_MAX;
         } else if (matter_type.substr(4) == "56") {
-            dataQuality.minimum = -pow(2, 55);
-            dataQuality.maximum = pow(2, 55)-1;
+            dataQuality.minimum = MATTER_U_INT_56_MIN;
+            dataQuality.maximum = MATTER_U_INT_56_MAX;
         } else if (matter_type.substr(4) == "64") {
-            dataQuality.minimum = -pow(2, 63);
-            dataQuality.maximum = pow(2, 63)-1;
+            dataQuality.minimum = MATTER_U_INT_64_MIN;
+            dataQuality.maximum = MATTER_U_INT_64_MAX;
         }
     }
 
     // If the type is not a known standard type
     std::cout << "Found: " << matter_type << std::endl;
+    return 0;
+}
+
+//! Matter Constraint -> Data Quality
+int map_matter_constraint()
+{
     return 0;
 }
 
