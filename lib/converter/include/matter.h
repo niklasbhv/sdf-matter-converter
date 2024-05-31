@@ -184,13 +184,11 @@ struct bitmapBitfieldType {
     conformanceType conformance;
 };
 
-// TODO: Temporary, derived from the xml definitions
-struct structFieldType {
-    u_int32_t id;
-    std::string name;
-    std::string type;
-    conformanceType conformance;
+struct structFieldType : commonDataQualityType{
+    dataType data;
 };
+
+typedef std::list<structFieldType> structType;
 
 /**
  * Struct which represents FeatureMap Attribute.
@@ -209,7 +207,7 @@ struct eventRecordType {
     u_int64_t number;
     std::string timestamp;
     u_int8_t priority;
-    //struct: data
+    structType data;
 };
 
 /**
