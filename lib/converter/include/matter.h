@@ -214,8 +214,7 @@ struct eventRecordType {
  * Struct which contains Matter event information.
  */
 struct eventType : commonDataQualityType {
-    u_int32_t id;
-    u_int8_t priority;
+    std::string priority;
     otherQualityType quality;
     std::list<eventRecordType> event_records;
 };

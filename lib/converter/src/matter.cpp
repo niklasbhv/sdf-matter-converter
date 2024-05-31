@@ -16,8 +16,41 @@
 
 #include <list>
 #include <iostream>
+#include <cstring>
 #include <pugixml.hpp>
 #include "matter.h"
+
+int parse_other_qualities(const pugi::xml_node& quality_node, otherQualityType& otherQualities){
+    if (!quality_node.attribute("nullable").empty())
+        otherQualities.nullable = quality_node.attribute("nullable").as_bool();
+    if (!quality_node.attribute("persistence").empty()) {
+        // TODO: It seems like the qualities fixed and non-volatile are combined with persistence
+        if (strcmp(quality_node.attribute("persistence").value(), "fixed") == 0) {
+            otherQualities.fixed = true;
+        } else if (strcmp(quality_node.attribute("persistence").value(), "volatile") == 0) {
+            otherQualities.non_volatile = false;
+        } else if (strcmp(quality_node.attribute("persistence").value(), "nonVolatile") == 0){
+            otherQualities.non_volatile = true;
+        }
+    }
+    if (!quality_node.attribute("fixed").empty()) //Check this
+        otherQualities.fixed = quality_node.attribute("fixed").as_bool();
+    if (!quality_node.attribute("scene").empty())
+        otherQualities.scene = quality_node.attribute("scene").as_bool();
+    if (!quality_node.attribute("reportable").empty())
+        otherQualities.reportable = quality_node.attribute("reportable").as_bool();
+    if (!quality_node.attribute("changesOmitted").empty())
+        otherQualities.changes_omitted = quality_node.attribute("changesOmitted").as_bool();
+    if (!quality_node.attribute("singleton").empty())
+        otherQualities.singleton = quality_node.attribute("singleton").as_bool();
+    if (!quality_node.attribute("diagnostics").empty()) //Check this
+        otherQualities.diagnostics = quality_node.attribute("diagnostics").as_bool();
+    if (!quality_node.attribute("largeMessage").empty()) //Check this
+        otherQualities.large_message = quality_node.attribute("largeMessage").as_bool();
+    if (!quality_node.attribute("quieterReporting").empty()) //Check this
+        otherQualities.quieter_reporting = quality_node.attribute("quieterReporting").as_bool();
+    return 0;
+}
 
 int parse_conformance(const pugi::xml_node& conformance_node, conformanceType& conformance)
 {
@@ -44,6 +77,11 @@ int parse_conformance(const pugi::xml_node& conformance_node, conformanceType& c
         conformance.disallowed = true;
     }
 
+    return 0;
+}
+
+int parse_event_records(const pugi::xml_node& event_record_node, eventRecordType& eventRecord)
+{
     return 0;
 }
 
@@ -124,12 +162,14 @@ int parse_event(const pugi::xml_node& event_node, eventType& event)
     event.name = event_node.attribute("name").value();
     parse_conformance(event_node, event.conformance);
     parse_access(event_node, event.access);
-    // TODO: Where is summary defined?
-    // summary
-    // TODO: Priority needs to be cast from string
-    // priority
-    // TODO: This definitely needs further additions
-
+    event.summary = event_node.attribute("summary").value();
+    event.priority = event_node.attribute("priority").value();
+    parse_other_qualities(event_node.child("quality"), event.quality);
+    for (auto record_node : event_node.children("field")) {
+        eventRecordType eventRecord;
+        parse_event_records(record_node, eventRecord);
+        event.event_records.push_back(eventRecord);
+    }
     return 0;
 }
 
