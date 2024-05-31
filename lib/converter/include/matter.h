@@ -53,6 +53,12 @@ struct otherQualityType {
     std::optional<bool> changes_omitted;
     //! I -> Singleton.
     std::optional<bool> singleton;
+    //! K -> Diagnostics.
+    std::optional<bool> diagnostics;
+    //! L -> Large Message
+    std::optional<bool> large_message;
+    //! Q -> Quieter Reporting
+    std::optional<bool> quieter_reporting;
     //! Any of the above can be negated by using !.
 };
 
