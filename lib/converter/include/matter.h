@@ -205,27 +205,21 @@ struct featureMapType {
     std::string summary;
 };
 
-struct eventFieldType {
-    u_int32_t id;
-    std::string name;
-    std::string type;
-    std::string default_;
-    accessType access;
-    conformanceType conformance;
-    otherQualityType qualities;
-    constraintType constraints;
+struct eventRecordType {
+    u_int64_t number;
+    std::string timestamp;
+    u_int8_t priority;
+    //struct: data
 };
 
 /**
  * Struct which contains Matter event information.
  */
 struct eventType : commonDataQualityType {
-    //! 0 -> DEBUG, 1 -> INFO, 2 -> CRITICAL
+    u_int32_t id;
     u_int8_t priority;
-    u_int64_t number;
-    //! Either system-time-ms or posix-ms
-    u_int64_t timestamp;
-    // data -> struct
+    otherQualityType quality;
+    std::list<eventRecordType> event_records;
 };
 
 /**
@@ -245,7 +239,7 @@ struct commandType : commonDataQualityType {
  */
 struct attributeType : commonDataQualityType {
     std::string type;
-    otherQualityType qualities;
+    otherQualityType quality;
     std::string default_;
 };
 
