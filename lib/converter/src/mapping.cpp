@@ -304,10 +304,57 @@ int map_matter_constraint(const constraintType& constraint, dataQualityType data
     return 0;
 }
 
-//! Matter Access Type -> Data Quality
-int map_matter_access(const accessType& access, dataQualityType& dataQuality)
+//! Matter Access Type -> sdfProperty
+//! This function is used in combination with a sdfProperty object
+int map_matter_access(const accessType& access, sdfPropertyType& sdfProperty, pugi::xml_node& sdf_property_node)
 {
-    //TODO: Can access be represented like this?
+    //! Most of the access qualities need to be moved to the mapping
+    //TODO: Check if we should set default booleans here
+    if (access.read.has_value())
+        sdfProperty.readable = access.read;
+    if (access.write.has_value())
+        sdfProperty.writable = access.write;
+    //sdfProperty.observable
+    if (access.fabric_scoped.has_value())
+        sdf_property_node.append_attribute("fabricScoped").set_value(access.fabric_scoped.value());
+    if (access.fabric_sensitive.has_value())
+        sdf_property_node.append_attribute("fabricSensitive").set_value(access.fabric_sensitive.value());
+    if (access.requires_view_privilege.has_value())
+        sdf_property_node.append_attribute("requiresViewPrivilege").set_value(access.requires_view_privilege.value());
+    if (access.requires_operate_privilege.has_value())
+        sdf_property_node.append_attribute("requiresOperatePrivilege").set_value(access.requires_operate_privilege.value());
+    if (access.requires_manage_privilege.has_value())
+        sdf_property_node.append_attribute("requiresManagePrivilege").set_value(access.requires_manage_privilege.value());
+    if (access.requires_administer_privilege.has_value())
+        sdf_property_node.append_attribute("requiresAdministerPrivilege").set_value(access.requires_administer_privilege.value());
+    if (access.timed.has_value())
+        sdf_property_node.append_attribute("timed").set_value(access.timed.value());
+
+    return 0;
+}
+//! Matter Access Type -> SDF Mapping
+//! This function is used standalone to move all qualities to the SDF Mapping
+int map_matter_access(const accessType& access, pugi::xml_node& current_node)
+{
+    // TODO: Check if these are the actual field names from the xml
+    if (access.read.has_value())
+        current_node.append_attribute("read").set_value(access.read.value());
+    if (access.write.has_value())
+        current_node.append_attribute("write").set_value(access.write.value());
+    if (access.fabric_scoped.has_value())
+        current_node.append_attribute("fabricScoped").set_value(access.fabric_scoped.value());
+    if (access.fabric_sensitive.has_value())
+        current_node.append_attribute("fabricSensitive").set_value(access.fabric_sensitive.value());
+    if (access.requires_view_privilege.has_value())
+        current_node.append_attribute("requiresViewPrivilege").set_value(access.requires_view_privilege.value());
+    if (access.requires_operate_privilege.has_value())
+        current_node.append_attribute("requiresOperatePrivilege").set_value(access.requires_operate_privilege.value());
+    if (access.requires_manage_privilege.has_value())
+        current_node.append_attribute("requiresManagePrivilege").set_value(access.requires_manage_privilege.value());
+    if (access.requires_administer_privilege.has_value())
+        current_node.append_attribute("requiresAdministerPrivilege").set_value(access.requires_administer_privilege.value());
+    if (access.timed.has_value())
+        current_node.append_attribute("timed").set_value(access.timed.value());
     return 0;
 }
 
