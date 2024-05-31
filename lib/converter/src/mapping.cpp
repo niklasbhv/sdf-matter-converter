@@ -55,18 +55,27 @@ int resolve_mapping(const std::string& reference, const std::string& entry, T& r
     result = reference_map.at(reference.substr(1)).at(entry);
     return 0;
 }
+//! sdfData -> Global Matter Data Definition
+//! As Matter only supports defining data structures globally these all have to be added to the global list
+int map_sdf_data(dataQualityType& dataQualities)
+{
+    return 0;
+}
 
 //! sdfEvent -> Matter event
 int map_sdf_event(const sdfEventType& sdfEvent, eventType& event, pugi::xml_node& sdf_event_node)
 {
     auto current_event_node = sdf_event_node.append_child(sdfEvent.label.c_str());
-
-    // event.id
+    //TODO: Event needs an ID, this needs to be set here
     event.name = sdfEvent.label;
-    // conformance
-    // access
     event.summary = sdfEvent.description;
-
+    //$comment TODO: Try to fit this into an XML Comment
+    //sdfRef TODO: Convert this to a global name instead of a path
+    //sdfRequired TODO: Collect these and set the conformance for the corresponding element to mandatory
+    //sdfOutputData TODO: How do we map sdfOutputData to the Event Fields?
+    for (auto elem : sdfEvent.sdfData) {
+        map_sdf_data(elem.second);
+    }
     return 0;
 }
 
