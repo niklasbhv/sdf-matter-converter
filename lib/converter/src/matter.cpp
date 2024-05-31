@@ -33,8 +33,6 @@ int parse_other_qualities(const pugi::xml_node& quality_node, otherQualityType& 
             otherQualities.non_volatile = true;
         }
     }
-    if (!quality_node.attribute("fixed").empty()) //Check this
-        otherQualities.fixed = quality_node.attribute("fixed").as_bool();
     if (!quality_node.attribute("scene").empty())
         otherQualities.scene = quality_node.attribute("scene").as_bool();
     if (!quality_node.attribute("reportable").empty())
