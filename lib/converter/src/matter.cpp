@@ -84,7 +84,6 @@ int parse_struct_fields(const pugi::xml_node& struct_node, std::list<structField
         structFieldType struct_field;
         struct_field.id = struct_field_node.attribute("id").as_int();
         struct_field.name = struct_field_node.attribute("name").value();
-        struct_field.type = struct_field_node.attribute("type").value();
         parse_conformance(struct_field_node, struct_field.conformance);
         struct_fields.push_back(struct_field);
     }
@@ -161,13 +160,13 @@ int parse_attribute(const pugi::xml_node& attribute_node, attributeType& attribu
     attribute.type = attribute_node.attribute("type").value();
     // TODO: As these are optional, check their presence to ensure the correct function of optional
     auto quality_node = attribute_node.child("quality");
-    attribute.qualities.nullable = quality_node.attribute("nullable").as_bool();
-    attribute.qualities.non_volatile = quality_node.attribute("nonVolatile").as_bool();
-    attribute.qualities.fixed = quality_node.attribute("fixed").as_bool();
-    attribute.qualities.scene = quality_node.attribute("scene").as_bool();
-    attribute.qualities.reportable = quality_node.attribute("reportable").as_bool();
-    attribute.qualities.changes_omitted = quality_node.attribute("changeOmitted").as_bool();
-    attribute.qualities.singleton = quality_node.attribute("singleton").as_bool();
+    attribute.quality.nullable = quality_node.attribute("nullable").as_bool();
+    attribute.quality.non_volatile = quality_node.attribute("nonVolatile").as_bool();
+    attribute.quality.fixed = quality_node.attribute("fixed").as_bool();
+    attribute.quality.scene = quality_node.attribute("scene").as_bool();
+    attribute.quality.reportable = quality_node.attribute("reportable").as_bool();
+    attribute.quality.changes_omitted = quality_node.attribute("changeOmitted").as_bool();
+    attribute.quality.singleton = quality_node.attribute("singleton").as_bool();
     attribute.default_ = quality_node.attribute("default").value();
 
     return 0;

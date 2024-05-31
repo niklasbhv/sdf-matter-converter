@@ -110,9 +110,9 @@ int map_sdf_property(const sdfPropertyType& sdfProperty, attributeType& attribut
     // TODO: Create type mapper from SDF to Matter
     // type
     attribute.default_ = sdfProperty.default_;
-    attribute.qualities.nullable = sdfProperty.nullable;
+    attribute.quality.nullable = sdfProperty.nullable;
     // TODO: Check if this should in this case be set or ignored
-    attribute.qualities.fixed = !sdfProperty.const_.empty();
+    attribute.quality.fixed = !sdfProperty.const_.empty();
 
     return 0;
 }
@@ -449,9 +449,9 @@ int map_matter_attribute(const attributeType& attribute, sdfPropertyType& sdfPro
 
     // Map the Matter type to a fitting SDF type
     map_matter_type(attribute.type, sdfProperty);
-    if (attribute.qualities.nullable.has_value())
+    if (attribute.quality.nullable.has_value())
         // TODO: In this case the boundaries for some types have to be changed
-        sdfProperty.nullable = attribute.qualities.nullable.value();
+        sdfProperty.nullable = attribute.quality.nullable.value();
     // attribute.qualities.non_volatile
     // attribute.qualities.fixed
     // attribute.qualities.scene
