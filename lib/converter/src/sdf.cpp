@@ -73,23 +73,82 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
     parseCommonQualities(data_qualities_json, dataQuality);
 
     // Parse the remaining fields
-    if (data_qualities_json.contains("unit"))
-        data_qualities_json.at("unit").get_to(dataQuality.unit);
-
-    if (data_qualities_json.contains("nullable"))
-        data_qualities_json.at("nullable").get_to(dataQuality.nullable);
-
-    if (data_qualities_json.contains("contentFormat"))
-        data_qualities_json.at("contentFormat").get_to(dataQuality.contentFormat);
-
-    if (data_qualities_json.contains("sdfType"))
-        data_qualities_json.at("sdfType").get_to(dataQuality.sdfType);
+    if (data_qualities_json.contains("type"))
+        data_qualities_json.at("type").get_to(dataQuality.type);
 
     if (data_qualities_json.contains("sdfChoice"))
         parseSdfChoice(data_qualities_json.at("sdfChoice"), dataQuality.sdfChoice);
 
     if (data_qualities_json.contains("enum"))
         data_qualities_json.at("enum").get_to(dataQuality.enum_);
+
+    if (data_qualities_json.contains("const"))
+        data_qualities_json.at("const").get_to(dataQuality.const_);
+
+    if (data_qualities_json.contains("default"))
+        data_qualities_json.at("default").get_to(dataQuality.default_);
+
+    if (data_qualities_json.contains("minimum"))
+        data_qualities_json.at("minimum").get_to(dataQuality.minimum);
+
+    if (data_qualities_json.contains("maximum"))
+        data_qualities_json.at("maximum").get_to(dataQuality.maximum);
+
+    if (data_qualities_json.contains("exclusiveMinimum"))
+        data_qualities_json.at("exclusiveMinimum").get_to(dataQuality.exclusiveMinimum);
+
+    if (data_qualities_json.contains("exclusiveMaximum"))
+        data_qualities_json.at("exclusiveMaximum").get_to(dataQuality.exclusiveMaximum);
+
+    if (data_qualities_json.contains("multipleOf"))
+        data_qualities_json.at("multipleOf").get_to(dataQuality.multipleOf);
+
+    if (data_qualities_json.contains("minLength"))
+        data_qualities_json.at("minLength").get_to(dataQuality.minLength);
+
+    if (data_qualities_json.contains("maxLength"))
+        data_qualities_json.at("maxLength").get_to(dataQuality.maxLength);
+
+    if (data_qualities_json.contains("pattern"))
+        data_qualities_json.at("pattern").get_to(dataQuality.pattern);
+
+    if (data_qualities_json.contains("format"))
+        data_qualities_json.at("format").get_to(dataQuality.format);
+
+    if (data_qualities_json.contains("minItems"))
+        data_qualities_json.at("minItems").get_to(dataQuality.minItems);
+
+    if (data_qualities_json.contains("maxItems"))
+        data_qualities_json.at("maxItems").get_to(dataQuality.maxItems);
+
+    if (data_qualities_json.contains("uniqueItems"))
+        data_qualities_json.at("uniqueItems").get_to(dataQuality.uniqueItems);
+
+    if (data_qualities_json.contains("items"))
+        parseDataQualities(data_qualities_json.at("items"), *dataQuality.items);
+
+    if (data_qualities_json.contains("unit"))
+        data_qualities_json.at("unit").get_to(dataQuality.unit);
+
+    if (data_qualities_json.contains("nullable"))
+        data_qualities_json.at("nullable").get_to(dataQuality.nullable);
+
+    if (data_qualities_json.contains("sdfType"))
+        data_qualities_json.at("sdfType").get_to(dataQuality.sdfType);
+
+    if (data_qualities_json.contains("contentFormat"))
+        data_qualities_json.at("contentFormat").get_to(dataQuality.contentFormat);
+
+    // Iterate through all items inside properties and parse them individually
+    if (data_qualities_json.contains("properties")){
+        for (const auto& data : data_qualities_json.at("properties").items()) {
+            dataQualityType sdfData;
+            parseDataQualities(data.value(), sdfData);
+            dataQuality.properties.insert({data.key(), sdfData});
+        }
+    }
+    if (data_qualities_json.contains("required"))
+        data_qualities_json.at("required").get_to(dataQuality.required);
 
     return 0;
 }
@@ -154,23 +213,14 @@ int parseSdfProperty(const json& sdf_property_json, sdfPropertyType& sdfProperty
     parseDataQualities(sdf_property_json, sdfProperty);
 
     // Parse the remaining fields
-    if (sdf_property_json.contains("readable")) {
-        bool readable;
-        sdf_property_json.at("readable").get_to(readable);
-        sdfProperty.readable = readable;
-    }
+    if (sdf_property_json.contains("readable"))
+        sdf_property_json.at("readable").get_to(sdfProperty.readable);
 
-    if (sdf_property_json.contains("writable")) {
-        bool writable;
-        sdf_property_json.at("writable").get_to(writable);
-        sdfProperty.writable = writable;
-    }
+    if (sdf_property_json.contains("writable"))
+        sdf_property_json.at("writable").get_to(sdfProperty.writable);
 
-    if (sdf_property_json.contains("observable")) {
-        bool observable;
-        sdf_property_json.at("observable").get_to(observable);
-        sdfProperty.observable = observable;
-    }
+    if (sdf_property_json.contains("observable"))
+        sdf_property_json.at("observable").get_to(sdfProperty.observable);
 
     return 0;
 }

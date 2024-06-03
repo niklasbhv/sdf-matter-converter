@@ -31,7 +31,27 @@
 #include <optional>
 #include <nlohmann/json.hpp>
 
-//TODO: How do we check if uint or bool are empty?
+// Support to_json and from_json for std::optional
+NLOHMANN_JSON_NAMESPACE_BEGIN
+template <typename T> struct adl_serializer<std::optional<T>> {
+    static void to_json(json& j, const std::optional<T>& opt) {
+        if (opt == std::nullopt) {
+            j = nullptr;
+        } else {
+            // this will call adl_serializer<T>::to_json which will find the free function to_json in T's namespace!
+            j = *opt;
+        }
+    }
+
+    static void from_json(const json& j, std::optional<T>& opt) {
+        if (j.is_null()) {
+            opt = std::nullopt;
+        } else {
+            opt = j.template get<T>(); // same as above, but with  adl_serializer<T>::from_json
+        }
+    }
+};
+NLOHMANN_JSON_NAMESPACE_END
 
 using json = nlohmann::ordered_json;
 
@@ -57,20 +77,9 @@ struct dataQualityType;
 typedef std::map<std::string, dataQualityType> sdfChoiceType;
 
 /**
- * Struct which contains jso information.
+ * Type definition for sdfData.
  */
-struct jsoItemType {
-    std::string sdfRef;
-    std::string description;
-    sdfChoiceType sdfChoice;
-    std::list<std::string> enum_;
-    std::string type;
-    int minimum = -1; // number
-    int maximum = -1; // number
-    std::string format;
-    uint minLength;
-    uint maxLength;
-};
+typedef std::map<std::string, dataQualityType> sdfDataType;
 
 /**
  * Struct which contains data quality information.
@@ -86,7 +95,7 @@ struct dataQualityType : commonQualityType {
     std::optional<int> maximum; // number
     std::optional<int> exclusiveMinimum; // number
     std::optional<int> exclusiveMaximum; // number
-    std::optional<int> multipleOf; // number
+    std::optional<int> multipleOf; // number TODO: Wrong Type
     //! Text string constraints
     std::optional<uint> minLength;
     std::optional<uint> maxLength;
@@ -95,22 +104,17 @@ struct dataQualityType : commonQualityType {
     //! Array constraints
     std::optional<uint> minItems;
     std::optional<uint> maxItems;
-    bool uniqueItems;
-    jsoItemType items;
+    std::optional<bool> uniqueItems;
+    struct dataQualityType *items;
     //! Additional qualities
     std::string unit;
-    bool nullable;
+    std::optional<bool> nullable;
     std::string sdfType; // byte-string / unix-time
     std::string contentFormat;
     //! Object qualities
-    struct dataQualityType *properties;
+    sdfDataType properties;
     std::list<std::string> required;
 };
-
-/**
- * Type definition for sdfData.
- */
-typedef std::map<std::string, dataQualityType> sdfDataType;
 
 /**
  * Struct which contains sdfEvent information.
