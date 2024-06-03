@@ -85,32 +85,32 @@ typedef std::map<std::string, dataQualityType> sdfDataType;
  * Struct which contains data quality information.
  */
 struct dataQualityType : commonQualityType {
-    //! General qualities
+    // General qualities
     std::string type; // number / string / boolean / integer / array / object
     sdfChoiceType sdfChoice;
     std::list<std::string> enum_;
     std::string const_;
     std::string default_;
-    //! Number and Integer qualities
+    // Number and Integer qualities
     std::optional<int> minimum;
     std::optional<int> maximum;
     std::optional<int> exclusiveMinimum;
     std::optional<int> exclusiveMaximum;
     std::optional<double> multipleOf;
-    //! String qualities
+    // String qualities
     std::optional<uint> minLength;
     std::optional<uint> maxLength;
     std::string pattern;
     std::string format; // date-time / date / time / uri / uri-reference / uuid
-    //! Array qualities
+    // Array qualities
     std::optional<uint> minItems;
     std::optional<uint> maxItems;
     std::optional<bool> uniqueItems;
     struct dataQualityType *items;
-    //! Object qualities
+    // Object qualities
     sdfDataType properties;
     std::list<std::string> required;
-    //! Additional qualities
+    // Additional qualities
     std::string unit;
     std::optional<bool> nullable;
     std::string sdfType; // byte-string / unix-time
@@ -147,12 +147,11 @@ struct sdfPropertyType : dataQualityType {
  * Struct which contains sdfObject information.
  */
 struct sdfObjectType : commonQualityType {
-    //! Paedata qualities
     std::map<std::string, sdfPropertyType> sdfProperty;
     std::map<std::string, sdfActionType> sdfAction;
     std::map<std::string, sdfEventType> sdfEvent;
     sdfDataType sdfData;
-    //! Array definition qualities
+    // Array definition qualities
     std::optional<uint> minItems;
     std::optional<uint> maxItems;
 };
@@ -161,15 +160,14 @@ struct sdfObjectType : commonQualityType {
  * Struct which contains sdfThing information.
  */
 struct sdfThingType : commonQualityType{
-    //! It's currently not planed to allow for nested sdfThings as they
-    //! wouldn't really be able to be translated into Matter
+    // It's currently not planed to allow for nested sdfThings as they
+    // wouldn't really be able to be translated into Matter
     std::map<std::string, sdfObjectType> sdfObject;
-    //! Paedata qualities
     std::map<std::string, sdfPropertyType> sdfProperty;
     std::map<std::string, sdfActionType> sdfAction;
     std::map<std::string, sdfEventType> sdfEvent;
     sdfDataType sdfData;
-    //! Array definition qualities
+    // Array definition qualities
     std::optional<uint> minItems;
     std::optional<uint> maxItems;
 };
@@ -202,8 +200,8 @@ struct infoBlockType {
 struct sdfModelType {
     infoBlockType infoBlock;
     namespaceType namespaceBlock;
-    //! Either a single sdfThing or a single sdfObject are allowed per model
-    std::optional<sdfThingType>sdfThing;
+    // Either a single sdfThing or a single sdfObject are allowed per model
+    std::optional<sdfThingType> sdfThing;
     std::optional<sdfObjectType> sdfObject;
 };
 
