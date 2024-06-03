@@ -79,7 +79,7 @@ struct constraintType {
     //! Same as min to max.
     std::optional<bool> all;
     //! In case of a Union of multiple constraints, these get "chained" to each other
-    //std::optional<constraintType> constraint;
+    struct contraintType *constraint;
     //! Used for list_constraint[entry_constraint].
     //! List constraint is mapped to the above qualities, entry constraint is mapped to the below quality.
     std::optional<bool> entry_constraint;
