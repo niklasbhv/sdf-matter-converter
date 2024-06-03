@@ -102,7 +102,9 @@ struct dataQualityType : commonQualityType {
     bool nullable;
     std::string sdfType; // byte-string / unix-time
     std::string contentFormat;
-    //! Defined in the specification
+    //! Object qualities
+    struct dataQualityType *properties;
+    std::list<std::string> required;
 };
 
 /**
