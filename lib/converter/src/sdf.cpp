@@ -72,7 +72,7 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
     // Parse the common qualities
     parseCommonQualities(data_qualities_json, dataQuality);
 
-    // Parse the remaining fields
+    // Parse general qualities
     if (data_qualities_json.contains("type"))
         data_qualities_json.at("type").get_to(dataQuality.type);
 
@@ -88,6 +88,7 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
     if (data_qualities_json.contains("default"))
         data_qualities_json.at("default").get_to(dataQuality.default_);
 
+    // Parse number and integer qualities
     if (data_qualities_json.contains("minimum"))
         data_qualities_json.at("minimum").get_to(dataQuality.minimum);
 
@@ -103,6 +104,7 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
     if (data_qualities_json.contains("multipleOf"))
         data_qualities_json.at("multipleOf").get_to(dataQuality.multipleOf);
 
+    // Parse string qualities
     if (data_qualities_json.contains("minLength"))
         data_qualities_json.at("minLength").get_to(dataQuality.minLength);
 
@@ -115,6 +117,7 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
     if (data_qualities_json.contains("format"))
         data_qualities_json.at("format").get_to(dataQuality.format);
 
+    // Parse array qualities
     if (data_qualities_json.contains("minItems"))
         data_qualities_json.at("minItems").get_to(dataQuality.minItems);
 
@@ -127,6 +130,19 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
     if (data_qualities_json.contains("items"))
         parseDataQualities(data_qualities_json.at("items"), *dataQuality.items);
 
+    // Parse object qualities
+    // Iterate through all items inside properties and parse them individually
+    if (data_qualities_json.contains("properties")){
+        for (const auto& data : data_qualities_json.at("properties").items()) {
+            dataQualityType sdfData;
+            parseDataQualities(data.value(), sdfData);
+            dataQuality.properties.insert({data.key(), sdfData});
+        }
+    }
+    if (data_qualities_json.contains("required"))
+        data_qualities_json.at("required").get_to(dataQuality.required);
+
+    // Parse additional qualities
     if (data_qualities_json.contains("unit"))
         data_qualities_json.at("unit").get_to(dataQuality.unit);
 
@@ -138,17 +154,6 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
 
     if (data_qualities_json.contains("contentFormat"))
         data_qualities_json.at("contentFormat").get_to(dataQuality.contentFormat);
-
-    // Iterate through all items inside properties and parse them individually
-    if (data_qualities_json.contains("properties")){
-        for (const auto& data : data_qualities_json.at("properties").items()) {
-            dataQualityType sdfData;
-            parseDataQualities(data.value(), sdfData);
-            dataQuality.properties.insert({data.key(), sdfData});
-        }
-    }
-    if (data_qualities_json.contains("required"))
-        data_qualities_json.at("required").get_to(dataQuality.required);
 
     return 0;
 }

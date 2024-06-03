@@ -85,35 +85,36 @@ typedef std::map<std::string, dataQualityType> sdfDataType;
  * Struct which contains data quality information.
  */
 struct dataQualityType : commonQualityType {
-    //! JSON schema qualities
-    std::string type; // number / string / boolean / integer / array
+    //! General qualities
+    std::string type; // number / string / boolean / integer / array / object
     sdfChoiceType sdfChoice;
     std::list<std::string> enum_;
     std::string const_;
     std::string default_;
-    std::optional<int> minimum; // number
-    std::optional<int> maximum; // number
-    std::optional<int> exclusiveMinimum; // number
-    std::optional<int> exclusiveMaximum; // number
-    std::optional<int> multipleOf; // number TODO: Wrong Type
-    //! Text string constraints
+    //! Number and Integer qualities
+    std::optional<int> minimum;
+    std::optional<int> maximum;
+    std::optional<int> exclusiveMinimum;
+    std::optional<int> exclusiveMaximum;
+    std::optional<double> multipleOf;
+    //! String qualities
     std::optional<uint> minLength;
     std::optional<uint> maxLength;
     std::string pattern;
     std::string format; // date-time / date / time / uri / uri-reference / uuid
-    //! Array constraints
+    //! Array qualities
     std::optional<uint> minItems;
     std::optional<uint> maxItems;
     std::optional<bool> uniqueItems;
     struct dataQualityType *items;
+    //! Object qualities
+    sdfDataType properties;
+    std::list<std::string> required;
     //! Additional qualities
     std::string unit;
     std::optional<bool> nullable;
     std::string sdfType; // byte-string / unix-time
     std::string contentFormat;
-    //! Object qualities
-    sdfDataType properties;
-    std::list<std::string> required;
 };
 
 /**
@@ -152,8 +153,8 @@ struct sdfObjectType : commonQualityType {
     std::map<std::string, sdfEventType> sdfEvent;
     sdfDataType sdfData;
     //! Array definition qualities
-    uint minItems;
-    uint maxItems;
+    std::optional<uint> minItems;
+    std::optional<uint> maxItems;
 };
 
 /**
@@ -169,8 +170,8 @@ struct sdfThingType : commonQualityType{
     std::map<std::string, sdfEventType> sdfEvent;
     sdfDataType sdfData;
     //! Array definition qualities
-    uint minItems;
-    uint maxItems;
+    std::optional<uint> minItems;
+    std::optional<uint> maxItems;
 };
 
 /**
