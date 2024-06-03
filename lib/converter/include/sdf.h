@@ -82,6 +82,26 @@ typedef std::map<std::string, dataQualityType> sdfChoiceType;
 typedef std::map<std::string, dataQualityType> sdfDataType;
 
 /**
+ * JSO-Item Type definition.
+ * TODO: Currently this is taken from the schema as this quality lacks a sufficient description
+ */
+struct jsoItemType {
+    std::string sdfRef;
+    std::string description;
+    std::string $comment;
+    std::string type; // number / string / boolean / integer / object
+    sdfChoiceType sdfChoice;
+    std::list<std::string> enum_;
+    std::optional<int> minimum;
+    std::optional<int> maximum;
+    std::string format;
+    std::optional<uint> minLength;
+    std::optional<uint> maxLength;
+    std::list<std::string> required;
+    sdfDataType properties;
+};
+
+/**
  * Struct which contains data quality information.
  */
 struct dataQualityType : commonQualityType {
@@ -106,7 +126,7 @@ struct dataQualityType : commonQualityType {
     std::optional<uint> minItems;
     std::optional<uint> maxItems;
     std::optional<bool> uniqueItems;
-    struct dataQualityType *items;
+    std::optional<jsoItemType> items;
     // Object qualities
     sdfDataType properties;
     std::list<std::string> required;
@@ -200,9 +220,8 @@ struct infoBlockType {
 struct sdfModelType {
     infoBlockType infoBlock;
     namespaceType namespaceBlock;
-    // Either a single sdfThing or a single sdfObject are allowed per model
-    std::optional<sdfThingType> sdfThing;
-    std::optional<sdfObjectType> sdfObject;
+    std::map<std::string, sdfThingType> sdfThing;
+    std::map<std::string, sdfObjectType> sdfObject;
 };
 
 /**

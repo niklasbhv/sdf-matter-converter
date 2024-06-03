@@ -102,10 +102,13 @@ int map_sdf_property(const sdfPropertyType& sdfProperty, attributeType& attribut
     // TODO: Currently constraints are missing, they are essential for the mapping
     // attribute.id
     attribute.name = sdfProperty.label;
+    // sdfProperty.$comment
+    // sdfProperty.sdfRef
+    // sdfProperty.sdfRequired
     // conformance
     attribute.access.write = sdfProperty.writable;
     attribute.access.read = sdfProperty.readable;
-    // TODO: Additional access attributes have to be mapped
+    // sdfProperty.observable
     attribute.summary = sdfProperty.description;
     // TODO: Create type mapper from SDF to Matter
     // type
@@ -196,10 +199,11 @@ int map_sdf_to_matter(const sdfModelType& sdfModel, const sdfMappingType& sdfMap
     pugi::xml_document reference_tree;
     auto reference_root_node = reference_tree.append_child("#");
 
-    if (sdfModel.sdfThing.has_value()){
+    // TODO: How do we handle multiple sdfThing or sdfObject definitions
+    if (!sdfModel.sdfThing.empty()){
         auto sdf_thing_node = reference_tree.append_child("sdfThing");
-        map_sdf_thing(sdfModel.sdfThing.value(), device, sdf_thing_node);
-    } else if (sdfModel.sdfObject.has_value()){
+        //map_sdf_thing(sdfModel.sdfThing.value(), device, sdf_thing_node);
+    } else if (!sdfModel.sdfObject.empty()){
         auto sdf_object_node = reference_tree.append_child("sdfObject");
         // TODO: Special case, initialize a device with a single cluster
     }
@@ -559,7 +563,7 @@ int map_matter_device(const deviceType& device, sdfModelType& sdfModel, pugi::xm
         sdfThing.sdfObject.insert({cluster.name, sdfObject});
     }
     sdfThing.sdfRequired = sdf_required_list;
-    sdfModel.sdfThing = sdfThing;
+    //sdfModel.sdfThing = sdfThing;
 
     return 0;
 }
