@@ -154,15 +154,23 @@ int parseSdfProperty(const json& sdf_property_json, sdfPropertyType& sdfProperty
     parseDataQualities(sdf_property_json, sdfProperty);
 
     // Parse the remaining fields
-    //TODO: Currently broken because of optional
-    //if (sdf_property_json.contains("readable"))
-        //sdf_property_json.at("readable").get_to(sdfProperty.readable);
+    if (sdf_property_json.contains("readable")) {
+        bool readable;
+        sdf_property_json.at("readable").get_to(readable);
+        sdfProperty.readable = readable;
+    }
 
-    //if (sdf_property_json.contains("writable"))
-        //sdf_property_json.at("writable").get_to(sdfProperty.writable);
+    if (sdf_property_json.contains("writable")) {
+        bool writable;
+        sdf_property_json.at("writable").get_to(writable);
+        sdfProperty.writable = writable;
+    }
 
-    //if (sdf_property_json.contains("observable"))
-        //sdf_property_json.at("observable").get_to(sdfProperty.observable);
+    if (sdf_property_json.contains("observable")) {
+        bool observable;
+        sdf_property_json.at("observable").get_to(observable);
+        sdfProperty.observable = observable;
+    }
 
     return 0;
 }
