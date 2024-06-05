@@ -30,10 +30,44 @@
 #include <list>
 #include <pugixml.hpp>
 #include <optional>
-#include <variant>
-#include "matter_constants.h"
 
-typedef std::variant<unsigned int, int, double, std::string, bool> defaultType;
+//! Max and Min Type boundaries if value is not nullable
+//! For nullable values, max has to be decreased by one
+#define MATTER_INT_8_MIN 0
+#define MATTER_INT_8_MAX 255
+#define MATTER_INT_16_MIN 0
+#define MATTER_INT_16_MAX 65535
+#define MATTER_INT_24_MIN 0
+#define MATTER_INT_24_MAX 16777215
+#define MATTER_INT_32_MIN 0
+#define MATTER_INT_32_MAX 4294967295
+#define MATTER_INT_40_MIN 0
+#define MATTER_INT_40_MAX 1099511627775
+#define MATTER_INT_48_MIN 0
+#define MATTER_INT_48_MAX 281474976710655
+#define MATTER_INT_56_MIN 0
+#define MATTER_INT_56_MAX 72057594037927935
+#define MATTER_INT_64_MIN 0
+#define MATTER_INT_64_MAX 18446744073709551615
+
+//! Max and Min Type boundaries if value is not nullable
+//! For nullable values, min has to be increased by one
+#define MATTER_U_INT_8_MIN -128
+#define MATTER_U_INT_8_MAX 127
+#define MATTER_U_INT_16_MIN -32768
+#define MATTER_U_INT_16_MAX 32767
+#define MATTER_U_INT_24_MIN -8388608
+#define MATTER_U_INT_24_MAX 8388607
+#define MATTER_U_INT_32_MIN -2147483648
+#define MATTER_U_INT_32_MAX 2147483647
+#define MATTER_U_INT_40_MIN -549755813888
+#define MATTER_U_INT_40_MAX 549755813887
+#define MATTER_U_INT_48_MIN -140737488355328
+#define MATTER_U_INT_48_MAX 140737488355327
+#define MATTER_U_INT_56_MIN -36028797018963968
+#define MATTER_U_INT_56_MAX 36028797018963967
+#define MATTER_U_INT_64_MIN -9223372036854775808
+#define MATTER_U_INT_64_MAX 9223372036854775807
 
 /**
  * Struct which represents the quality column.
