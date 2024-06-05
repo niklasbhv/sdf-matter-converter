@@ -8,8 +8,7 @@ add_library(${PROJECT_NAME} src/converter.cpp
         src/sdf.cpp
         include/mapping.h
         include/matter.h
-        include/sdf.h
-        include/matter_constants.h)
+        include/sdf.h)
 
 # add dependencies
 include(../../cmake/CPM.cmake)
