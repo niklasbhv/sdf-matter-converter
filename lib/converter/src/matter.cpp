@@ -50,29 +50,39 @@ int parse_other_qualities(const pugi::xml_node& quality_node, otherQualityType& 
     return 0;
 }
 
-int parse_conformance(const pugi::xml_node& conformance_node, conformanceType& conformance)
+int parse_conformance(const pugi::xml_node& conformance_node, std::optional<conformanceType>& conformance)
 {
     // TODO: These can be combined with logic operations to create complex expressions, should be caught
     // Mandatory conform
     if (!conformance_node.child("mandatoryConform").empty()) {
-        conformance.mandatory = true;
+        conformanceType currentConformance;
+        currentConformance.mandatory = true;
+        conformance = currentConformance;
     }
     // Optional conform
     else if (!conformance_node.child("optionalConform").empty()) {
-        conformance.optional = true;
+        conformanceType currentConformance;
+        currentConformance.optional = true;
+        conformance = currentConformance;
     }
     // TODO: Check the attribute names for these
     // Provisional conform
     else if (!conformance_node.child("provisionalConform").empty()) {
-        conformance.provisional = true;
+        conformanceType currentConformance;
+        currentConformance.provisional = true;
+        conformance = currentConformance;
     }
     // Deprecated conform
     else if (!conformance_node.child("deprecatedConform").empty()) {
-        conformance.deprecated = true;
+        conformanceType currentConformance;
+        currentConformance.deprecated = true;
+        conformance = currentConformance;
     }
     // Disallowed conform
     else if (!conformance_node.child("disallowedConform").empty()) {
-        conformance.disallowed = true;
+        conformanceType currentConformance;
+        currentConformance.disallowed = true;
+        conformance = currentConformance;
     }
 
     return 0;
@@ -143,12 +153,24 @@ int parse_feature_map(const pugi::xml_node& feature_map_node, std::list<featureM
     return 0;
 }
 
-int parse_access(const pugi::xml_node& access_node, accessType& access)
+int parse_access(const pugi::xml_node& access_node, std::optional<accessType>& access)
 {
-    if (!access_node.attribute("read").empty())
-        access.read = access_node.attribute("read").as_bool();
-    if (!access_node.attribute("write").empty())
-        access.write = access_node.attribute("write").as_bool();
+    if (!access_node.attribute("read").empty()) {
+        accessType currentAccess;
+        currentAccess.read = access_node.attribute("read").as_bool();
+        access = currentAccess;
+    }
+
+    if (!access_node.attribute("write").empty()) {
+        if (access.has_value()) {
+            access.value().write = access_node.attribute("write").as_bool();
+        } else {
+            accessType currentAccess;
+            currentAccess.write = access_node.attribute("write").as_bool();
+            access = currentAccess;
+        }
+    }
+
     // TODO: Seems like read and write have separate privileges, check specification
 
     return 0;
@@ -352,8 +374,10 @@ int serialize_command(const commandType& command, pugi::xml_node& command_xml)
 
     command_node.append_attribute("id").set_value(decToHexa(command.id).c_str());
     command_node.append_attribute("name").set_value(command.name.c_str());
-    serialize_conformance(command.conformance, command_node);
-    serialize_access(command.access, command_node);
+    if (command.conformance.has_value())
+        serialize_conformance(command.conformance.value(), command_node);
+    if (command.access.has_value())
+        serialize_access(command.access.value(), command_node);
     if (!command.summary.empty())
         command_node.append_attribute("summary").set_value(command.summary.c_str());
     if (!command.default_.empty())
@@ -370,8 +394,10 @@ int serialize_attribute(const attributeType& attribute, pugi::xml_node& attribut
 
     attribute_node.append_attribute("id").set_value(decToHexa(attribute.id).c_str());
     attribute_node.append_attribute("name").set_value(attribute.name.c_str());
-    serialize_conformance(attribute.conformance, attribute_node);
-    serialize_access(attribute.access, attribute_node);
+    if (attribute.conformance.has_value())
+        serialize_conformance(attribute.conformance.value(), attribute_node);
+    if (attribute.access.has_value())
+        serialize_access(attribute.access.value(), attribute_node);
     if (!attribute.summary.empty())
         attribute_node.append_attribute("summary").set_value(attribute.summary.c_str());
     attribute_node.attribute("type").set_value(attribute.type.c_str());
@@ -388,8 +414,10 @@ int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
 
     cluster_node.append_attribute("id").set_value(decToHexa(cluster.id).c_str());
     cluster_node.append_attribute("name").set_value(cluster.name.c_str());
-    serialize_conformance(cluster.conformance, cluster_node);
-    serialize_access(cluster.access, cluster_node);
+    if (cluster.conformance.has_value())
+        serialize_conformance(cluster.conformance.value(), cluster_node);
+    if (cluster.access.has_value())
+        serialize_access(cluster.access.value(), cluster_node);
     if (!cluster.summary.empty())
         cluster_node.append_attribute("summary").set_value(cluster.summary.c_str());
     // classification
@@ -429,8 +457,10 @@ int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi:
 
     device_node.append_attribute("id").set_value(decToHexa(device.id).c_str());
     device_node.append_attribute("name").set_value(device.name.c_str());
-    serialize_conformance(device.conformance, device_node);
-    serialize_access(device.access, device_node);
+    if (device.conformance.has_value())
+        serialize_conformance(device.conformance.value(), device_node);
+    if (device.access.has_value())
+        serialize_access(device.access.value(), device_node);
     if (!device.summary.empty())
         device_node.append_attribute("summary").set_value(device.summary.c_str());
     device_node.append_attribute("revision").set_value(device.revision);

@@ -234,9 +234,9 @@ struct commonDataQualityType {
     std::string name;
     //! Field is being stripped as it is deprecated, use name instead.
     //! Defines dependencies.
-    conformanceType conformance;
+    std::optional<conformanceType> conformance;
     //! Defines how an element is accessed.
-    accessType access;
+    std::optional<accessType> access;
     //! Short summary of the element.
     std::string summary;
 };
@@ -244,9 +244,9 @@ struct commonDataQualityType {
 struct dataType : otherQualityType {
     std::string dataType;
     constraintType constraint;
-    accessType access;
+    std::optional<accessType> access;
     std::string default_;
-    conformanceType conformance;
+    std::optional<conformanceType> conformance;
 };
 
 // TODO: Temporary, derived from the xml definitions
@@ -254,7 +254,7 @@ struct enumItemType {
     int value;
     std::string name;
     std::string summary;
-    conformanceType conformance;
+    std::optional<conformanceType> conformance;
 };
 
 // TODO: Temporary, derived from the xml definitions
@@ -262,7 +262,7 @@ struct bitmapBitfieldType {
     int bit;
     std::string name;
     std::string summary;
-    conformanceType conformance;
+    std::optional<conformanceType> conformance;
 };
 
 struct structFieldType : commonDataQualityType{
@@ -277,7 +277,7 @@ typedef std::list<structFieldType> structType;
  */
 struct featureMapType {
     u_int8_t bit;
-    conformanceType conformance;
+    std::optional<conformanceType> conformance;
     //! Capitalized, short code
     std::string code;
     std::string name;
