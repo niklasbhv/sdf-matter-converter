@@ -102,36 +102,6 @@ int parse_event_records(const pugi::xml_node& event_record_node, eventRecordType
     return 0;
 }
 
-int parse_enum_items(const pugi::xml_node& enum_node, std::list<enumItemType>& items)
-{
-    // Iterate through all enum items and parse them individually
-    for (const auto& enum_item_node : enum_node.children()) {
-        enumItemType item;
-        item.value = enum_item_node.attribute("value").as_int();
-        item.name = enum_item_node.attribute("name").value();
-        item.summary = enum_item_node.attribute("summary").value();
-        parse_conformance(enum_item_node, item.conformance);
-        items.push_back(item);
-    }
-
-    return 0;
-}
-
-int parse_bitfields(const pugi::xml_node& bitmap_node, std::list<bitmapBitfieldType>& bitfields)
-{
-    // Iterate through all bitfields and parse them individually
-    for (const auto& bitfield_node : bitmap_node.children()) {
-        bitmapBitfieldType bitfield;
-        bitfield.bit = bitfield_node.attribute("bit").as_int();
-        bitfield.name = bitfield_node.attribute("name").value();
-        bitfield.summary = bitfield_node.attribute("summary").value();
-        parse_conformance(bitfield_node, bitfield.conformance);
-        bitfields.push_back(bitfield);
-    }
-
-    return 0;
-}
-
 int parse_struct_fields(const pugi::xml_node& struct_node, std::list<structFieldType>& struct_fields)
 {
     // Iterate through all struct fields and parse them individually
@@ -222,8 +192,7 @@ int parse_command(const pugi::xml_node& command_node, commandType& command)
     return 0;
 }
 
-int parse_attribute(const pugi::xml_node& attribute_node, attributeType& attribute)
-{
+int parse_attribute(const pugi::xml_node& attribute_node, attributeType& attribute) {
     attribute.id = attribute_node.attribute("id").as_int();
     attribute.name = attribute_node.attribute("name").value();
     std::cout << attribute.name << std::endl;
@@ -241,8 +210,63 @@ int parse_attribute(const pugi::xml_node& attribute_node, attributeType& attribu
     attribute.default_ = quality_node.attribute("default").value();
 
     return 0;
+
 }
 
+int parse_enum_items(const pugi::xml_node& enum_node, std::list<enumItemType>& items)
+{
+    // Iterate through all enum items and parse them individually
+    for (const auto& enum_item_node : enum_node.children()) {
+        enumItemType item;
+        item.value = enum_item_node.attribute("value").as_int();
+        item.name = enum_item_node.attribute("name").value();
+        item.summary = enum_item_node.attribute("summary").value();
+        parse_conformance(enum_item_node, item.conformance);
+        items.push_back(item);
+    }
+
+    return 0;
+}
+
+int parse_bitfields(const pugi::xml_node& bitmap_node, std::list<bitmapBitfieldType>& bitfields)
+{
+    // Iterate through all bitfields and parse them individually
+    for (const auto& bitfield_node : bitmap_node.children()) {
+        bitmapBitfieldType bitfield;
+        bitfield.bit = bitfield_node.attribute("bit").as_int();
+        bitfield.name = bitfield_node.attribute("name").value();
+        bitfield.summary = bitfield_node.attribute("summary").value();
+        parse_conformance(bitfield_node, bitfield.conformance);
+        bitfields.push_back(bitfield);
+    }
+
+    return 0;
+}
+
+/*
+ * Function used to parse globally defined custom data types.
+ */
+int parse_data_types(const pugi::xml_node& data_type_xml, clusterType& cluster)
+{
+    // Parse all data types based on enums.
+    for (auto enum_node : data_type_xml.children("enum")) {
+        std::list<enumItemType> enum_items;
+        parse_enum_items(enum_node, enum_items);
+        cluster.enums[enum_node.attribute("name").value()] = enum_items;
+    }
+    // Parse all data types based on bitmaps.
+    for (auto bitmap_node : data_type_xml.children("bitmap")) {
+        std::list<bitmapBitfieldType> bitfields;
+        parse_bitfields(bitmap_node, bitfields);
+        cluster.bitmaps[bitmap_node.attribute("name").value()] = bitfields;
+    }
+
+    return 0;
+}
+
+/*
+ * Function used to parse clusters.
+ */
 int parse_cluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
 {
     // Search for the matching cluster inside the cluster xml definitions
@@ -257,6 +281,11 @@ int parse_cluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
             cluster.revision_history.insert({revision_node.attribute("revision").as_int(), revision_node.attribute("summary").value()});
         }
         // classification
+
+        // Parse the globally defined custom data types
+        if (!cluster_xml.child("dataTypes").empty())
+            parse_data_types(cluster_xml.child("dataTypes"), cluster);
+
         // Iterate through all attributes and parse them individually
         for (const auto& attribute_node : cluster_xml.child("attributes").children()) {
             attributeType attribute;
@@ -283,6 +312,9 @@ int parse_cluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
     return 0;
 }
 
+/*
+ * Function used to parse devices.
+ */
 int parse_device(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device)
 {
     device.id = device_xml.attribute("id").as_int();
@@ -457,6 +489,57 @@ int serialize_attribute(const attributeType& attribute, pugi::xml_node& attribut
     return 0;
 }
 
+int serialize_enum_items(const enumItemType& enumItem, pugi::xml_node& enum_item_node)
+{
+    enum_item_node.append_attribute("value").set_value(enumItem.value);
+    enum_item_node.append_attribute("name").set_value(enumItem.name.c_str());
+    enum_item_node.append_attribute("summary").set_value(enumItem.summary.c_str());
+    if (enumItem.conformance.has_value())
+        serialize_conformance(enumItem.conformance.value(), enum_item_node);
+
+    return 0;
+}
+
+int serialize_bitfields(const bitmapBitfieldType& bitfield, pugi::xml_node& bitfield_node)
+{
+    bitfield_node.append_attribute("name").set_value(bitfield.name.c_str());
+    bitfield_node.append_attribute("bit").set_value(bitfield.bit);
+    bitfield_node.append_attribute("summary").set_value(bitfield.summary.c_str());
+    if (bitfield.conformance.has_value())
+        serialize_conformance(bitfield.conformance.value(), bitfield_node);
+
+    return 0;
+}
+
+int serialize_data_types(const clusterType& cluster, pugi::xml_node& cluster_xml)
+{
+    // TODO: Check if the dataTypes node should exist even if there are no custom types
+    if (cluster.enums.empty() && cluster.bitmaps.empty())
+        return 0;
+
+    auto data_type_node = cluster_xml.append_child("dataTypes");
+
+    for (const auto& current_enum : cluster.enums) {
+        pugi::xml_node enum_node = data_type_node.append_child("enum");
+        enum_node.append_attribute("name").set_value(current_enum.first.c_str());
+        for (const auto& enum_item : current_enum.second) {
+            pugi::xml_node item_node = enum_node.append_child("item");
+            serialize_enum_items(enum_item, item_node);
+        }
+    }
+
+    for (const auto& bitmap : cluster.bitmaps) {
+        pugi::xml_node bitmap_node = data_type_node.append_child("bitmap");
+        bitmap_node.append_attribute("name").set_value(bitmap.first.c_str());
+        for (const auto& bitfield : bitmap.second) {
+            pugi::xml_node bitfield_node = bitmap_node.append_child("bitfield");
+            serialize_bitfields(bitfield, bitfield_node);
+        }
+    }
+
+    return 0;
+}
+
 int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
 {
     // Create the cluster node
@@ -479,6 +562,9 @@ int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
         revision_node.append_attribute("revision").set_value(revision.first);
         revision_node.append_attribute("summary").set_value(revision.second.c_str());
     }
+
+    // Serialize the custom data types
+    serialize_data_types(cluster, cluster_node);
 
     // Iterate through all attributes and serialize them individually
     auto attribute_node = cluster_node.append_child("attributes");

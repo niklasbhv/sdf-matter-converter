@@ -332,6 +332,8 @@ struct clusterType : commonDataQualityType{
     std::list<attributeType> attributes;
     std::list<commandType> commands;
     std::list<eventType> events;
+    std::map<std::string, std::list<enumItemType>> enums;
+    std::map<std::string, std::list<bitmapBitfieldType>> bitmaps;
 };
 
 /**
