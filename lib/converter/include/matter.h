@@ -69,6 +69,53 @@
 #define MATTER_INT_64_MIN -9223372036854775808
 #define MATTER_INT_64_MAX 9223372036854775807
 
+// function to convert decimal to hexadecimal
+inline std::string decToHexa(uint32_t n)
+{
+    // TODO: Has to be reworked in order to account für uint32 size numbers
+    // ans string to store hexadecimal number
+    std::string ans = "";
+
+    while (n != 0) {
+        // remainder variable to store remainder
+        int rem = 0;
+
+        // ch variable to store each character
+        char ch;
+        // storing remainder in rem variable.
+        rem = n % 16;
+
+        // check if temp < 10
+        if (rem < 10) {
+            ch = rem + 48;
+        }
+        else {
+            ch = rem + 55;
+        }
+
+        // updating the ans string with the character variable
+        ans += ch;
+        n = n / 16;
+    }
+
+    // reversing the ans string to get the final result
+
+    while (ans.length() < 4) {
+        ans.append("0");
+    }
+    ans.append("x0"); // This will get reversed
+    int i = 0, j = ans.size() - 1;
+    while(i <= j)
+    {
+        std::swap(ans[i], ans[j]);
+        i++;
+        j--;
+    }
+
+
+    return ans;
+}
+
 /**
  * Struct which represents the quality column.
  */

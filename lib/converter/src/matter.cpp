@@ -350,7 +350,7 @@ int serialize_command(const commandType& command, pugi::xml_node& command_xml)
 {
     auto command_node = command_xml.append_child("command");
 
-    command_node.append_attribute("id").set_value(command.id);
+    command_node.append_attribute("id").set_value(decToHexa(command.id).c_str());
     command_node.append_attribute("name").set_value(command.name.c_str());
     serialize_conformance(command.conformance, command_node);
     serialize_access(command.access, command_node);
@@ -368,7 +368,7 @@ int serialize_attribute(const attributeType& attribute, pugi::xml_node& attribut
 {
     auto attribute_node = attribute_xml.append_child("attribute");
 
-    attribute_node.append_attribute("id").set_value(attribute.id);
+    attribute_node.append_attribute("id").set_value(decToHexa(attribute.id).c_str());
     attribute_node.append_attribute("name").set_value(attribute.name.c_str());
     serialize_conformance(attribute.conformance, attribute_node);
     serialize_access(attribute.access, attribute_node);
@@ -386,7 +386,7 @@ int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
     // Create the cluster node
     auto cluster_node = cluster_xml.append_child("cluster");
 
-    cluster_node.append_attribute("id").set_value(cluster.id);
+    cluster_node.append_attribute("id").set_value(decToHexa(cluster.id).c_str());
     cluster_node.append_attribute("name").set_value(cluster.name.c_str());
     serialize_conformance(cluster.conformance, cluster_node);
     serialize_access(cluster.access, cluster_node);
@@ -427,7 +427,7 @@ int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi:
 {
     auto device_node = device_xml.append_child("deviceType");
 
-    device_node.append_attribute("id").set_value(device.id);
+    device_node.append_attribute("id").set_value(decToHexa(device.id).c_str());
     device_node.append_attribute("name").set_value(device.name.c_str());
     serialize_conformance(device.conformance, device_node);
     serialize_access(device.access, device_node);
