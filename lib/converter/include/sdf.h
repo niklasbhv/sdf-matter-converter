@@ -28,6 +28,8 @@
 #include <string>
 #include <map>
 #include <list>
+//#include <vector>
+#include <variant>
 #include <optional>
 #include <nlohmann/json.hpp>
 
@@ -100,6 +102,19 @@ struct jsoItemType {
     std::list<std::string> required;
     sdfDataType properties;
 };
+/*
+union defaultType {
+    double number;
+    std::string string;
+    uint64_t integer;
+    bool boolean;
+    std::list<std::string> array;
+};
+*/
+
+typedef std::variant<uint64_t, int64_t , double, std::string, bool> arrayItemType;
+
+typedef std::variant<uint64_t, int64_t , double, std::string, bool, std::list<arrayItemType>> variableType;
 
 /**
  * Struct which contains data quality information.
@@ -109,14 +124,14 @@ struct dataQualityType : commonQualityType {
     std::string type; // number / string / boolean / integer / array / object
     sdfChoiceType sdfChoice;
     std::list<std::string> enum_;
-    std::string const_;
-    std::string default_;
+    std::optional<variableType> const_;
+    std::optional<variableType> default_;
     // Number and Integer qualities
-    std::optional<int> minimum;
-    std::optional<int> maximum;
-    std::optional<int> exclusiveMinimum;
-    std::optional<int> exclusiveMaximum;
-    std::optional<double> multipleOf;
+    std::optional<std::variant<double, int>> minimum;
+    std::optional<std::variant<double, int>> maximum;
+    std::optional<std::variant<double, int>> exclusiveMinimum;
+    std::optional<std::variant<double, int>> exclusiveMaximum;
+    std::optional<std::variant<double, int>> multipleOf;
     // String qualities
     std::optional<uint> minLength;
     std::optional<uint> maxLength;

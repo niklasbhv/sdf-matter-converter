@@ -22,6 +22,19 @@
 using json = nlohmann::ordered_json;
 
 /*
+ * Function used to resolve sdfRef qualities.
+ */
+int resolveSdfRef(const json& sdf_ref_qualities_json)
+{
+    std::string sdfRef;
+    json test_json;
+    sdf_ref_qualities_json.at("sdfRef").get_to(sdfRef);
+    test_json[json::json_pointer(sdfRef.substr(1))];
+
+    return 0;
+}
+
+/*
  * Parse common qualities from json into a commonQualityType object.
  */
 int parseCommonQualities(const json& common_qualities_json, commonQualityType& commonQuality)
@@ -36,7 +49,7 @@ int parseCommonQualities(const json& common_qualities_json, commonQualityType& c
         common_qualities_json.at("$comment").get_to(commonQuality.$comment);
 
     if (common_qualities_json.contains("sdfRef"))
-        common_qualities_json.at("sdfRef").get_to(commonQuality.sdfRef);
+        resolveSdfRef(common_qualities_json);
 
     if (common_qualities_json.contains("sdfRequired"))
         common_qualities_json.at("sdfRequired").get_to(commonQuality.sdfRequired);
@@ -139,27 +152,125 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
     if (data_qualities_json.contains("enum"))
         data_qualities_json.at("enum").get_to(dataQuality.enum_);
 
-    if (data_qualities_json.contains("const"))
-        data_qualities_json.at("const").get_to(dataQuality.const_);
+    // Select a fitting datatype for the default quality based on the set json type
+    if (data_qualities_json.contains("const")) {
+        // TODO: Can the object type have a default value?
+        if (dataQuality.type == "number") {
+            double number;
+            data_qualities_json.at("const").get_to(number);
+            dataQuality.default_ = number;
+        } else if (dataQuality.type == "string") {
+            std::string string;
+            data_qualities_json.at("const").get_to(string);
+            dataQuality.default_ = string;
+        } else if (dataQuality.type == "boolean") {
+            bool boolean;
+            data_qualities_json.at("const").get_to(boolean);
+            dataQuality.default_ = boolean;
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            uint64_t integer;
+            data_qualities_json.at("const").get_to(integer);
+            dataQuality.default_ = integer;
+        } else if (dataQuality.type == "array") {
+            //data_qualities_json.at("const").get_to(dataQuality.default_->array);
+        } else if (dataQuality.type == "object") {
+            //data_qualities_json.at("default").get_to(dataQuality.default_->array);
+        }
+    }
 
-    if (data_qualities_json.contains("default"))
-        data_qualities_json.at("default").get_to(dataQuality.default_);
+    // Select a fitting datatype for the default quality based on the set json type
+    if (data_qualities_json.contains("default")) {
+        // TODO: Can the object type have a default value?
+        if (dataQuality.type == "number") {
+            double number;
+            data_qualities_json.at("default").get_to(number);
+            dataQuality.default_ = number;
+        } else if (dataQuality.type == "string") {
+            std::string string;
+            data_qualities_json.at("default").get_to(string);
+            dataQuality.default_ = string;
+        } else if (dataQuality.type == "boolean") {
+            bool boolean;
+            data_qualities_json.at("default").get_to(boolean);
+            dataQuality.default_ = boolean;
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            uint64_t integer;
+            data_qualities_json.at("default").get_to(integer);
+            dataQuality.default_ = integer;
+        } else if (dataQuality.type == "array") {
+            //data_qualities_json.at("default").get_to(dataQuality.default_->array);
+        } else if (dataQuality.type == "object") {
+            //data_qualities_json.at("default").get_to(dataQuality.default_->array);
+        }
+    }
 
     // Parse number and integer qualities
-    if (data_qualities_json.contains("minimum"))
-        data_qualities_json.at("minimum").get_to(dataQuality.minimum);
+    if (data_qualities_json.contains("minimum")) {
+        if (dataQuality.type == "number") {
+            double number;
+            data_qualities_json.at("minimum").get_to(number);
+            dataQuality.minimum = number;
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            int integer;
+            data_qualities_json.at("minimum").get_to(integer);
+            dataQuality.minimum = integer;
+        }
+    }
 
-    if (data_qualities_json.contains("maximum"))
-        data_qualities_json.at("maximum").get_to(dataQuality.maximum);
+    if (data_qualities_json.contains("maximum")) {
+        if (dataQuality.type == "number") {
+            double number;
+            data_qualities_json.at("maximum").get_to(number);
+            dataQuality.maximum = number;
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            int integer;
+            data_qualities_json.at("maximum").get_to(integer);
+            dataQuality.maximum = integer;
+        }
+    }
 
-    if (data_qualities_json.contains("exclusiveMinimum"))
-        data_qualities_json.at("exclusiveMinimum").get_to(dataQuality.exclusiveMinimum);
+    if (data_qualities_json.contains("exclusiveMinimum")) {
+        if (dataQuality.type == "number") {
+            double number;
+            data_qualities_json.at("exclusiveMinimum").get_to(number);
+            dataQuality.exclusiveMinimum = number;
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            int integer;
+            data_qualities_json.at("exclusiveMinimum").get_to(integer);
+            dataQuality.exclusiveMinimum = integer;
+        }
+    }
 
-    if (data_qualities_json.contains("exclusiveMaximum"))
-        data_qualities_json.at("exclusiveMaximum").get_to(dataQuality.exclusiveMaximum);
+    if (data_qualities_json.contains("exclusiveMaximum")) {
+        if (dataQuality.type == "number") {
+            double number;
+            data_qualities_json.at("exclusiveMaximum").get_to(number);
+            dataQuality.exclusiveMaximum = number;
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            int integer;
+            data_qualities_json.at("exclusiveMaximum").get_to(integer);
+            dataQuality.exclusiveMaximum = integer;
+        }
+    }
 
-    if (data_qualities_json.contains("multipleOf"))
-        data_qualities_json.at("multipleOf").get_to(dataQuality.multipleOf);
+    if (data_qualities_json.contains("multipleOf")) {
+        if (dataQuality.type == "number") {
+            double number;
+            data_qualities_json.at("multipleOf").get_to(number);
+            dataQuality.multipleOf = number;
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            int integer;
+            data_qualities_json.at("multipleOf").get_to(integer);
+            dataQuality.multipleOf = integer;
+        }
+    }
 
     // Parse string qualities
     if (data_qualities_json.contains("minLength"))
@@ -554,18 +665,9 @@ int serializeCommonQualities(const commonQualityType& commonQuality, json& commo
 }
 
 /*
- * Helper to cast a string into bool.
- */
-bool to_bool(std::string const& s)
-{
-    return s != "0";
-}
-
-/*
  * Function prototype used for recursive calls.
  */
 int serializeDataQualities(const dataQualityType& dataQuality, json& data_quality_json);
-
 
 /*
  * Serialize jso items into the json format.
@@ -588,7 +690,7 @@ int serializeJsoItemType(const jsoItemType& jsoItem, json& jso_item_type_json)
     if (!jsoItem.sdfChoice.empty()){
         json sdf_choice_map_json;
         for (const auto& sdf_choice_map : jsoItem.sdfChoice) {
-            json sdf_choice_json;
+            json sdf_choice_json = json({});
             serializeDataQualities(sdf_choice_map.second, sdf_choice_json);
             sdf_choice_map_json[sdf_choice_map.first] = sdf_choice_json;
         }
@@ -645,7 +747,7 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
     if (!dataQuality.sdfChoice.empty()){
         json sdf_choice_map_json;
         for (const auto& sdf_choice_map : dataQuality.sdfChoice) {
-            json sdf_choice_json;
+            json sdf_choice_json = json({});
             serializeDataQualities(sdf_choice_map.second, sdf_choice_json);
             sdf_choice_map_json[sdf_choice_map.first] = sdf_choice_json;
         }
@@ -655,40 +757,89 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
     if (!dataQuality.enum_.empty())
         data_quality_json["enum"] = dataQuality.enum_;
 
-    if (!dataQuality.const_.empty())
-        data_quality_json["const"] = dataQuality.const_;
+    if (dataQuality.const_.has_value()) {
+        // TODO: Can the object type have a default value?
+        if (dataQuality.type == "number") {
+            data_quality_json["const"] = std::get<double>(dataQuality.default_.value());
+        } else if (dataQuality.type == "string") {
+            data_quality_json["const"] = std::get<std::string>(dataQuality.default_.value());
+        } else if (dataQuality.type == "boolean") {
+            data_quality_json["const"] = std::get<bool>(dataQuality.default_.value());
+        } else if (dataQuality.type == "integer") {
+            data_quality_json["const"] = std::get<uint64_t>(dataQuality.default_.value());
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+        } else if (dataQuality.type == "array") {
+            //data_qualities_json.at("default").get_to(dataQuality.default_->array);
+        } else if (dataQuality.type == "object") {
+        //data_qualities_json.at("default").get_to(dataQuality.default_->array);
+        }
+    }
+    //    data_quality_json["const"] = dataQuality.const_;
 
     // Depending on the type, use a different function read the type
     //TODO: Maybe write a generic helper to cast this
-    if (!dataQuality.default_.empty()) {
-        if (dataQuality.type == "boolean")
-            data_quality_json["default"] = to_bool(dataQuality.default_);
-        else if (dataQuality.type == "number") {
-            float default_ = std::stof(dataQuality.default_);
-            data_quality_json["default"] = default_;
+    if (dataQuality.default_.has_value()) {
+        // TODO: Can the object type have a default value?
+        if (dataQuality.type == "number") {
+            data_quality_json["default"] = std::get<double>(dataQuality.default_.value());
+        } else if (dataQuality.type == "string") {
+            data_quality_json["default"] = std::get<std::string>(dataQuality.default_.value());
+        } else if (dataQuality.type == "boolean") {
+            data_quality_json["default"] = std::get<bool>(dataQuality.default_.value());
         } else if (dataQuality.type == "integer") {
-            int default_ = std::stoi(dataQuality.default_);
-            data_quality_json["default"] = default_;
-        } else {
-            //TODO: Does array have to be handled differently
-            data_quality_json["default"] = dataQuality.default_;
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            data_quality_json["default"] = std::get<uint64_t>(dataQuality.default_.value());
+        } else if (dataQuality.type == "array") {
+            //data_quality_json["default"] = std::get<double>(dataQuality.default_.value());
+        } else if (dataQuality.type == "object") {
+            //data_qualities_json.at("default").get_to(dataQuality.default_->array);
         }
     }
 
-    if (dataQuality.minimum.has_value())
-        data_quality_json["minimum"] = dataQuality.minimum.value();
+    if (dataQuality.minimum.has_value()) {
+        if (dataQuality.type == "number") {
+            data_quality_json["minimum"] = std::get<double>(dataQuality.minimum.value());
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            data_quality_json["minimum"] = std::get<int>(dataQuality.minimum.value());
+        }
+    }
 
-    if (dataQuality.maximum.has_value())
-        data_quality_json["maximum"] = dataQuality.maximum.value();
+    if (dataQuality.maximum.has_value()) {
+        if (dataQuality.type == "number") {
+            data_quality_json["maximum"] = std::get<double>(dataQuality.maximum.value());
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            data_quality_json["maximum"] = std::get<int>(dataQuality.maximum.value());
+        }
+    }
 
-    if (dataQuality.exclusiveMinimum.has_value())
-        data_quality_json["exclusiveMinimum"] = dataQuality.exclusiveMinimum.value();
+    if (dataQuality.exclusiveMinimum.has_value()) {
+        if (dataQuality.type == "number") {
+            data_quality_json["exclusiveMinimum"] = std::get<double>(dataQuality.exclusiveMinimum.value());
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            data_quality_json["exclusiveMinimum"] = std::get<int>(dataQuality.exclusiveMinimum.value());
+        }
+    }
 
-    if (dataQuality.exclusiveMaximum.has_value())
-        data_quality_json["exclusiveMaximum"] = dataQuality.exclusiveMaximum.value();
+    if (dataQuality.exclusiveMaximum.has_value()) {
+        if (dataQuality.type == "number") {
+            data_quality_json["exclusiveMaximum"] = std::get<double>(dataQuality.exclusiveMaximum.value());
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            data_quality_json["exclusiveMaximum"] = std::get<int>(dataQuality.exclusiveMaximum.value());
+        }
+    }
 
-    if (dataQuality.multipleOf.has_value())
-        data_quality_json["multipleOf"] = dataQuality.multipleOf.value();
+    if (dataQuality.multipleOf.has_value()) {
+        if (dataQuality.type == "number") {
+            data_quality_json["multipleOf"] = std::get<double>(dataQuality.multipleOf.value());
+        } else if (dataQuality.type == "integer") {
+            // TODO: Maybe set this to either int64 or uint64, check json documentation
+            data_quality_json["multipleOf"] = std::get<int>(dataQuality.multipleOf.value());
+        }
+    }
 
     if (dataQuality.minLength.has_value())
         data_quality_json["minLength"] = dataQuality.minLength.value();
@@ -1025,7 +1176,7 @@ int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json)
         for (const auto& thing : sdfModel.sdfThing) {
             json current_sdf_thing_json;
             serializeSdfThing(thing.second, current_sdf_thing_json);
-            current_sdf_thing_json[thing.first];
+            sdf_thing_json[thing.first] = current_sdf_thing_json;
         }
         sdf_model_json["sdfThing"] = sdf_thing_json;
     }
@@ -1036,7 +1187,7 @@ int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json)
         for (const auto& object : sdfModel.sdfObject) {
             json current_sdf_object_json;
             serializeSdfObject(object.second, current_sdf_object_json);
-            current_sdf_object_json[object.first];
+            sdf_object_json[object.first] = current_sdf_object_json;
         }
         sdf_model_json["sdfObject"] = sdf_object_json;
     }
