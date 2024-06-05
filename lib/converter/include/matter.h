@@ -130,8 +130,8 @@ struct otherQualityType {
     std::optional<bool> scene;
     //! P -> Reportable.
     std::optional<bool> reportable;
-    //! C -> Changes Omitted.
-    std::optional<bool> changes_omitted;
+    //! C -> Change Omitted.
+    std::optional<bool> change_omitted;
     //! I -> Singleton.
     std::optional<bool> singleton;
     //! K -> Diagnostics.
@@ -296,7 +296,7 @@ struct eventRecordType {
  */
 struct eventType : commonDataQualityType {
     std::string priority;
-    otherQualityType quality;
+    std::optional<otherQualityType> quality;
     std::list<eventRecordType> event_records;
 };
 
@@ -317,7 +317,7 @@ struct commandType : commonDataQualityType {
  */
 struct attributeType : commonDataQualityType {
     std::string type;
-    otherQualityType quality;
+    std::optional<otherQualityType> quality;
     std::string default_;
 };
 

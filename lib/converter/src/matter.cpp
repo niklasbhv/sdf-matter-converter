@@ -20,9 +20,11 @@
 #include <pugixml.hpp>
 #include "matter.h"
 
-int parse_other_qualities(const pugi::xml_node& quality_node, otherQualityType& otherQualities){
+int parse_other_qualities(const pugi::xml_node& quality_node, otherQualityType& otherQualities)
+{
     if (!quality_node.attribute("nullable").empty())
         otherQualities.nullable = quality_node.attribute("nullable").as_bool();
+
     if (!quality_node.attribute("persistence").empty()) {
         // TODO: It seems like the qualities fixed and non-volatile are combined with persistence
         if (strcmp(quality_node.attribute("persistence").value(), "fixed") == 0) {
@@ -35,18 +37,25 @@ int parse_other_qualities(const pugi::xml_node& quality_node, otherQualityType& 
     }
     if (!quality_node.attribute("scene").empty())
         otherQualities.scene = quality_node.attribute("scene").as_bool();
+
     if (!quality_node.attribute("reportable").empty())
         otherQualities.reportable = quality_node.attribute("reportable").as_bool();
-    if (!quality_node.attribute("changesOmitted").empty())
-        otherQualities.changes_omitted = quality_node.attribute("changesOmitted").as_bool();
+
+    if (!quality_node.attribute("changeOmitted").empty())
+        otherQualities.change_omitted = quality_node.attribute("changeOmitted").as_bool();
+
     if (!quality_node.attribute("singleton").empty())
         otherQualities.singleton = quality_node.attribute("singleton").as_bool();
+
     if (!quality_node.attribute("diagnostics").empty()) //Check this
         otherQualities.diagnostics = quality_node.attribute("diagnostics").as_bool();
+
     if (!quality_node.attribute("largeMessage").empty()) //Check this
         otherQualities.large_message = quality_node.attribute("largeMessage").as_bool();
+
     if (!quality_node.attribute("quieterReporting").empty()) //Check this
         otherQualities.quieter_reporting = quality_node.attribute("quieterReporting").as_bool();
+
     return 0;
 }
 
@@ -184,7 +193,12 @@ int parse_event(const pugi::xml_node& event_node, eventType& event)
     parse_access(event_node, event.access);
     event.summary = event_node.attribute("summary").value();
     event.priority = event_node.attribute("priority").value();
-    parse_other_qualities(event_node.child("quality"), event.quality);
+    auto quality_node = event_node.child("quality");
+    if (!quality_node.empty()) {
+        otherQualityType otherQualities;
+        parse_other_qualities(quality_node, otherQualities);
+        event.quality = otherQualities;
+    }
     for (auto record_node : event_node.children("field")) {
         eventRecordType eventRecord;
         parse_event_records(record_node, eventRecord);
@@ -215,18 +229,15 @@ int parse_attribute(const pugi::xml_node& attribute_node, attributeType& attribu
     std::cout << attribute.name << std::endl;
     parse_conformance(attribute_node, attribute.conformance);
     parse_access(attribute_node.child("access"), attribute.access);
-    // TODO: Where is summary defined?
     // summary
     attribute.type = attribute_node.attribute("type").value();
-    // TODO: As these are optional, check their presence to ensure the correct function of optional
     auto quality_node = attribute_node.child("quality");
-    attribute.quality.nullable = quality_node.attribute("nullable").as_bool();
-    attribute.quality.non_volatile = quality_node.attribute("nonVolatile").as_bool();
-    attribute.quality.fixed = quality_node.attribute("fixed").as_bool();
-    attribute.quality.scene = quality_node.attribute("scene").as_bool();
-    attribute.quality.reportable = quality_node.attribute("reportable").as_bool();
-    attribute.quality.changes_omitted = quality_node.attribute("changeOmitted").as_bool();
-    attribute.quality.singleton = quality_node.attribute("singleton").as_bool();
+    if (!quality_node.empty()) {
+        otherQualityType otherQualities;
+        parse_other_qualities(quality_node, otherQualities);
+        attribute.quality = otherQualities;
+    }
+
     attribute.default_ = quality_node.attribute("default").value();
 
     return 0;
@@ -327,6 +338,44 @@ int parse_device(const pugi::xml_node& device_xml, const pugi::xml_node& cluster
     return 0;
 }
 
+int serialize_other_qualities(const otherQualityType& otherQualities, pugi::xml_node& quality_node)
+{
+    pugi::xml_node current_node = quality_node.append_child("quality");
+    if (otherQualities.nullable.has_value())
+        current_node.append_attribute("nullable").set_value(otherQualities.nullable.value());
+
+    if (otherQualities.non_volatile.has_value()) {
+        current_node.append_attribute("persistence").set_value("nonVolatile");
+    } else if (otherQualities.fixed.has_value()) {
+        current_node.append_attribute("persistence").set_value("fixed");
+    } else {
+        current_node.append_attribute("persistence").set_value("volatile");
+    }
+
+    if (otherQualities.scene.has_value())
+        current_node.append_attribute("scene").set_value(otherQualities.scene.value());
+
+    if (otherQualities.reportable.has_value())
+        current_node.append_attribute("reportable").set_value(otherQualities.reportable.value());
+
+    if (otherQualities.change_omitted.has_value())
+        current_node.append_attribute("changeOmitted").set_value(otherQualities.change_omitted.value());
+
+    if (otherQualities.singleton.has_value())
+        current_node.append_attribute("singleton").set_value(otherQualities.singleton.value());
+
+    if (otherQualities.diagnostics.has_value())
+        current_node.append_attribute("diagnostics").set_value(otherQualities.diagnostics.value());
+
+    if (otherQualities.large_message.has_value())
+        current_node.append_attribute("largeMessage").set_value(otherQualities.large_message.value());
+
+    if (otherQualities.quieter_reporting.has_value())
+        current_node.append_attribute("quieterReporting").set_value(otherQualities.quieter_reporting.value());
+
+    return 0;
+}
+
 int serialize_conformance(const conformanceType& conformance, pugi::xml_node& current_node)
 {
     if (conformance.mandatory.has_value()) {
@@ -400,8 +449,9 @@ int serialize_attribute(const attributeType& attribute, pugi::xml_node& attribut
         serialize_access(attribute.access.value(), attribute_node);
     if (!attribute.summary.empty())
         attribute_node.append_attribute("summary").set_value(attribute.summary.c_str());
+    if (attribute.quality.has_value())
+        serialize_other_qualities(attribute.quality.value(), attribute_node);
     attribute_node.attribute("type").set_value(attribute.type.c_str());
-    // qualities
     attribute_node.attribute("default").set_value(attribute.default_.c_str());
 
     return 0;
