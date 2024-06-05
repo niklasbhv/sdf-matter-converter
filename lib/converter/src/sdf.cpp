@@ -22,14 +22,21 @@
 using json = nlohmann::ordered_json;
 
 /*
+ * Reference to the SDF-Model used for resolving sdfRef-Elements.
+ */
+json global_sdf_model = {};
+
+/*
  * Function used to resolve sdfRef qualities.
  */
-int resolveSdfRef(const json& sdf_ref_qualities_json)
+int resolveSdfRef(json& sdf_ref_qualities_json)
 {
     std::string sdfRef;
-    json test_json;
+    json sdf_ref_qualities_json_copy = sdf_ref_qualities_json;
     sdf_ref_qualities_json.at("sdfRef").get_to(sdfRef);
-    test_json[json::json_pointer(sdfRef.substr(1))];
+    json patch = global_sdf_model[json::json_pointer(sdfRef.substr(1))];
+    patch.merge_patch(sdf_ref_qualities_json_copy);
+    sdf_ref_qualities_json = patch;
 
     return 0;
 }
@@ -37,8 +44,12 @@ int resolveSdfRef(const json& sdf_ref_qualities_json)
 /*
  * Parse common qualities from json into a commonQualityType object.
  */
-int parseCommonQualities(const json& common_qualities_json, commonQualityType& commonQuality)
+int parseCommonQualities(json& common_qualities_json, commonQualityType& commonQuality)
 {
+    // If a sdfRef-Element exists, resolve it
+    if (common_qualities_json.contains("sdfRef"))
+        resolveSdfRef(common_qualities_json);
+
     if (common_qualities_json.contains("description"))
         common_qualities_json.at("description").get_to(commonQuality.description);
 
@@ -47,9 +58,6 @@ int parseCommonQualities(const json& common_qualities_json, commonQualityType& c
 
     if (common_qualities_json.contains("$comment"))
         common_qualities_json.at("$comment").get_to(commonQuality.$comment);
-
-    if (common_qualities_json.contains("sdfRef"))
-        resolveSdfRef(common_qualities_json);
 
     if (common_qualities_json.contains("sdfRequired"))
         common_qualities_json.at("sdfRequired").get_to(commonQuality.sdfRequired);
@@ -60,12 +68,12 @@ int parseCommonQualities(const json& common_qualities_json, commonQualityType& c
 /*
  * Function prototype used for recursive calls.
  */
-int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQuality);
+int parseDataQualities(json& data_qualities_json, dataQualityType& dataQuality);
 
 /*
  * Parse a sdfChoice from json into a dataQualityType map.
  */
-int parseSdfChoice(const json& sdf_choice_json, std::map<std::string, dataQualityType>& sdfChoiceMap)
+int parseSdfChoice(json& sdf_choice_json, std::map<std::string, dataQualityType>& sdfChoiceMap)
 {
     // Iterate through all sdfChoice items and parse them individually
     for (const auto& choice : sdf_choice_json.items()){
@@ -80,11 +88,11 @@ int parseSdfChoice(const json& sdf_choice_json, std::map<std::string, dataQualit
 /*
  * Parse a JSO item type from json into a JsoItemType object.
  */
-int parseJsoItemType(const json& jso_item_type_json, jsoItemType& jsoItem)
+int parseJsoItemType(json& jso_item_type_json, jsoItemType& jsoItem)
 {
     // Parse the common qualities
     if (jso_item_type_json.contains("sdfRef"))
-        jso_item_type_json.at("sdfRef").get_to(jsoItem.sdfRef);
+        resolveSdfRef(jso_item_type_json);
 
     if (jso_item_type_json.contains("description"))
         jso_item_type_json.at("description").get_to(jsoItem.description);
@@ -137,7 +145,7 @@ int parseJsoItemType(const json& jso_item_type_json, jsoItemType& jsoItem)
 /*
  * Parse data qualities from json into a dataQualityType object.
  */
-int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQuality)
+int parseDataQualities(json& data_qualities_json, dataQualityType& dataQuality)
 {
     // Parse the common qualities
     parseCommonQualities(data_qualities_json, dataQuality);
@@ -332,7 +340,7 @@ int parseDataQualities(const json& data_qualities_json, dataQualityType& dataQua
 /*
  * Parse a sdfEvent from json into a sdfEventType object.
  */
-int parseSdfEvent(const json& sdf_event_json, sdfEventType& sdfEvent)
+int parseSdfEvent(json& sdf_event_json, sdfEventType& sdfEvent)
 {
     // Parse the common qualities
     parseCommonQualities(sdf_event_json, sdfEvent);
@@ -356,7 +364,7 @@ int parseSdfEvent(const json& sdf_event_json, sdfEventType& sdfEvent)
 /*
  * Parse a sdfAction from json into a sdfActionType object.
  */
-int parseSdfAction(const json& sdf_action_json, sdfActionType& sdfAction)
+int parseSdfAction(json& sdf_action_json, sdfActionType& sdfAction)
 {
     // Parse the common qualities
     parseCommonQualities(sdf_action_json, sdfAction);
@@ -383,7 +391,7 @@ int parseSdfAction(const json& sdf_action_json, sdfActionType& sdfAction)
 /*
  * Parse a sdfProperty from json into a sdfPropertyType object.
  */
-int parseSdfProperty(const json& sdf_property_json, sdfPropertyType& sdfProperty)
+int parseSdfProperty(json& sdf_property_json, sdfPropertyType& sdfProperty)
 {
     // Parse the data qualities
     parseDataQualities(sdf_property_json, sdfProperty);
@@ -404,7 +412,7 @@ int parseSdfProperty(const json& sdf_property_json, sdfPropertyType& sdfProperty
 /*
  * Parse a sdfObject from json into a sdfObjectType object.
  */
-int parseSdfObject(const json& sdf_object_json, sdfObjectType& sdfObject)
+int parseSdfObject(json& sdf_object_json, sdfObjectType& sdfObject)
 {
     // Parse the common qualities
     parseCommonQualities(sdf_object_json, sdfObject);
@@ -458,7 +466,7 @@ int parseSdfObject(const json& sdf_object_json, sdfObjectType& sdfObject)
 /*
  * Parse a sdfThing from json into a sdfThingType object.
  */
-int parseSdfThing(const json& sdf_thing_json, sdfThingType& sdfThing)
+int parseSdfThing(json& sdf_thing_json, sdfThingType& sdfThing)
 {
     // Parse the common qualities
     parseCommonQualities(sdf_thing_json, sdfThing);
@@ -523,7 +531,7 @@ int parseSdfThing(const json& sdf_thing_json, sdfThingType& sdfThing)
 /*
  * Parse a namespace block from json into a namespaceType object.
  */
-int parseNamespaceBlock(const json& namespace_json, namespaceType& namespace_)
+int parseNamespaceBlock(json& namespace_json, namespaceType& namespace_)
 {
     // Iterate through all namespace items and parse them individually
     for (const auto& nsp_item : namespace_json.items()) {
@@ -536,7 +544,7 @@ int parseNamespaceBlock(const json& namespace_json, namespaceType& namespace_)
 /*
  * Parse an information block from json into a infoBlockType object.
  */
-int parseInfoBlock(const json& info_block_json, infoBlockType& infoBlock)
+int parseInfoBlock(json& info_block_json, infoBlockType& infoBlock)
 {
     if (info_block_json.contains("title"))
         info_block_json.at("title").get_to(infoBlock.title);
@@ -568,8 +576,11 @@ int parseInfoBlock(const json& info_block_json, infoBlockType& infoBlock)
 /*
  * Parse a sdf-model from json into a sdfModelType object.
  */
-int parseSdfModel(const json& sdf_model_json, sdfModelType& sdfModel)
+int parseSdfModel(json& sdf_model_json, sdfModelType& sdfModel)
 {
+    // Set the global sdf_model reference
+    global_sdf_model = sdf_model_json;
+
     // Parse the information block
     if (sdf_model_json.contains("info"))
         parseInfoBlock(sdf_model_json.at("info"), sdfModel.infoBlock);
@@ -614,7 +625,7 @@ int parseSdfModel(const json& sdf_model_json, sdfModelType& sdfModel)
 /*
  * Parse a sdf-mapping from json into a sdfMappingType object.
  */
-int parseSdfMapping(const json& sdf_mapping_json, sdfMappingType& sdfMapping)
+int parseSdfMapping(json& sdf_mapping_json, sdfMappingType& sdfMapping)
 {
     // Parse the information block
     if (sdf_mapping_json.contains("info")) {
