@@ -215,10 +215,9 @@ struct accessType {
     //! O -> Read, Write or Invoke access requires operate privilege
     //! M -> Read, Write or Invoke access requires manage privilege
     //! A -> Read, Write or Invoke access requires administer privilege
-    std::optional<bool> requires_view_privilege;
-    std::optional<bool> requires_operate_privilege;
-    std::optional<bool> requires_manage_privilege;
-    std::optional<bool> requires_administer_privilege;
+    std::string read_privilege; // view | operate | manage | administer
+    std::string write_privilege; // operate | manage | administer
+    std::string invoke_privilege; // view | operate | manage | administer
     //! Timed
     //! T -> Write or Invoke Access with timed interaction only
     std::optional<bool> timed;

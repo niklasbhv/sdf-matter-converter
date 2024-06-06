@@ -59,40 +59,46 @@ int parse_other_qualities(const pugi::xml_node& quality_node, otherQualityType& 
     return 0;
 }
 
-int parse_conformance(const pugi::xml_node& conformance_node, std::optional<conformanceType>& conformance)
+int parse_conformance(const pugi::xml_node& conformance_node, std::optional<conformanceType>& optional_conformance)
 {
     // TODO: These can be combined with logic operations to create complex expressions, should be caught
     // Mandatory conform
     if (!conformance_node.child("mandatoryConform").empty()) {
-        conformanceType currentConformance;
-        currentConformance.mandatory = true;
-        conformance = currentConformance;
+        conformanceType conformance;
+        conformance.mandatory = true;
+        optional_conformance = conformance;
     }
     // Optional conform
     else if (!conformance_node.child("optionalConform").empty()) {
-        conformanceType currentConformance;
-        currentConformance.optional = true;
-        conformance = currentConformance;
+        conformanceType conformance;
+        conformance.optional = true;
+        optional_conformance = conformance;
     }
-    // TODO: Check the attribute names for these
+
     // Provisional conform
     else if (!conformance_node.child("provisionalConform").empty()) {
-        conformanceType currentConformance;
-        currentConformance.provisional = true;
-        conformance = currentConformance;
+        conformanceType conformance;
+        conformance.provisional = true;
+        optional_conformance = conformance;
     }
     // Deprecated conform
     else if (!conformance_node.child("deprecatedConform").empty()) {
-        conformanceType currentConformance;
-        currentConformance.deprecated = true;
-        conformance = currentConformance;
+        conformanceType conformance;
+        conformance.deprecated = true;
+        optional_conformance = conformance;
     }
     // Disallowed conform
-    else if (!conformance_node.child("disallowedConform").empty()) {
-        conformanceType currentConformance;
-        currentConformance.disallowed = true;
-        conformance = currentConformance;
+    else if (!conformance_node.child("disallowConform").empty()) {
+        conformanceType conformance;
+        conformance.disallowed = true;
+        optional_conformance = conformance;
     }
+    // In case no conformance is defined
+    else {
+        optional_conformance = std::nullopt;
+    }
+
+    // otherwiseConform
 
     return 0;
 }
@@ -110,6 +116,7 @@ int parse_struct_fields(const pugi::xml_node& struct_node, std::list<structField
         struct_field.id = struct_field_node.attribute("id").as_int();
         struct_field.name = struct_field_node.attribute("name").value();
         parse_conformance(struct_field_node, struct_field.conformance);
+
         struct_fields.push_back(struct_field);
     }
 
@@ -122,7 +129,7 @@ int parse_feature_map(const pugi::xml_node& feature_map_node, std::list<featureM
     for (const auto& feature : feature_map_node.children()) {
         featureMapType featureMap;
         featureMap.bit = feature.attribute("bit").as_int();
-        parse_conformance(feature_map_node, featureMap.conformance);
+        parse_conformance(feature, featureMap.conformance);
         featureMap.code = feature.attribute("code").value();
         featureMap.name = feature.attribute("name").value();
         featureMap.summary = feature.attribute("summary").value();
@@ -132,25 +139,34 @@ int parse_feature_map(const pugi::xml_node& feature_map_node, std::list<featureM
     return 0;
 }
 
-int parse_access(const pugi::xml_node& access_node, std::optional<accessType>& access)
+/*
+ * Function used to
+ */
+int parse_access(const pugi::xml_node& access_node, accessType& access)
 {
-    if (!access_node.attribute("read").empty()) {
-        accessType currentAccess;
-        currentAccess.read = access_node.attribute("read").as_bool();
-        access = currentAccess;
-    }
+    if (!access_node.attribute("read").empty())
+        access.read = access_node.attribute("read").as_bool();
 
-    if (!access_node.attribute("write").empty()) {
-        if (access.has_value()) {
-            access.value().write = access_node.attribute("write").as_bool();
-        } else {
-            accessType currentAccess;
-            currentAccess.write = access_node.attribute("write").as_bool();
-            access = currentAccess;
-        }
-    }
+    if (!access_node.attribute("write").empty())
+        access.write = access_node.attribute("write").as_bool();
 
-    // TODO: Seems like read and write have separate privileges, check specification
+    if (!access_node.attribute("fabricScoped").empty())
+        access.fabric_scoped = access_node.attribute("fabricScoped").as_bool();
+
+    if (!access_node.attribute("fabricSensitive").empty())
+        access.fabric_sensitive = access_node.attribute("fabricSensitive").as_bool();
+
+    if (!access_node.attribute("readPrivilege").empty())
+        access.read_privilege = access_node.attribute("readPrivilege").as_string();
+
+    if (!access_node.attribute("writePrivilege").empty())
+        access.write_privilege = access_node.attribute("writePrivilege").as_string();
+
+    if (!access_node.attribute("invokePrivilege").empty())
+        access.invoke_privilege = access_node.attribute("invokePrivilege").as_string();
+
+    if (!access_node.attribute("timed").empty())
+        access.timed = access_node.attribute("timed").as_bool();
 
     return 0;
 }
@@ -159,8 +175,15 @@ int parse_event(const pugi::xml_node& event_node, eventType& event)
 {
     event.id = event_node.attribute("id").as_int();
     event.name = event_node.attribute("name").value();
+
     parse_conformance(event_node, event.conformance);
-    parse_access(event_node, event.access);
+
+    if (!event_node.child("access").empty()) {
+        accessType access;
+        parse_access(event_node.child("access"), access);
+        event.access = access;
+    }
+
     event.summary = event_node.attribute("summary").value();
     event.priority = event_node.attribute("priority").value();
     auto quality_node = event_node.child("quality");
@@ -181,10 +204,16 @@ int parse_command(const pugi::xml_node& command_node, commandType& command)
 {
     command.id = command_node.attribute("id").as_int();
     command.name = command_node.attribute("name").value();
+
     parse_conformance(command_node, command.conformance);
-    parse_access(command_node.child("access"), command.access);
-    // TODO: Where is summary defined?
-    // summary
+
+    if (!command_node.child("access").empty()) {
+        accessType access;
+        parse_access(command_node.child("access"), access);
+        command.access = access;
+    }
+
+    command.summary = command_node.attribute("summary").value();
     // default
     command.direction = command_node.attribute("direction").value();
     command.response = command_node.attribute("response").value();
@@ -195,10 +224,16 @@ int parse_command(const pugi::xml_node& command_node, commandType& command)
 int parse_attribute(const pugi::xml_node& attribute_node, attributeType& attribute) {
     attribute.id = attribute_node.attribute("id").as_int();
     attribute.name = attribute_node.attribute("name").value();
-    std::cout << attribute.name << std::endl;
+
     parse_conformance(attribute_node, attribute.conformance);
-    parse_access(attribute_node.child("access"), attribute.access);
-    // summary
+
+    if (!attribute_node.child("access").empty()) {
+        accessType access;
+        parse_access(attribute_node.child("access"), access);
+        attribute.access = access;
+    }
+
+    attribute.summary = attribute_node.attribute("summary").value();
     attribute.type = attribute_node.attribute("type").value();
     auto quality_node = attribute_node.child("quality");
     if (!quality_node.empty()) {
@@ -221,7 +256,9 @@ int parse_enum_items(const pugi::xml_node& enum_node, std::list<enumItemType>& i
         item.value = enum_item_node.attribute("value").as_int();
         item.name = enum_item_node.attribute("name").value();
         item.summary = enum_item_node.attribute("summary").value();
+
         parse_conformance(enum_item_node, item.conformance);
+
         items.push_back(item);
     }
 
@@ -236,7 +273,9 @@ int parse_bitfields(const pugi::xml_node& bitmap_node, std::list<bitmapBitfieldT
         bitfield.bit = bitfield_node.attribute("bit").as_int();
         bitfield.name = bitfield_node.attribute("name").value();
         bitfield.summary = bitfield_node.attribute("summary").value();
-        parse_conformance(bitfield_node, bitfield.conformance);
+
+        parse_conformance(bitfield_node.child("conformance"), bitfield.conformance);
+
         bitfields.push_back(bitfield);
     }
 
@@ -462,16 +501,31 @@ int serialize_conformance(const conformanceType& conformance, pugi::xml_node& cu
     return 0;
 }
 
-int serialize_access(const accessType& access, pugi::xml_node& current_node)
+int serialize_access(const accessType& access, pugi::xml_node& access_node)
 {
-    // TODO: What happens if none of the attributes are set?
-    auto access_node = current_node.append_child("access");
-
     if (access.read.has_value())
         access_node.append_attribute("read").set_value(access.read.value());
+
     if (access.write.has_value())
         access_node.append_attribute("write").set_value(access.write.value());
-    // TODO: The format of the remaining types has to be checked
+
+    if (access.fabric_scoped.has_value())
+        access_node.append_attribute("fabricScoped").set_value(access.fabric_scoped.value());
+
+    if (access.fabric_sensitive.has_value())
+        access_node.append_attribute("fabricSensitive").set_value(access.fabric_sensitive.value());
+
+    if (!access.read_privilege.empty())
+        access_node.append_attribute("readPrivilege").set_value(access.read_privilege.c_str());
+
+    if (!access.write_privilege.empty())
+        access_node.append_attribute("writePrivilege").set_value(access.write_privilege.c_str());
+
+    if (!access.invoke_privilege.empty())
+        access_node.append_attribute("invokePrivilege").set_value(access.invoke_privilege.c_str());
+
+    if (access.timed.has_value())
+        access_node.append_attribute("timed").set_value(access.timed.value());
 
     return 0;
 }
@@ -487,14 +541,21 @@ int serialize_command(const commandType& command, pugi::xml_node& command_xml)
 
     command_node.append_attribute("id").set_value(decToHexa(command.id).c_str());
     command_node.append_attribute("name").set_value(command.name.c_str());
+
     if (command.conformance.has_value())
         serialize_conformance(command.conformance.value(), command_node);
-    if (command.access.has_value())
-        serialize_access(command.access.value(), command_node);
+
+    if (command.access.has_value()) {
+        pugi::xml_node access_node = command_node.append_child("access");
+        serialize_access(command.access.value(), access_node);
+    }
+
     if (!command.summary.empty())
         command_node.append_attribute("summary").set_value(command.summary.c_str());
+
     if (!command.default_.empty())
         command_node.append_attribute("default").set_value(command.default_.c_str());
+
     command_node.append_attribute("direction").set_value(command.direction.c_str());
     command_node.append_attribute("response").set_value(command.response.c_str());
 
@@ -507,14 +568,21 @@ int serialize_attribute(const attributeType& attribute, pugi::xml_node& attribut
 
     attribute_node.append_attribute("id").set_value(decToHexa(attribute.id).c_str());
     attribute_node.append_attribute("name").set_value(attribute.name.c_str());
+
     if (attribute.conformance.has_value())
         serialize_conformance(attribute.conformance.value(), attribute_node);
-    if (attribute.access.has_value())
-        serialize_access(attribute.access.value(), attribute_node);
+
+    if (attribute.access.has_value()) {
+        pugi::xml_node access_node = attribute_node.append_child("access");
+        serialize_access(attribute.access.value(), access_node);
+    }
+
     if (!attribute.summary.empty())
         attribute_node.append_attribute("summary").set_value(attribute.summary.c_str());
+
     if (attribute.quality.has_value())
         serialize_other_qualities(attribute.quality.value(), attribute_node);
+
     attribute_node.attribute("type").set_value(attribute.type.c_str());
     attribute_node.attribute("default").set_value(attribute.default_.c_str());
 
@@ -602,10 +670,15 @@ int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
 
     cluster_node.append_attribute("id").set_value(decToHexa(cluster.id).c_str());
     cluster_node.append_attribute("name").set_value(cluster.name.c_str());
+
     if (cluster.conformance.has_value())
         serialize_conformance(cluster.conformance.value(), cluster_node);
-    if (cluster.access.has_value())
-        serialize_access(cluster.access.value(), cluster_node);
+
+    if (cluster.access.has_value()) {
+        pugi::xml_node access_node = cluster_node.append_child("access");
+        serialize_access(cluster.access.value(), access_node);
+    }
+
     if (!cluster.summary.empty())
         cluster_node.append_attribute("summary").set_value(cluster.summary.c_str());
 
@@ -653,12 +726,18 @@ int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi:
 
     device_node.append_attribute("id").set_value(decToHexa(device.id).c_str());
     device_node.append_attribute("name").set_value(device.name.c_str());
+
     if (device.conformance.has_value())
         serialize_conformance(device.conformance.value(), device_node);
-    if (device.access.has_value())
-        serialize_access(device.access.value(), device_node);
+
+    if (device.access.has_value()) {
+        pugi::xml_node access_node = device_node.append_child("access");
+        serialize_access(device.access.value(), access_node);
+    }
+
     if (!device.summary.empty())
         device_node.append_attribute("summary").set_value(device.summary.c_str());
+
     device_node.append_attribute("revision").set_value(device.revision);
 
     // Iterate through all revisions and serialize them individually
