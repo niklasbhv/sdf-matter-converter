@@ -26,7 +26,6 @@ int parse_other_qualities(const pugi::xml_node& quality_node, otherQualityType& 
         otherQualities.nullable = quality_node.attribute("nullable").as_bool();
 
     if (!quality_node.attribute("persistence").empty()) {
-        // TODO: It seems like the qualities fixed and non-volatile are combined with persistence
         if (strcmp(quality_node.attribute("persistence").value(), "fixed") == 0) {
             otherQualities.fixed = true;
         } else if (strcmp(quality_node.attribute("persistence").value(), "volatile") == 0) {
@@ -417,8 +416,6 @@ int parse_device(const pugi::xml_node& device_xml, const pugi::xml_node& cluster
         parse_device_classification(device_xml.child("classification"), deviceClassification);
         device.classification = deviceClassification;
     }
-    // Parse the feature map
-    parse_feature_map(device_xml, device.features);
 
     // Parse all data types and add them to a map
     auto data_type_node = device_xml.child("dataTypes");
@@ -631,7 +628,6 @@ int serialize_bitfields(const bitmapBitfieldType& bitfield, pugi::xml_node& bitf
 
 int serialize_data_types(const clusterType& cluster, pugi::xml_node& cluster_xml)
 {
-    // TODO: Check if the dataTypes node should exist even if there are no custom types
     if (cluster.enums.empty() && cluster.bitmaps.empty())
         return 0;
 
@@ -758,6 +754,9 @@ int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi:
 
     device_node.append_attribute("id").set_value(decToHexa(device.id).c_str());
     device_node.append_attribute("name").set_value(device.name.c_str());
+    device_node.append_attribute("revision").set_value(device.revision);
+    if (!device.summary.empty())
+        device_node.append_attribute("summary").set_value(device.summary.c_str());
 
     if (device.conformance.has_value())
         serialize_conformance(device.conformance.value(), device_node);
@@ -767,11 +766,6 @@ int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi:
         serialize_access(device.access.value(), access_node);
     }
 
-    if (!device.summary.empty())
-        device_node.append_attribute("summary").set_value(device.summary.c_str());
-
-    device_node.append_attribute("revision").set_value(device.revision);
-
     // Iterate through all revisions and serialize them individually
     auto revision_history_node = device_node.append_child("revisionHistory");
     for (const auto& revision : device.revision_history) {
@@ -779,6 +773,7 @@ int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi:
         revision_node.append_attribute("revision").set_value(revision.first);
         revision_node.append_attribute("summary").set_value(revision.second.c_str());
     }
+
     if (device.classification.has_value()) {
         pugi::xml_node classification_node = device_node.append_child("classification");
         serialize_device_classification(device.classification.value(), classification_node);
@@ -788,15 +783,6 @@ int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi:
     for (const auto& cluster : device.clusters) {
         serialize_cluster(cluster, cluster_xml);
     }
-
-    // Iterate through all features and parse them individually
-    auto features_node = device_node.append_child("features");
-    for (const auto& feature : device.features) {
-        // feature
-    }
-    // enums
-    // bitmaps
-    // structs
 
     return 0;
 }

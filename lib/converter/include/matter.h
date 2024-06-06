@@ -357,7 +357,6 @@ struct deviceType : commonDataQualityType{
     revisionType revision_history;
     std::optional<deviceClassificationType> classification;
     std::list<clusterType> clusters;
-    std::list<featureMapType> features;
     std::map<std::string, std::list<enumItemType>> enums;
     std::map<std::string, std::list<bitmapBitfieldType>> bitmaps;
     std::map<std::string, std::list<structFieldType>> structs;
