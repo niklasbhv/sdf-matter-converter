@@ -321,14 +321,22 @@ struct attributeType : commonDataQualityType {
     std::string default_;
 };
 
+struct classificationType {
+    std::string hierarchy;
+    std::string role;
+    std::string picsCode;
+    std::string scope;
+    std::string baseCluster;
+    std::string primaryTransaction;
+};
+
 /**
  * Struct which contains Matter cluster information.
  */
-struct clusterType : commonDataQualityType{
+struct clusterType : commonDataQualityType {
     int revision;
     revisionType revision_history;
-    // TODO: Change this into a enum
-    std::string classification;
+    std::optional<classificationType> classification;
     std::list<attributeType> attributes;
     std::list<commandType> commands;
     std::list<eventType> events;

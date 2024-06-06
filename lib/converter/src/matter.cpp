@@ -265,6 +265,32 @@ int parse_data_types(const pugi::xml_node& data_type_xml, clusterType& cluster)
 }
 
 /*
+ * Function used to parse classification information.
+ */
+int parse_classification(const pugi::xml_node& classification_xml, classificationType& classification)
+{
+    if (!classification_xml.attribute("hierarchy").empty())
+        classification.hierarchy = classification_xml.attribute("hierarchy").value();
+
+    if (!classification_xml.attribute("role").empty())
+        classification.role = classification_xml.attribute("role").value();
+
+    if (!classification_xml.attribute("picsCode").empty())
+        classification.picsCode = classification_xml.attribute("picsCode").value();
+
+    if (!classification_xml.attribute("scope").empty())
+        classification.scope = classification_xml.attribute("scope").value();
+
+    if (!classification_xml.attribute("baseCluster").empty())
+        classification.baseCluster = classification_xml.attribute("baseCluster").value();
+
+    if (!classification_xml.attribute("primaryTransaction").empty())
+        classification.primaryTransaction = classification_xml.attribute("primaryTransaction").value();
+
+    return 0;
+}
+
+/*
  * Function used to parse clusters.
  */
 int parse_cluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
@@ -280,7 +306,13 @@ int parse_cluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
         for (const auto& revision_node : cluster_xml.child("revisionHistory").children()) {
             cluster.revision_history.insert({revision_node.attribute("revision").as_int(), revision_node.attribute("summary").value()});
         }
-        // classification
+
+        // Parse the classification section
+        if (!cluster_xml.child("classification").empty()) {
+            classificationType classification;
+            parse_classification(cluster_xml.child("classification"), classification);
+            cluster.classification = classification;
+        }
 
         // Parse the globally defined custom data types
         if (!cluster_xml.child("dataTypes").empty())
@@ -540,6 +572,29 @@ int serialize_data_types(const clusterType& cluster, pugi::xml_node& cluster_xml
     return 0;
 }
 
+int serialize_classification(const classificationType& classification, pugi::xml_node& classification_node)
+{
+    if (!classification.hierarchy.empty())
+        classification_node.append_attribute("hierarchy").set_value(classification.hierarchy.c_str());
+
+    if (!classification.role.empty())
+        classification_node.append_attribute("role").set_value(classification.role.c_str());
+
+    if (!classification.picsCode.empty())
+        classification_node.append_attribute("picsCode").set_value(classification.picsCode.c_str());
+
+    if (!classification.scope.empty())
+        classification_node.append_attribute("scope").set_value(classification.scope.c_str());
+
+    if (!classification.baseCluster.empty())
+        classification_node.append_attribute("baseCluster").set_value(classification.baseCluster.c_str());
+
+    if (!classification.primaryTransaction.empty())
+        classification_node.append_attribute("primaryTransaction").set_value(classification.primaryTransaction.c_str());
+
+    return 0;
+}
+
 int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
 {
     // Create the cluster node
@@ -553,7 +608,12 @@ int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
         serialize_access(cluster.access.value(), cluster_node);
     if (!cluster.summary.empty())
         cluster_node.append_attribute("summary").set_value(cluster.summary.c_str());
-    // classification
+
+    // Serialize the classification information
+    if (cluster.classification.has_value()) {
+        pugi::xml_node classification_node = cluster_node.append_child("classification");
+        serialize_classification(cluster.classification.value(), classification_node);
+    }
 
     // Iterate through all revisions and serialize them individually
     auto revision_history_node = cluster_node.append_child("revisionHistory");
