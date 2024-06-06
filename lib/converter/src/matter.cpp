@@ -306,7 +306,7 @@ int parse_data_types(const pugi::xml_node& data_type_xml, clusterType& cluster)
 /*
  * Function used to parse classification information.
  */
-int parse_classification(const pugi::xml_node& classification_xml, classificationType& classification)
+int parse_cluster_classification(const pugi::xml_node& classification_xml, clusterClassificationType& classification)
 {
     if (!classification_xml.attribute("hierarchy").empty())
         classification.hierarchy = classification_xml.attribute("hierarchy").value();
@@ -348,8 +348,8 @@ int parse_cluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
 
         // Parse the classification section
         if (!cluster_xml.child("classification").empty()) {
-            classificationType classification;
-            parse_classification(cluster_xml.child("classification"), classification);
+            clusterClassificationType classification;
+            parse_cluster_classification(cluster_xml.child("classification"), classification);
             cluster.classification = classification;
         }
 
@@ -383,6 +383,20 @@ int parse_cluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
     return 0;
 }
 
+int parse_device_classification(const pugi::xml_node& classification_node, deviceClassificationType& deviceClassification)
+{
+    if (!classification_node.attribute("superset").empty())
+        deviceClassification.superset = classification_node.attribute("superset").value();
+
+    if (!classification_node.attribute("class").empty())
+        deviceClassification.class_ = classification_node.attribute("class").value();
+
+    if (!classification_node.attribute("scope").empty())
+        deviceClassification.scope = classification_node.attribute("scope").value();
+
+    return 0;
+}
+
 /*
  * Function used to parse devices.
  */
@@ -398,7 +412,11 @@ int parse_device(const pugi::xml_node& device_xml, const pugi::xml_node& cluster
         device.revision_history.insert({revision_node.attribute("revision").as_int(), revision_node.attribute("summary").value()});
     }
 
-    // TODO:  Insert classification
+    if (!device_xml.child("classification").empty()) {
+        deviceClassificationType deviceClassification;
+        parse_device_classification(device_xml.child("classification"), deviceClassification);
+        device.classification = deviceClassification;
+    }
     // Parse the feature map
     parse_feature_map(device_xml, device.features);
 
@@ -640,7 +658,7 @@ int serialize_data_types(const clusterType& cluster, pugi::xml_node& cluster_xml
     return 0;
 }
 
-int serialize_classification(const classificationType& classification, pugi::xml_node& classification_node)
+int serialize_cluster_classification(const clusterClassificationType& classification, pugi::xml_node& classification_node)
 {
     if (!classification.hierarchy.empty())
         classification_node.append_attribute("hierarchy").set_value(classification.hierarchy.c_str());
@@ -685,7 +703,7 @@ int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
     // Serialize the classification information
     if (cluster.classification.has_value()) {
         pugi::xml_node classification_node = cluster_node.append_child("classification");
-        serialize_classification(cluster.classification.value(), classification_node);
+        serialize_cluster_classification(cluster.classification.value(), classification_node);
     }
 
     // Iterate through all revisions and serialize them individually
@@ -720,6 +738,20 @@ int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml)
     return 0;
 }
 
+int serialize_device_classification(const deviceClassificationType& deviceClassification, pugi::xml_node& classification_node)
+{
+    if (!deviceClassification.superset.empty())
+        classification_node.append_attribute("superset").set_value(deviceClassification.superset.c_str());
+
+    if (!deviceClassification.class_.empty())
+        classification_node.append_attribute("class").set_value(deviceClassification.class_.c_str());
+
+    if (!deviceClassification.scope.empty())
+        classification_node.append_attribute("scope").set_value(deviceClassification.scope.c_str());
+
+    return 0;
+}
+
 int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi::xml_node& cluster_xml)
 {
     auto device_node = device_xml.append_child("deviceType");
@@ -747,7 +779,10 @@ int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi:
         revision_node.append_attribute("revision").set_value(revision.first);
         revision_node.append_attribute("summary").set_value(revision.second.c_str());
     }
-    // classification
+    if (device.classification.has_value()) {
+        pugi::xml_node classification_node = device_node.append_child("classification");
+        serialize_device_classification(device.classification.value(), classification_node);
+    }
     // Iterate through all clusters and serialize them individually
     auto clusters_node = device_node.append_child("clusters");
     for (const auto& cluster : device.clusters) {

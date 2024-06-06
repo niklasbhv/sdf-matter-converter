@@ -320,7 +320,7 @@ struct attributeType : commonDataQualityType {
     std::string default_;
 };
 
-struct classificationType {
+struct clusterClassificationType {
     std::string hierarchy;
     std::string role;
     std::string picsCode;
@@ -335,12 +335,18 @@ struct classificationType {
 struct clusterType : commonDataQualityType {
     int revision;
     revisionType revision_history;
-    std::optional<classificationType> classification;
+    std::optional<clusterClassificationType> classification;
     std::list<attributeType> attributes;
     std::list<commandType> commands;
     std::list<eventType> events;
     std::map<std::string, std::list<enumItemType>> enums;
     std::map<std::string, std::list<bitmapBitfieldType>> bitmaps;
+};
+
+struct deviceClassificationType {
+    std::string superset;
+    std::string class_;
+    std::string scope;
 };
 
 /**
@@ -349,8 +355,7 @@ struct clusterType : commonDataQualityType {
 struct deviceType : commonDataQualityType{
     int revision;
     revisionType revision_history;
-    // TODO: Change this into a enum
-    std::string classification;
+    std::optional<deviceClassificationType> classification;
     std::list<clusterType> clusters;
     std::list<featureMapType> features;
     std::map<std::string, std::list<enumItemType>> enums;
