@@ -28,19 +28,23 @@
 #include <string>
 #include <map>
 #include <list>
-//#include <vector>
 #include <variant>
 #include <optional>
 #include <nlohmann/json.hpp>
 
-// Support to_json and from_json for std::optional
+using json = nlohmann::ordered_json;
+
+/**
+ * Template used to add to_json and from_json for the std::optional type.
+ */
 NLOHMANN_JSON_NAMESPACE_BEGIN
 template <typename T> struct adl_serializer<std::optional<T>> {
     static void to_json(json& j, const std::optional<T>& opt) {
         if (opt == std::nullopt) {
             j = nullptr;
         } else {
-            // this will call adl_serializer<T>::to_json which will find the free function to_json in T's namespace!
+            // this will call adl_serializer<T>::to_json which will
+            // find the free function to_json in T's namespace!
             j = *opt;
         }
     }
@@ -49,13 +53,12 @@ template <typename T> struct adl_serializer<std::optional<T>> {
         if (j.is_null()) {
             opt = std::nullopt;
         } else {
-            opt = j.template get<T>(); // same as above, but with  adl_serializer<T>::from_json
+            // same as above, but with  adl_serializer<T>::from_json
+            opt = j.template get<T>();
         }
     }
 };
 NLOHMANN_JSON_NAMESPACE_END
-
-using json = nlohmann::ordered_json;
 
 /**
  * Struct which contains common quality information.
@@ -85,7 +88,6 @@ typedef std::map<std::string, dataQualityType> sdfDataType;
 
 /**
  * JSO-Item Type definition.
- * TODO: Currently this is taken from the schema as this quality lacks a sufficient description
  */
 struct jsoItemType {
     std::string sdfRef;
@@ -102,18 +104,15 @@ struct jsoItemType {
     std::list<std::string> required;
     sdfDataType properties;
 };
-/*
-union defaultType {
-    double number;
-    std::string string;
-    uint64_t integer;
-    bool boolean;
-    std::list<std::string> array;
-};
-*/
 
+/**
+ * Type definition for array items.
+ */
 typedef std::variant<uint64_t, int64_t , double, std::string, bool> arrayItemType;
 
+/**
+ * Type definition for const and default fields.
+ */
 typedef std::variant<uint64_t, int64_t , double, std::string, bool, std::list<arrayItemType>> variableType;
 
 /**
@@ -195,8 +194,7 @@ struct sdfObjectType : commonQualityType {
  * Struct which contains sdfThing information.
  */
 struct sdfThingType : commonQualityType{
-    // It's currently not planed to allow for nested sdfThings as they
-    // wouldn't really be able to be translated into Matter
+    std::map<std::string, sdfThingType> sdfThing;
     std::map<std::string, sdfObjectType> sdfObject;
     std::map<std::string, sdfPropertyType> sdfProperty;
     std::map<std::string, sdfActionType> sdfAction;
