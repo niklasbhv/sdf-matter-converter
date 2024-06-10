@@ -48,28 +48,30 @@
 #define MATTER_U_INT_56_MIN 0
 #define MATTER_U_INT_56_MAX 72057594037927935
 #define MATTER_U_INT_64_MIN 0
-#define MATTER_U_INT_64_MAX 18446744073709551615
+#define MATTER_U_INT_64_MAX ((uint64_t)18446744073709551615)
 
 //! Max and Min Type boundaries if value is not nullable
 //! For nullable values, min has to be increased by one
-#define MATTER_INT_8_MIN -128
+#define MATTER_INT_8_MIN (-128)
 #define MATTER_INT_8_MAX 127
-#define MATTER_INT_16_MIN -32768
+#define MATTER_INT_16_MIN (-32768)
 #define MATTER_INT_16_MAX 32767
-#define MATTER_INT_24_MIN -8388608
+#define MATTER_INT_24_MIN (-8388608)
 #define MATTER_INT_24_MAX 8388607
-#define MATTER_INT_32_MIN -2147483648
+#define MATTER_INT_32_MIN (-2147483648)
 #define MATTER_INT_32_MAX 2147483647
-#define MATTER_INT_40_MIN -549755813888
+#define MATTER_INT_40_MIN (-549755813888)
 #define MATTER_INT_40_MAX 549755813887
-#define MATTER_INT_48_MIN -140737488355328
+#define MATTER_INT_48_MIN (-140737488355328)
 #define MATTER_INT_48_MAX 140737488355327
-#define MATTER_INT_56_MIN -36028797018963968
+#define MATTER_INT_56_MIN (-36028797018963968)
 #define MATTER_INT_56_MAX 36028797018963967
-#define MATTER_INT_64_MIN -9223372036854775808
-#define MATTER_INT_64_MAX 9223372036854775807
+#define MATTER_INT_64_MIN ((int64_t)-9223372036854775808)
+#define MATTER_INT_64_MAX ((int64_t)9223372036854775807)
 
-// function to convert decimal to hexadecimal
+/**
+ * Function used to convert decimal uint32 numbers to hexadecimal.
+ */
 inline std::string decToHexa(uint32_t n)
 {
     // TODO: Has to be reworked in order to account für uint32 size numbers
@@ -99,7 +101,6 @@ inline std::string decToHexa(uint32_t n)
     }
 
     // reversing the ans string to get the final result
-
     while (ans.length() < 4) {
         ans.append("0");
     }
@@ -111,7 +112,6 @@ inline std::string decToHexa(uint32_t n)
         i++;
         j--;
     }
-
 
     return ans;
 }
@@ -143,8 +143,14 @@ struct otherQualityType {
     //! Any of the above can be negated by using !.
 };
 
+/**
+ * Struct definition for constraint type.
+ */
 struct constraintType;
 
+/**
+ * Struct which represents constraints.
+ */
 struct constraintType {
     std::string type;
     //! The interpretation for each of these values depends on the data type its applied to
@@ -173,7 +179,7 @@ struct constraintType {
 
 /**
  * Type used to store revision information.
- * Maps a revision onto a summary of changes.
+ * Maps a revision id onto a summary of changes.
  */
 typedef std::map<u_int8_t, std::string> revisionType;
 
@@ -294,7 +300,7 @@ struct eventRecordType {
  * Struct which contains Matter event information.
  */
 struct eventType : commonDataQualityType {
-    std::string priority;
+    std::string priority; // debug | info | critical
     std::optional<otherQualityType> quality;
     std::list<eventRecordType> event_records;
 };
@@ -304,10 +310,8 @@ struct eventType : commonDataQualityType {
  */
 struct commandType : commonDataQualityType {
     std::string default_;
-    //! clientToServer or serverToClient
-    std::string direction;
-    //! N, Y, or name of the response command
-    std::string response; // Also indicates, whether the command is a response or request command
+    std::string direction; // commandToServer | responseFromServer
+    std::string response; // Y | N | [name of a response command]
 };
 
 // TODO: Generics and lists dont seem, to be a good combination, keeping string for now
@@ -320,46 +324,63 @@ struct attributeType : commonDataQualityType {
     std::string default_;
 };
 
+/**
+ * Struct which contains cluster classification information.
+ */
 struct clusterClassificationType {
-    std::string hierarchy;
-    std::string role;
-    std::string picsCode;
-    std::string scope;
-    std::string baseCluster;
-    std::string primaryTransaction;
+    std::string hierarchy; // base | derived
+    std::string role; // utility | application
+    std::string picsCode; // Upper case identification code
+    std::string scope; // Endpoint | Node
+    std::string baseCluster; // [cluster name]
+    std::string primaryTransaction; // [primary transaction number]
 };
 
 /**
  * Struct which contains Matter cluster information.
  */
 struct clusterType : commonDataQualityType {
+    //! Current revision
     int revision;
+    //! History of revisions
     revisionType revision_history;
+    //! Cluster classification
     std::optional<clusterClassificationType> classification;
+    //! List of attributes
     std::list<attributeType> attributes;
+    //! List of commands
     std::list<commandType> commands;
+    //! List of events
     std::list<eventType> events;
+    //! Map for globally defined enums
     std::map<std::string, std::list<enumItemType>> enums;
+    //! Map for globally defined bitmaps
     std::map<std::string, std::list<bitmapBitfieldType>> bitmaps;
 };
 
+/**
+ * Struct which contains device classification information.
+ */
 struct deviceClassificationType {
-    std::string superset;
-    std::string class_;
-    std::string scope;
+    std::string superset; // [device type name]
+    std::string class_; // simple | utility | node
+    std::string scope; // node | endpoint
 };
 
 /**
  *  Struct which contains Matter device information.
  */
 struct deviceType : commonDataQualityType{
+    //! Current revision
     int revision;
+    //! History of revisions
     revisionType revision_history;
+    //! Device classification
     std::optional<deviceClassificationType> classification;
+    //! Device conditions
+    std::map<std::string, std::string> conditions;
+    //! List of used clusters
     std::list<clusterType> clusters;
-    std::map<std::string, std::list<enumItemType>> enums;
-    std::map<std::string, std::list<bitmapBitfieldType>> bitmaps;
-    std::map<std::string, std::list<structFieldType>> structs;
 };
 
 
