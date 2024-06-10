@@ -811,8 +811,10 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
         if (dataQuality.type == "number") {
             data_quality_json["minimum"] = std::get<double>(dataQuality.minimum.value());
         } else if (dataQuality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            data_quality_json["minimum"] = std::get<int>(dataQuality.minimum.value());
+            if (std::holds_alternative<int64_t>(dataQuality.minimum.value()))
+                data_quality_json["minimum"] = std::get<int64_t >(dataQuality.minimum.value());
+            if (std::holds_alternative<uint64_t>(dataQuality.minimum.value()))
+                data_quality_json["minimum"] = std::get<uint64_t >(dataQuality.minimum.value());
         }
     }
 
@@ -820,8 +822,10 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
         if (dataQuality.type == "number") {
             data_quality_json["maximum"] = std::get<double>(dataQuality.maximum.value());
         } else if (dataQuality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            data_quality_json["maximum"] = std::get<int>(dataQuality.maximum.value());
+            if (std::holds_alternative<int64_t>(dataQuality.maximum.value()))
+                data_quality_json["maximum"] = std::get<int64_t >(dataQuality.maximum.value());
+            if (std::holds_alternative<uint64_t>(dataQuality.maximum.value()))
+                data_quality_json["maximum"] = std::get<uint64_t >(dataQuality.maximum.value());
         }
     }
 
@@ -829,8 +833,10 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
         if (dataQuality.type == "number") {
             data_quality_json["exclusiveMinimum"] = std::get<double>(dataQuality.exclusiveMinimum.value());
         } else if (dataQuality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            data_quality_json["exclusiveMinimum"] = std::get<int>(dataQuality.exclusiveMinimum.value());
+            if (std::holds_alternative<int64_t>(dataQuality.exclusiveMinimum.value()))
+                data_quality_json["exclusiveMinimum"] = std::get<int64_t >(dataQuality.exclusiveMinimum.value());
+            if (std::holds_alternative<uint64_t>(dataQuality.exclusiveMinimum.value()))
+                data_quality_json["exclusiveMinimum"] = std::get<uint64_t >(dataQuality.exclusiveMinimum.value());
         }
     }
 
@@ -838,8 +844,10 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
         if (dataQuality.type == "number") {
             data_quality_json["exclusiveMaximum"] = std::get<double>(dataQuality.exclusiveMaximum.value());
         } else if (dataQuality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            data_quality_json["exclusiveMaximum"] = std::get<int>(dataQuality.exclusiveMaximum.value());
+            if (std::holds_alternative<int64_t>(dataQuality.exclusiveMaximum.value()))
+                data_quality_json["exclusiveMaximum"] = std::get<int64_t >(dataQuality.exclusiveMaximum.value());
+            if (std::holds_alternative<uint64_t>(dataQuality.exclusiveMaximum.value()))
+                data_quality_json["exclusiveMaximum"] = std::get<uint64_t >(dataQuality.exclusiveMaximum.value());
         }
     }
 
@@ -847,8 +855,10 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
         if (dataQuality.type == "number") {
             data_quality_json["multipleOf"] = std::get<double>(dataQuality.multipleOf.value());
         } else if (dataQuality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            data_quality_json["multipleOf"] = std::get<int>(dataQuality.multipleOf.value());
+            if (std::holds_alternative<int64_t>(dataQuality.multipleOf.value()))
+                data_quality_json["multipleOf"] = std::get<int64_t >(dataQuality.multipleOf.value());
+            if (std::holds_alternative<uint64_t>(dataQuality.multipleOf.value()))
+                data_quality_json["multipleOf"] = std::get<uint64_t >(dataQuality.multipleOf.value());
         }
     }
 

@@ -126,11 +126,11 @@ struct dataQualityType : commonQualityType {
     std::optional<variableType> const_;
     std::optional<variableType> default_;
     // Number and Integer qualities
-    std::optional<std::variant<double, int>> minimum;
-    std::optional<std::variant<double, int>> maximum;
-    std::optional<std::variant<double, int>> exclusiveMinimum;
-    std::optional<std::variant<double, int>> exclusiveMaximum;
-    std::optional<std::variant<double, int>> multipleOf;
+    std::optional<std::variant<double, int64_t, uint64_t>> minimum;
+    std::optional<std::variant<double, int64_t, uint64_t>> maximum;
+    std::optional<std::variant<double, int64_t, uint64_t>> exclusiveMinimum;
+    std::optional<std::variant<double, int64_t, uint64_t>> exclusiveMaximum;
+    std::optional<std::variant<double, int64_t, uint64_t>> multipleOf;
     // String qualities
     std::optional<uint> minLength;
     std::optional<uint> maxLength;
