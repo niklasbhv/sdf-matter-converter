@@ -20,6 +20,13 @@
 #include <pugixml.hpp>
 #include "matter.h"
 
+/**
+ *
+ *
+ * @param quality_node
+ * @param otherQualities
+ * @return
+ */
 int parse_other_qualities(const pugi::xml_node& quality_node, otherQualityType& otherQualities)
 {
     if (!quality_node.attribute("nullable").empty())
@@ -54,6 +61,70 @@ int parse_other_qualities(const pugi::xml_node& quality_node, otherQualityType& 
 
     if (!quality_node.attribute("quieterReporting").empty()) //Check this
         otherQualities.quieter_reporting = quality_node.attribute("quieterReporting").as_bool();
+
+    return 0;
+}
+
+int parse_constraints(const pugi::xml_node& constraint_node, constraintType& constraint)
+{
+    constraint.type = constraint_node.attribute("type").value();
+
+    // Constraint is defined in the description section
+    if (constraint.type == "desc") {
+        // In this case, there is nothing more to parse
+    }
+
+    // Composed device type constraints
+    // allowed
+    // between
+    // min
+    // max
+
+    // Numeric constraints
+    else if (constraint.type == "allowed") {
+        constraint.value = constraint_node.attribute("value").as_int();
+    }
+    else if (constraint.type == "between") {
+        constraint.from = constraint_node.attribute("from").as_int();
+        constraint.to = constraint_node.attribute("to").as_int();
+    }
+    else if (constraint.type == "min") {
+        constraint.min = constraint_node.attribute("value").as_int();
+    }
+    else if (constraint.type == "max") {
+        constraint.max = constraint_node.attribute("value").as_int();
+    }
+    // all
+
+    // Octet string constraints
+    // lengthAllowed
+    else if (constraint.type == "lengthBetween") {
+        constraint.from = constraint_node.attribute("from").as_int();
+        constraint.to = constraint_node.attribute("to").as_int();
+    }
+    else if (constraint.type == "minLength") {
+        constraint.min = constraint_node.attribute("value").as_int();
+    }
+    else if (constraint.type == "maxLength") {
+        constraint.max = constraint_node.attribute("value").as_int();
+    }
+    // all
+
+    // List constraints
+    // countAllowed
+    else if (constraint.type == "countBetween") {
+        constraint.from = constraint_node.attribute("from").as_int();
+        constraint.to = constraint_node.attribute("to").as_int();
+    }
+    else if (constraint.type == "minCount") {
+        constraint.min = constraint_node.attribute("value").as_int();
+    }
+    else if (constraint.type == "maxCount") {
+        constraint.max = constraint_node.attribute("value").as_int();
+    }
+    // all
+    // Entry constraint -> Child named "entry"
+    // Character string constraints
 
     return 0;
 }
@@ -102,42 +173,6 @@ int parse_conformance(const pugi::xml_node& conformance_node, std::optional<conf
     return 0;
 }
 
-int parse_event_records(const pugi::xml_node& event_record_node, eventRecordType& eventRecord)
-{
-    return 0;
-}
-
-int parse_struct_fields(const pugi::xml_node& struct_node, std::list<structFieldType>& struct_fields)
-{
-    // Iterate through all struct fields and parse them individually
-    for (const auto& struct_field_node : struct_node.children()) {
-        structFieldType struct_field;
-        struct_field.id = struct_field_node.attribute("id").as_int();
-        struct_field.name = struct_field_node.attribute("name").value();
-        parse_conformance(struct_field_node, struct_field.conformance);
-
-        struct_fields.push_back(struct_field);
-    }
-
-    return 0;
-}
-
-int parse_feature_map(const pugi::xml_node& feature_map_node, std::list<featureMapType>& featureMapList)
-{
-    // Iterate through all features and parse them individually
-    for (const auto& feature : feature_map_node.children()) {
-        featureMapType featureMap;
-        featureMap.bit = feature.attribute("bit").as_int();
-        parse_conformance(feature, featureMap.conformance);
-        featureMap.code = feature.attribute("code").value();
-        featureMap.name = feature.attribute("name").value();
-        featureMap.summary = feature.attribute("summary").value();
-        featureMapList.push_back(featureMap);
-    }
-
-    return 0;
-}
-
 /*
  * Function used to
  */
@@ -170,6 +205,102 @@ int parse_access(const pugi::xml_node& access_node, accessType& access)
     return 0;
 }
 
+int parse_common_data_quality()
+{
+    return 0;
+}
+
+int parse_enum_items(const pugi::xml_node& enum_node, std::list<enumItemType>& items)
+{
+    // Iterate through all enum items and parse them individually
+    for (const auto& enum_item_node : enum_node.children()) {
+        enumItemType item;
+        item.value = enum_item_node.attribute("value").as_int();
+        item.name = enum_item_node.attribute("name").value();
+        item.summary = enum_item_node.attribute("summary").value();
+
+        parse_conformance(enum_item_node, item.conformance);
+
+        items.push_back(item);
+    }
+
+    return 0;
+}
+
+int parse_bitfields(const pugi::xml_node& bitmap_node, std::list<bitmapBitfieldType>& bitfields)
+{
+    // Iterate through all bitfields and parse them individually
+    for (const auto& bitfield_node : bitmap_node.children()) {
+        bitmapBitfieldType bitfield;
+        bitfield.bit = bitfield_node.attribute("bit").as_int();
+        bitfield.name = bitfield_node.attribute("name").value();
+        bitfield.summary = bitfield_node.attribute("summary").value();
+
+        parse_conformance(bitfield_node.child("conformance"), bitfield.conformance);
+
+        bitfields.push_back(bitfield);
+    }
+
+    return 0;
+}
+
+int parse_data_fields(const pugi::xml_node& data_fields_node, std::list<dataFieldType>& data_fields)
+{
+    // Iterate through all struct fields and parse them individually
+    for (const auto& data_field_node : data_fields_node.children()) {
+        dataFieldType data_field;
+        data_field.id = data_field_node.attribute("id").as_int();
+        data_field.name = data_field_node.attribute("name").value();
+
+        if (!data_field_node.child("access").empty()) {
+            accessType access;
+            parse_access(data_field_node.child("access"), access);
+            data_field.access = access;
+        }
+
+        parse_conformance(data_field_node, data_field.conformance);
+
+        if (!data_field_node.attribute("summary").empty())
+            data_field.summary = data_field_node.attribute("summary").value();
+
+        if (!data_field_node.attribute("type").empty())
+            data_field.type = data_field_node.attribute("type").value();
+
+        if (!data_field_node.child("constraint").empty()) {
+            constraintType constraint;
+            parse_constraints(data_field_node.child("constraint"), constraint);
+            data_field.constraint = constraint;
+        }
+
+        if (!data_field_node.child("quality").empty()) {
+            otherQualityType quality;
+            parse_other_qualities(data_field_node, quality);
+            data_field.quality = quality;
+        }
+
+        //default
+        data_fields.push_back(data_field);
+    }
+
+    return 0;
+}
+
+int parse_feature_map(const pugi::xml_node& feature_map_node, std::list<featureMapType>& featureMapList)
+{
+    // Iterate through all features and parse them individually
+    for (const auto& feature : feature_map_node.children()) {
+        featureMapType featureMap;
+        featureMap.bit = feature.attribute("bit").as_int();
+        parse_conformance(feature, featureMap.conformance);
+        featureMap.code = feature.attribute("code").value();
+        featureMap.name = feature.attribute("name").value();
+        featureMap.summary = feature.attribute("summary").value();
+        featureMapList.push_back(featureMap);
+    }
+
+    return 0;
+}
+
 int parse_event(const pugi::xml_node& event_node, eventType& event)
 {
     event.id = event_node.attribute("id").as_int();
@@ -191,11 +322,9 @@ int parse_event(const pugi::xml_node& event_node, eventType& event)
         parse_other_qualities(quality_node, otherQualities);
         event.quality = otherQualities;
     }
-    for (auto record_node : event_node.children("field")) {
-        eventRecordType eventRecord;
-        parse_event_records(record_node, eventRecord);
-        event.event_records.push_back(eventRecord);
-    }
+
+    parse_data_fields(event_node, event.data);
+
     return 0;
 }
 
@@ -245,40 +374,6 @@ int parse_attribute(const pugi::xml_node& attribute_node, attributeType& attribu
 
     return 0;
 
-}
-
-int parse_enum_items(const pugi::xml_node& enum_node, std::list<enumItemType>& items)
-{
-    // Iterate through all enum items and parse them individually
-    for (const auto& enum_item_node : enum_node.children()) {
-        enumItemType item;
-        item.value = enum_item_node.attribute("value").as_int();
-        item.name = enum_item_node.attribute("name").value();
-        item.summary = enum_item_node.attribute("summary").value();
-
-        parse_conformance(enum_item_node, item.conformance);
-
-        items.push_back(item);
-    }
-
-    return 0;
-}
-
-int parse_bitfields(const pugi::xml_node& bitmap_node, std::list<bitmapBitfieldType>& bitfields)
-{
-    // Iterate through all bitfields and parse them individually
-    for (const auto& bitfield_node : bitmap_node.children()) {
-        bitmapBitfieldType bitfield;
-        bitfield.bit = bitfield_node.attribute("bit").as_int();
-        bitfield.name = bitfield_node.attribute("name").value();
-        bitfield.summary = bitfield_node.attribute("summary").value();
-
-        parse_conformance(bitfield_node.child("conformance"), bitfield.conformance);
-
-        bitfields.push_back(bitfield);
-    }
-
-    return 0;
 }
 
 /*
@@ -333,51 +428,44 @@ int parse_cluster_classification(const pugi::xml_node& classification_xml, clust
  */
 int parse_cluster(const pugi::xml_node& cluster_xml, clusterType& cluster)
 {
-    // Search for the matching cluster inside the cluster xml definitions
-    //for (const auto& cluster_node : cluster_xml.children("cluster")) {
-    // Match the cluster definitions with their unique id
-    if (cluster_xml.attribute("id").as_int() == cluster.id) {
-        std::cout << "MATCHED CLUSTER" << std::endl;
-        cluster.revision = cluster_xml.attribute("revision").as_int();
+    cluster.revision = cluster_xml.attribute("revision").as_int();
 
-        // Iterate through all revisions and parse them individually
-        for (const auto& revision_node : cluster_xml.child("revisionHistory").children()) {
-            cluster.revision_history.insert({revision_node.attribute("revision").as_int(), revision_node.attribute("summary").value()});
-        }
-
-        // Parse the classification section
-        if (!cluster_xml.child("classification").empty()) {
-            clusterClassificationType classification;
-            parse_cluster_classification(cluster_xml.child("classification"), classification);
-            cluster.classification = classification;
-        }
-
-        // Parse the globally defined custom data types
-        if (!cluster_xml.child("dataTypes").empty())
-            parse_data_types(cluster_xml.child("dataTypes"), cluster);
-
-        // Iterate through all attributes and parse them individually
-        for (const auto& attribute_node : cluster_xml.child("attributes").children()) {
-            attributeType attribute;
-            parse_attribute(attribute_node, attribute);
-            cluster.attributes.push_back(attribute);
-        }
-
-        // Iterate through all commands and parse them individually
-        for (const auto& command_node : cluster_xml.child("commands").children()) {
-            commandType command;
-            parse_command(command_node, command);
-            cluster.commands.push_back(command);
-        }
-
-        // Iterate through all events and parse them individually
-        for (const auto& event_node : cluster_xml.child("events").children()) {
-            eventType event;
-            parse_event(event_node, event);
-            cluster.events.push_back(event);
-        }
+    // Iterate through all revisions and parse them individually
+    for (const auto& revision_node : cluster_xml.child("revisionHistory").children()) {
+        cluster.revision_history.insert({revision_node.attribute("revision").as_int(), revision_node.attribute("summary").value()});
     }
-    //}
+
+    // Parse the classification section
+    if (!cluster_xml.child("classification").empty()) {
+        clusterClassificationType classification;
+        parse_cluster_classification(cluster_xml.child("classification"), classification);
+        cluster.classification = classification;
+    }
+
+    // Parse the globally defined custom data types
+    if (!cluster_xml.child("dataTypes").empty())
+        parse_data_types(cluster_xml.child("dataTypes"), cluster);
+
+    // Iterate through all attributes and parse them individually
+    for (const auto& attribute_node : cluster_xml.child("attributes").children()) {
+        attributeType attribute;
+        parse_attribute(attribute_node, attribute);
+        cluster.attributes.push_back(attribute);
+    }
+
+    // Iterate through all commands and parse them individually
+    for (const auto& command_node : cluster_xml.child("commands").children()) {
+        commandType command;
+        parse_command(command_node, command);
+        cluster.commands.push_back(command);
+    }
+
+    // Iterate through all events and parse them individually
+    for (const auto& event_node : cluster_xml.child("events").children()) {
+        eventType event;
+        parse_event(event_node, event);
+        cluster.events.push_back(event);
+    }
 
     return 0;
 }
@@ -420,36 +508,10 @@ int parse_device(const pugi::xml_node& device_xml, const pugi::xml_node& cluster
     // Parse all data types and add them to a map
     auto data_type_node = device_xml.child("dataTypes");
 
-    // Iterate through all enums and parse them individually
-    for (const auto& enum_node : data_type_node.children("enum")) {
-        std::list<enumItemType> items;
-        parse_enum_items(enum_node, items);
-        device.enums[enum_node.attribute("name").value()] = items;
-    }
-
-    // Iterate through all bitmaps and parse them individually
-    for (const auto& bitmap_node : data_type_node.children("bitmap")) {
-        std::list<bitmapBitfieldType> bitfields;
-        parse_bitfields(bitmap_node, bitfields);
-        device.bitmaps[bitmap_node.attribute("name").value()] = bitfields;
-    }
-
-    // Iterate through all structs and parse them individually
-    for (const auto& struct_node : data_type_node.children("struct")) {
-        std::list<structFieldType> struct_fields;
-        parse_struct_fields(struct_node, struct_fields);
-        device.structs[struct_node.attribute("name").value()] = struct_fields;
-    }
-
     // Iterate through all clusters needed by the device and parse them individually
     for (const auto& cluster_node : device_xml.child("clusters").children("cluster")) {
         clusterType cluster;
-        cluster.id = cluster_node.attribute("id").as_int();
-        cluster.name = cluster_node.attribute("name").value();
-        // TODO: Add conform here
-        // TODO: Add side
-        // TODO: Check for the return value
-        parse_cluster(cluster_xml, cluster);
+        parse_cluster(cluster_node, cluster);
         device.clusters.push_back(cluster);
     }
 
@@ -490,6 +552,78 @@ int serialize_other_qualities(const otherQualityType& otherQualities, pugi::xml_
 
     if (otherQualities.quieter_reporting.has_value())
         current_node.append_attribute("quieterReporting").set_value(otherQualities.quieter_reporting.value());
+
+    return 0;
+}
+
+int serialize_constraints(const constraintType& constraint, pugi::xml_node& constraint_node)
+{
+    // Constraint is defined in the description section
+    if (constraint.type == "desc") {
+        constraint_node.append_attribute("type").set_value("desc");
+    }
+
+    // Composed device type constraints
+    // allowed
+    // between
+    // min
+    // max
+
+    // Numeric constraints
+    else if (constraint.type == "allowed") {
+        constraint_node.append_attribute("type").set_value("allowed");
+        constraint_node.append_attribute("value").set_value(constraint.value.value());
+    }
+    else if (constraint.type == "between") {
+        constraint_node.append_attribute("type").set_value("between");
+        constraint_node.append_attribute("from").set_value(constraint.from.value());
+        constraint_node.append_attribute("to").set_value(constraint.to.value());
+    }
+    else if (constraint.type == "min") {
+        constraint_node.append_attribute("type").set_value("min");
+        constraint_node.append_attribute("value").set_value(constraint.min.value());
+    }
+    else if (constraint.type == "max") {
+        constraint_node.append_attribute("type").set_value("max");
+        constraint_node.append_attribute("value").set_value(constraint.max.value());
+    }
+    // all
+
+    // Octet string constraints
+    // lengthAllowed
+    else if (constraint.type == "lengthBetween") {
+        constraint_node.append_attribute("type").set_value("lengthBetween");
+        constraint_node.append_attribute("from").set_value(constraint.from.value());
+        constraint_node.append_attribute("to").set_value(constraint.to.value());
+    }
+    else if (constraint.type == "minLength") {
+        constraint_node.append_attribute("type").set_value("minLength");
+        constraint_node.append_attribute("value").set_value(constraint.min.value());
+    }
+    else if (constraint.type == "maxLength") {
+        constraint_node.append_attribute("type").set_value("maxLength");
+        constraint_node.append_attribute("value").set_value(constraint.max.value());
+    }
+        // all
+
+        // List constraints
+        // countAllowed
+    else if (constraint.type == "countBetween") {
+        constraint_node.append_attribute("type").set_value("countBetween");
+        constraint_node.append_attribute("from").set_value(constraint.from.value());
+        constraint_node.append_attribute("to").set_value(constraint.to.value());
+    }
+    else if (constraint.type == "minCount") {
+        constraint_node.append_attribute("type").set_value("minCount");
+        constraint_node.append_attribute("value").set_value(constraint.min.value());
+    }
+    else if (constraint.type == "maxCount") {
+        constraint_node.append_attribute("type").set_value("maxCount");
+        constraint_node.append_attribute("value").set_value(constraint.max.value());
+    }
+    // all
+    // Entry constraint -> Child named "entry"
+    // Character string constraints
 
     return 0;
 }
@@ -547,6 +681,7 @@ int serialize_access(const accessType& access, pugi::xml_node& access_node)
 
 int serialize_event(const eventType& event, pugi::xml_node& event_xml)
 {
+    auto event_node = event_xml.append_child("event");
     return 0;
 }
 
@@ -568,8 +703,8 @@ int serialize_command(const commandType& command, pugi::xml_node& command_xml)
     if (!command.summary.empty())
         command_node.append_attribute("summary").set_value(command.summary.c_str());
 
-    if (!command.default_.empty())
-        command_node.append_attribute("default").set_value(command.default_.c_str());
+    //if (!command.default_.empty())
+    //    command_node.append_attribute("default").set_value(command.default_.c_str());
 
     command_node.append_attribute("direction").set_value(command.direction.c_str());
     command_node.append_attribute("response").set_value(command.response.c_str());
@@ -599,7 +734,7 @@ int serialize_attribute(const attributeType& attribute, pugi::xml_node& attribut
         serialize_other_qualities(attribute.quality.value(), attribute_node);
 
     attribute_node.attribute("type").set_value(attribute.type.c_str());
-    attribute_node.attribute("default").set_value(attribute.default_.c_str());
+    //attribute_node.attribute("default").set_value(attribute.default_.c_str());
 
     return 0;
 }
@@ -628,9 +763,6 @@ int serialize_bitfields(const bitmapBitfieldType& bitfield, pugi::xml_node& bitf
 
 int serialize_data_types(const clusterType& cluster, pugi::xml_node& cluster_xml)
 {
-    if (cluster.enums.empty() && cluster.bitmaps.empty())
-        return 0;
-
     auto data_type_node = cluster_xml.append_child("dataTypes");
 
     for (const auto& current_enum : cluster.enums) {
@@ -781,7 +913,7 @@ int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi:
     // Iterate through all clusters and serialize them individually
     auto clusters_node = device_node.append_child("clusters");
     for (const auto& cluster : device.clusters) {
-        serialize_cluster(cluster, cluster_xml);
+        serialize_cluster(cluster, clusters_node);
     }
 
     return 0;

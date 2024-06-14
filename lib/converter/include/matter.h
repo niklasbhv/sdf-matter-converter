@@ -30,6 +30,7 @@
 #include <list>
 #include <pugixml.hpp>
 #include <optional>
+#include <variant>
 
 //! Max and Min Type boundaries if value is not nullable
 //! For nullable values, max has to be decreased by one
@@ -117,6 +118,11 @@ inline std::string decToHexa(uint32_t n)
 }
 
 /**
+ * Type definition for the default type.
+ */
+typedef std::variant<uint64_t, int64_t, double, std::string> defaultType;
+
+/**
  * Struct which represents the quality column.
  */
 struct otherQualityType {
@@ -157,7 +163,8 @@ struct constraintType {
     //! Exact value.
     std::optional<int> value;
     //! For range constraints -> x to y.
-    std::optional<std::tuple<int, int>> range;
+    std::optional<int> from;
+    std::optional<int> to;
     //! Minimum value.
     std::optional<int> min;
     //! Maximum value.
@@ -246,14 +253,6 @@ struct commonDataQualityType {
     std::string summary;
 };
 
-struct dataType : otherQualityType {
-    std::string dataType;
-    constraintType constraint;
-    std::optional<accessType> access;
-    std::string default_;
-    std::optional<conformanceType> conformance;
-};
-
 // TODO: Temporary, derived from the xml definitions
 struct enumItemType {
     int value;
@@ -270,11 +269,24 @@ struct bitmapBitfieldType {
     std::optional<conformanceType> conformance;
 };
 
-struct structFieldType : commonDataQualityType{
-    dataType data;
+/**
+ * Struct which contains data field information.
+ */
+struct dataFieldType : commonDataQualityType {
+    //! Data type
+    std::string type;
+    //! Constraints
+    std::optional<constraintType> constraint;
+    //! Other qualities
+    std::optional<otherQualityType> quality;
+    //! Default value
+    defaultType default_;
 };
 
-typedef std::list<structFieldType> structType;
+/**
+ * Type definition for the struct.
+ */
+typedef std::list<dataFieldType> structType;
 
 /**
  * Struct which represents FeatureMap Attribute.
@@ -289,51 +301,59 @@ struct featureMapType {
     std::string summary;
 };
 
-struct eventRecordType {
-    u_int64_t number;
-    std::string timestamp;
-    u_int8_t priority;
-    structType data;
-};
-
 /**
  * Struct which contains Matter event information.
  */
 struct eventType : commonDataQualityType {
-    std::string priority; // debug | info | critical
+    //! Currently either debug, info or critical
+    std::string priority;
+    //! Other qualities
     std::optional<otherQualityType> quality;
-    std::list<eventRecordType> event_records;
+    //! Data used for the event record
+    structType data;
 };
 
 /**
  * Struct which contains Matter command information.
  */
 struct commandType : commonDataQualityType {
-    std::string default_;
-    std::string direction; // commandToServer | responseFromServer
-    std::string response; // Y | N | [name of a response command]
+    defaultType default_;
+    //! Either commandToServer or responseFromServer
+    std::string direction;
+    //! Either Y, N or the name of the response command
+    std::string response;
+    //! Command fields
+    structType command_fields;
 };
 
-// TODO: Generics and lists dont seem, to be a good combination, keeping string for now
 /**
  * Struct which contains Matter attribute information.
  */
 struct attributeType : commonDataQualityType {
+    //! Data type
     std::string type;
+    //! Other qualities
     std::optional<otherQualityType> quality;
-    std::string default_;
+    //! Default value
+    defaultType default_;
 };
 
 /**
  * Struct which contains cluster classification information.
  */
 struct clusterClassificationType {
-    std::string hierarchy; // base | derived
-    std::string role; // utility | application
-    std::string picsCode; // Upper case identification code
-    std::string scope; // Endpoint | Node
-    std::string baseCluster; // [cluster name]
-    std::string primaryTransaction; // [primary transaction number]
+    //! Either base or derived
+    std::string hierarchy;
+    //! Either utility or application
+    std::string role;
+    //! Upper case identification code
+    std::string picsCode;
+    //! Either Endpoint or Node
+    std::string scope;
+    //! Cluster name of the base cluster
+    std::string baseCluster;
+    //! Number of the primary transaction
+    std::string primaryTransaction;
 };
 
 /**
@@ -362,15 +382,18 @@ struct clusterType : commonDataQualityType {
  * Struct which contains device classification information.
  */
 struct deviceClassificationType {
-    std::string superset; // [device type name]
-    std::string class_; // simple | utility | node
-    std::string scope; // node | endpoint
+    //! Name of the superset device type
+    std::string superset;
+    //! Either simple, utility or node
+    std::string class_;
+    //! Either node or endpoint
+    std::string scope;
 };
 
 /**
- *  Struct which contains Matter device information.
+ *  Struct which contains Matter device type information.
  */
-struct deviceType : commonDataQualityType{
+struct deviceType : commonDataQualityType {
     //! Current revision
     int revision;
     //! History of revisions
@@ -382,7 +405,6 @@ struct deviceType : commonDataQualityType{
     //! List of used clusters
     std::list<clusterType> clusters;
 };
-
 
 /**
  * @brief Parses xml-file into a device.
