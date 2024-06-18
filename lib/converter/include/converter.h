@@ -21,8 +21,6 @@
  * @section Description
  *
  * Functions to convert between sdf and matter.
- *
- * @l
  */
 
 #ifndef CONVERTER_H
@@ -42,7 +40,19 @@
  * @param cluster_xml The output cluster definition.
  * @return 0 on success, negative on failure.
  */
-int convertSdfToMatter(const nlohmann::ordered_json& sdf_model, const nlohmann::ordered_json& sdf_mapping, pugi::xml_document& device_xml, pugi::xml_document& cluster_xml);
+int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping, pugi::xml_document& device_xml, pugi::xml_document& cluster_xml);
+
+/**
+ * @brief Convert sdf to matter.
+ *
+ * This function converts a given sdf-model and sdf-mapping into the matter format.
+ *
+ * @param sdf_model The input sdf-model.
+ * @param sdf_mapping The input sdf-mapping.
+ * @param cluster_xml The output cluster definition.
+ * @return 0 on success, negative on failure.
+ */
+int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping, pugi::xml_document& cluster_xml);
 
 /**
  * @brief Convert matter to sdf.
@@ -56,5 +66,21 @@ int convertSdfToMatter(const nlohmann::ordered_json& sdf_model, const nlohmann::
  * @return 0 on success, negative on failure.
  */
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping);
+
+/**
+ * @brief Convert matter to sdf.
+ *
+ * This function converts a given cluster definition into the sdf format.
+ *
+ * @param cluster_xml The input cluster definition.
+ * @param sdf_model The output sdf-model.
+ * @param sdf_mapping The output sdf-mapping.
+ * @return 0 on success, negative on failure.
+ */
+int convertMatterToSdf(const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping);
+
+int testJsonParseSerialize(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping);
+
+int testXmlParseSerialize(pugi::xml_document& device_xml, pugi::xml_document& cluster_xml);
 
 #endif //CONVERTER_H
