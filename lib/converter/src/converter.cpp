@@ -28,7 +28,7 @@ int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json
 
     parseSdfMapping(sdf_mapping, sdfMapping);
 
-    std::list<clusterType> clusters;
+    std::list<matter::clusterType> clusters;
     map_sdf_to_matter(sdfModel, sdfMapping, clusters);
     for (const auto& cluster : clusters) {
         serialize_cluster(cluster, cluster_xml);
@@ -45,7 +45,7 @@ int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json
 
     parseSdfMapping(sdf_mapping, sdfMapping);
 
-    deviceType device;
+    matter::deviceType device;
     map_sdf_to_matter(sdfModel, sdfMapping, device);
 
     serialize_device(device, device_xml, cluster_xml);
@@ -54,7 +54,7 @@ int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json
 
 int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping)
 {
-    deviceType device;
+    matter::deviceType device;
     parse_device(device_xml.document_element(), cluster_xml.document_element(), device, false);
 
     sdfModelType sdfModel;
@@ -68,7 +68,7 @@ int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_doc
 
 int convertMatterToSdf(const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping)
 {
-    clusterType cluster;
+    matter::clusterType cluster;
     parse_cluster(cluster_xml.document_element(), cluster);
 
     sdfModelType sdfModel;
@@ -97,7 +97,7 @@ int testJsonParseSerialize(nlohmann::ordered_json& sdf_model, nlohmann::ordered_
 
 int testXmlParseSerialize(pugi::xml_document& device_xml, pugi::xml_document& cluster_xml)
 {
-    deviceType device;
+    matter::deviceType device;
     parse_device(device_xml.document_element(), cluster_xml.document_element(), device, false);
 
     device_xml.reset();

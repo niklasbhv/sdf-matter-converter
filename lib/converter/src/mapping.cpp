@@ -840,5 +840,3 @@ int map_matter_to_sdf(const matter::deviceType& device, sdfModelType& sdfModel, 
 
     return 0;
 }
-
-
