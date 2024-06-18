@@ -58,6 +58,16 @@ template <typename T> struct adl_serializer<std::optional<T>> {
         }
     }
 };
+/**
+ * Template used to add to_json for the sdf::variant type.
+ */
+template <typename ...Args> struct adl_serializer<std::variant<Args...>> {
+    static void to_json(json& j, std::variant<Args...> const& v) {
+        std::visit([&](auto&& value) {
+            j = std::forward<decltype(value)>(value);
+        }, v);
+    }
+};
 NLOHMANN_JSON_NAMESPACE_END
 
 /**
@@ -132,13 +142,13 @@ struct dataQualityType : commonQualityType {
     std::optional<std::variant<double, int64_t, uint64_t>> exclusiveMaximum;
     std::optional<std::variant<double, int64_t, uint64_t>> multipleOf;
     // String qualities
-    std::optional<uint> minLength;
-    std::optional<uint> maxLength;
+    std::optional<uint64_t> minLength;
+    std::optional<uint64_t> maxLength;
     std::string pattern;
     std::string format; // date-time / date / time / uri / uri-reference / uuid
     // Array qualities
-    std::optional<uint> minItems;
-    std::optional<uint> maxItems;
+    std::optional<uint64_t> minItems;
+    std::optional<uint64_t> maxItems;
     std::optional<bool> uniqueItems;
     std::optional<jsoItemType> items;
     // Object qualities
@@ -163,9 +173,9 @@ struct sdfEventType : commonQualityType {
  * Struct which contains sdfAction information.
  */
 struct sdfActionType : commonQualityType {
-    dataQualityType sdfInputData;
-    dataQualityType sdfOutputData;
-    sdfDataType sdfData;
+    std::optional<dataQualityType> sdfInputData;
+    std::optional<dataQualityType> sdfOutputData;
+    std::optional<sdfDataType> sdfData;
 };
 
 /**
