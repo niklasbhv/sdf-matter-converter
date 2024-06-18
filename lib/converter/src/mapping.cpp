@@ -16,9 +16,11 @@
 
 #include <iostream>
 #include <regex>
+#include <functional>
 #include "mapping.h"
 #include "matter.h"
 #include "sdf.h"
+
 
 /*
  * Map containing the elements of the sdf mapping
@@ -38,9 +40,7 @@ struct simple_walker: pugi::xml_tree_walker
     bool for_each(pugi::xml_node& node) override
     {
         for (int i = 0; i < depth(); ++i) std::cout << "--> "; // indentation
-
         std::cout << node.name() << std::endl;
-
         return true; // continue traversal
     }
 };
@@ -55,6 +55,77 @@ int resolve_mapping(const std::string& reference, const std::string& entry, T& r
     result = reference_map.at(reference.substr(1)).at(entry);
     return 0;
 }
+
+/*
+ * Generates a Matter conformance.
+ */
+int generate_matter_conformance()
+{
+    return 0;
+}
+
+/*
+ * Generates a Matter constraint with the information given by the data qualities
+ */
+int generate_matter_constraint(const dataQualityType& dataQuality, constraintType& constraint)
+{
+    //constraint.value = dataQuality.default_;
+    if (dataQuality.type == "number" or dataQuality.type == "integer") {
+        if (dataQuality.minimum.has_value())
+            constraint.min = dataQuality.minimum.value();
+        if (dataQuality.maximum.has_value())
+            constraint.max = dataQuality.maximum.value();
+        // exclusiveMinimum
+        // exclusiveMaximum
+        // multipleOf
+    } else if (dataQuality.type == "string") {
+        if (dataQuality.minLength.has_value())
+            constraint.min = dataQuality.minLength.value();
+        if (dataQuality.maxLength.has_value())
+            constraint.max = dataQuality.maxLength.value();
+        // pattern
+        // format
+    } else if (dataQuality.type == "array") {
+        if (dataQuality.minItems.has_value())
+            constraint.min = dataQuality.minItems.value();
+        if (dataQuality.maxItems.has_value())
+            constraint.max = dataQuality.maxItems.value();
+        // uniqueItems
+        // items -> Translate these into entry constraints
+    } else if (dataQuality.type == "object") {
+        // Currently does not seem like object contains usefull information for constraints
+        // properties
+        // required
+    }
+    return 0;
+}
+
+/*
+ * SDF data type -> Matter type
+ */
+std::string map_sdf_data_type(const dataQualityType& dataQuality)
+{
+    std::string result;
+    if (dataQuality.type == "number") {
+        result = "double";
+    } else if (dataQuality.type == "string") {
+        result = "string";
+    } else if (dataQuality.type == "boolean") {
+        result = "bool";
+    } else if (dataQuality.type == "integer") {
+
+    } else if (dataQuality.type == "array") {
+
+    } else if (dataQuality.type == "object") {
+
+    } else if (dataQuality.sdfType == "byte-string") {
+        result = "octstr";
+    } else if (dataQuality.sdfType == "unix-time") {
+
+    }
+    return result;
+}
+
 //! sdfData -> Global Matter Data Definition
 //! As Matter only supports defining data structures globally these all have to be added to the global list
 int map_sdf_data(dataQualityType& dataQualities)
@@ -62,7 +133,16 @@ int map_sdf_data(dataQualityType& dataQualities)
     return 0;
 }
 
-//! sdfEvent -> Matter event
+/**
+ * @brief Map a sdfEvent to a Matter event.
+ *
+ *
+ *
+ * @param sdfEvent
+ * @param event
+ * @param sdf_event_node
+ * @return
+ */
 int map_sdf_event(const sdfEventType& sdfEvent, eventType& event, pugi::xml_node& sdf_event_node)
 {
     auto current_event_node = sdf_event_node.append_child(sdfEvent.label.c_str());
@@ -79,7 +159,48 @@ int map_sdf_event(const sdfEventType& sdfEvent, eventType& event, pugi::xml_node
     return 0;
 }
 
-//! sdfAction -> Matter command
+/*
+ * sdfInputData -> Matter field
+ */
+int map_sdf_input_data(const dataQualityType& dataQuality, dataFieldType& field)
+{
+    field.summary = dataQuality.description;
+    field.name = dataQuality.label;
+    //$comment
+    //sdfRequired
+    field.type = map_sdf_data_type(dataQuality);
+    //sdfChoice
+    //enum
+    //const
+    //default
+    constraintType constraint;
+    generate_matter_constraint(dataQuality, constraint);
+    field.constraint = constraint;
+    //exclusiveMinimum
+    //exclusiveMaximum
+    //multipleOf
+    //pattern
+    //format
+    //uniqueItems
+    //items
+    //unit
+    //nullable
+    //sdfType
+    //contentFormat
+
+    return 0;
+}
+
+/**
+ * @brief Map a sdfAction to a Matter command.
+ *
+ *
+ *
+ * @param sdfAction
+ * @param command
+ * @param sdf_action_node
+ * @return
+ */
 int map_sdf_action(const sdfActionType& sdfAction, commandType& command, pugi::xml_node& sdf_action_node)
 {
     auto current_action_node = sdf_action_node.append_child(sdfAction.label.c_str());
@@ -91,6 +212,30 @@ int map_sdf_action(const sdfActionType& sdfAction, commandType& command, pugi::x
     // conformance
     // access
     command.summary = sdfAction.description;
+    // default
+    command.direction = "commandToServer";
+    command.response = "N";
+
+    // Map the sdfInputData Qualities
+    // If object is used as a type, the elements of the object have to be mapped individually
+    if (sdfAction.sdfInputData.has_value()) {
+        if (sdfAction.sdfInputData.value().type == "object") {
+            for (const auto& quality_pair : sdfAction.sdfInputData.value().properties) {
+                dataFieldType field;
+                map_sdf_input_data(quality_pair.second, field);
+                // If no label is given, set the quality name
+                if (field.name.empty())
+                    field.name = quality_pair.first;
+                command.command_fields.push_back(field);
+            }
+            //required
+        } else {
+            dataFieldType field;
+            map_sdf_input_data(sdfAction.sdfInputData.value(), field);
+            command.command_fields.push_back(field);
+        }
+    }
+
     return 0;
 }
 
@@ -106,16 +251,16 @@ int map_sdf_property(const sdfPropertyType& sdfProperty, attributeType& attribut
     // sdfProperty.sdfRef
     // sdfProperty.sdfRequired
     // conformance
-    attribute.access.write = sdfProperty.writable;
-    attribute.access.read = sdfProperty.readable;
+    attribute.access->write = sdfProperty.writable;
+    attribute.access->read = sdfProperty.readable;
     // sdfProperty.observable
     attribute.summary = sdfProperty.description;
     // TODO: Create type mapper from SDF to Matter
     // type
-    attribute.default_ = sdfProperty.default_;
-    attribute.quality.nullable = sdfProperty.nullable;
+    //attribute.default_ = sdfProperty.default_;
+    //attribute.quality.nullable = sdfProperty.nullable;
     // TODO: Check if this should in this case be set or ignored
-    attribute.quality.fixed = !sdfProperty.const_.empty();
+    //attribute.quality.fixed = !sdfProperty.const_.empty();
 
     return 0;
 }
@@ -188,7 +333,33 @@ int map_sdf_thing(const sdfThingType& sdfThing, deviceType& device, pugi::xml_no
     return 0;
 }
 
-//! SDF Model + SDF Mapping -> Matter device
+/*
+ * SDF-Model + SDF-Mapping -> List of Matter clusters<
+ */
+int map_sdf_to_matter(const sdfModelType& sdfModel, const sdfMappingType& sdfMappingType, std::list<clusterType>& clusters)
+{
+    // Make the mapping a global variable
+    if (!sdfMappingType.map.empty())
+        reference_map = sdfMappingType.map;
+
+    // Initialize a reference tree used to resolve json references
+    pugi::xml_document reference_tree;
+    auto reference_root_node = reference_tree.append_child("#");
+    auto sdf_object_node = reference_tree.append_child("sdfObject");
+
+    for (const auto& sdf_object_pair : sdfModel.sdfObject) {
+        clusterType cluster;
+        auto current_cluster_node = sdf_object_node.append_child(sdf_object_pair.first.c_str());
+        map_sdf_object(sdf_object_pair.second, cluster, current_cluster_node);
+        clusters.push_back(cluster);
+    }
+
+    return 0;
+}
+
+/*
+ * SDF-Model + SDF-Mapping -> Matter Device
+ */
 int map_sdf_to_matter(const sdfModelType& sdfModel, const sdfMappingType& sdfMappingType, deviceType& device)
 {
     // Make the mapping a global variable
@@ -219,72 +390,72 @@ int map_matter_type(const std::string& matter_type, dataQualityType& dataQuality
     if (matter_type == "bool") {
         dataQuality.type = "boolean";
     }
-    if (matter_type == "single") {
+    else if (matter_type == "single") {
         dataQuality.type = "number";
     }
-    if (matter_type == "double") {
+    else if (matter_type == "double") {
         dataQuality.type = "number";
     }
-    if (matter_type == "octstr") {
+    else if (matter_type == "octstr") {
         dataQuality.type = "string";
     }
-    if (matter_type == "list") {
+    else if (matter_type == "list") {
         dataQuality.type = "array";
     }
-    if (matter_type == "struct") {
+    else if (matter_type == "struct") {
         dataQuality.type = "object";
     }
-    if (matter_type.substr(0, 3) == "map") {
+    else if (matter_type.substr(0, 3) == "map") {
         dataQuality.type = "string";
     }
-    if (matter_type.substr(0, 3) == "int") {
+    else if (matter_type.substr(0, 3) == "int") {
         // TODO: These boundaries change if the corresponding value is nullable
         dataQuality.type = "integer";
         dataQuality.minimum = 0;
         if (matter_type.substr(3) == "8") {
-            dataQuality.maximum = MATTER_INT_8_MAX;
+            dataQuality.maximum = MATTER_U_INT_8_MAX;
         } else if (matter_type.substr(3) == "16") {
-            dataQuality.maximum = MATTER_INT_16_MAX;
+            dataQuality.maximum = MATTER_U_INT_16_MAX;
         } else if (matter_type.substr(3) == "24") {
-            dataQuality.maximum = MATTER_INT_24_MAX;
+            dataQuality.maximum = MATTER_U_INT_24_MAX;
         } else if (matter_type.substr(3) == "32") {
-            dataQuality.maximum = MATTER_INT_32_MAX;
+            dataQuality.maximum = MATTER_U_INT_32_MAX;
         } else if (matter_type.substr(3) == "40") {
-            dataQuality.maximum = MATTER_INT_40_MAX;
+            dataQuality.maximum = MATTER_U_INT_40_MAX;
         } else if (matter_type.substr(3) == "48") {
-            dataQuality.maximum = MATTER_INT_48_MAX;
+            dataQuality.maximum = MATTER_U_INT_48_MAX;
         } else if (matter_type.substr(3) == "56") {
-            dataQuality.maximum = MATTER_INT_56_MAX;
+            dataQuality.maximum = MATTER_U_INT_56_MAX;
         } else if (matter_type.substr(3) == "64") {
-            dataQuality.maximum = MATTER_INT_64_MAX;
+            dataQuality.maximum = MATTER_U_INT_64_MAX;
         }
     }
-    if (matter_type.substr(0, 4) == "uint") {
+    else if (matter_type.substr(0, 4) == "uint") {
         dataQuality.type = "integer";
         if (matter_type.substr(4) == "8") {
-            dataQuality.minimum = MATTER_U_INT_8_MIN;
-            dataQuality.maximum = MATTER_U_INT_8_MAX;
+            dataQuality.minimum = MATTER_INT_8_MIN;
+            dataQuality.maximum = MATTER_INT_8_MAX;
         } else if (matter_type.substr(4) == "16") {
-            dataQuality.minimum = MATTER_U_INT_16_MIN;
-            dataQuality.maximum = MATTER_U_INT_16_MAX;
+            dataQuality.minimum = MATTER_INT_16_MIN;
+            dataQuality.maximum = MATTER_INT_16_MAX;
         } else if (matter_type.substr(4) == "24") {
-            dataQuality.minimum = MATTER_U_INT_24_MIN;
-            dataQuality.maximum = MATTER_U_INT_24_MAX;
+            dataQuality.minimum = MATTER_INT_24_MIN;
+            dataQuality.maximum = MATTER_INT_24_MAX;
         } else if (matter_type.substr(4) == "32") {
-            dataQuality.minimum = MATTER_U_INT_32_MIN;
-            dataQuality.maximum = MATTER_U_INT_32_MAX;
+            dataQuality.minimum = MATTER_INT_32_MIN;
+            dataQuality.maximum = MATTER_INT_32_MAX;
         } else if (matter_type.substr(4) == "40") {
-            dataQuality.minimum = MATTER_U_INT_40_MIN;
-            dataQuality.maximum = MATTER_U_INT_40_MAX;
+            dataQuality.minimum = MATTER_INT_40_MIN;
+            dataQuality.maximum = MATTER_INT_40_MAX;
         } else if (matter_type.substr(4) == "48") {
-            dataQuality.minimum = MATTER_U_INT_48_MIN;
-            dataQuality.maximum = MATTER_U_INT_48_MAX;
+            dataQuality.minimum = MATTER_INT_48_MIN;
+            dataQuality.maximum = MATTER_INT_48_MAX;
         } else if (matter_type.substr(4) == "56") {
-            dataQuality.minimum = MATTER_U_INT_56_MIN;
-            dataQuality.maximum = MATTER_U_INT_56_MAX;
+            dataQuality.minimum = MATTER_INT_56_MIN;
+            dataQuality.maximum = MATTER_INT_56_MAX;
         } else if (matter_type.substr(4) == "64") {
-            dataQuality.minimum = MATTER_U_INT_64_MIN;
-            dataQuality.maximum = MATTER_U_INT_64_MAX;
+            dataQuality.minimum = MATTER_INT_64_MIN;
+            dataQuality.maximum = MATTER_INT_64_MAX;
         }
     }
 
@@ -300,10 +471,10 @@ int map_matter_constraint(const constraintType& constraint, dataQualityType data
     if (constraint.type == "desc") {
         // TODO: What do we do here?
     } else if (constraint.type == "between") {
-        if (constraint.range.has_value()) {
-            dataQuality.minimum = std::get<0>(constraint.range.value());
-            dataQuality.maximum = std::get<1>(constraint.range.value());
-        }
+        //if (constraint.range.has_value()) {
+        //    dataQuality.minimum = std::get<0>(constraint.range.value());
+        //    dataQuality.maximum = std::get<1>(constraint.range.value());
+        //}
     } else if (constraint.type == "min") {
         if (constraint.min.has_value()) {
             dataQuality.minimum = constraint.min.value();
@@ -332,14 +503,14 @@ int map_matter_access(const accessType& access, sdfPropertyType& sdfProperty, pu
         sdf_property_node.append_attribute("fabricScoped").set_value(access.fabric_scoped.value());
     if (access.fabric_sensitive.has_value())
         sdf_property_node.append_attribute("fabricSensitive").set_value(access.fabric_sensitive.value());
-    if (access.requires_view_privilege.has_value())
-        sdf_property_node.append_attribute("requiresViewPrivilege").set_value(access.requires_view_privilege.value());
-    if (access.requires_operate_privilege.has_value())
-        sdf_property_node.append_attribute("requiresOperatePrivilege").set_value(access.requires_operate_privilege.value());
-    if (access.requires_manage_privilege.has_value())
-        sdf_property_node.append_attribute("requiresManagePrivilege").set_value(access.requires_manage_privilege.value());
-    if (access.requires_administer_privilege.has_value())
-        sdf_property_node.append_attribute("requiresAdministerPrivilege").set_value(access.requires_administer_privilege.value());
+    //if (access.requires_view_privilege.has_value())
+    //    sdf_property_node.append_attribute("requiresViewPrivilege").set_value(access.requires_view_privilege.value());
+    //if (access.requires_operate_privilege.has_value())
+    //    sdf_property_node.append_attribute("requiresOperatePrivilege").set_value(access.requires_operate_privilege.value());
+    //if (access.requires_manage_privilege.has_value())
+    //    sdf_property_node.append_attribute("requiresManagePrivilege").set_value(access.requires_manage_privilege.value());
+    //if (access.requires_administer_privilege.has_value())
+    //    sdf_property_node.append_attribute("requiresAdministerPrivilege").set_value(access.requires_administer_privilege.value());
     if (access.timed.has_value())
         sdf_property_node.append_attribute("timed").set_value(access.timed.value());
 
@@ -358,18 +529,45 @@ int map_matter_access(const accessType& access, pugi::xml_node& current_node)
         current_node.append_attribute("fabricScoped").set_value(access.fabric_scoped.value());
     if (access.fabric_sensitive.has_value())
         current_node.append_attribute("fabricSensitive").set_value(access.fabric_sensitive.value());
-    if (access.requires_view_privilege.has_value())
-        current_node.append_attribute("requiresViewPrivilege").set_value(access.requires_view_privilege.value());
-    if (access.requires_operate_privilege.has_value())
-        current_node.append_attribute("requiresOperatePrivilege").set_value(access.requires_operate_privilege.value());
-    if (access.requires_manage_privilege.has_value())
-        current_node.append_attribute("requiresManagePrivilege").set_value(access.requires_manage_privilege.value());
-    if (access.requires_administer_privilege.has_value())
-        current_node.append_attribute("requiresAdministerPrivilege").set_value(access.requires_administer_privilege.value());
+    //if (access.requires_view_privilege.has_value())
+    //    current_node.append_attribute("requiresViewPrivilege").set_value(access.requires_view_privilege.value());
+    //if (access.requires_operate_privilege.has_value())
+    //    current_node.append_attribute("requiresOperatePrivilege").set_value(access.requires_operate_privilege.value());
+    //if (access.requires_manage_privilege.has_value())
+    //    current_node.append_attribute("requiresManagePrivilege").set_value(access.requires_manage_privilege.value());
+    //if (access.requires_administer_privilege.has_value())
+    //    current_node.append_attribute("requiresAdministerPrivilege").set_value(access.requires_administer_privilege.value());
     if (access.timed.has_value())
         current_node.append_attribute("timed").set_value(access.timed.value());
     return 0;
 }
+
+// Function used to evaluate a string expression
+std::function<bool()> buildEvaluator(const std::string& expr) {
+    if (expr == "true") return []() { return true; };
+    if (expr == "false") return []() { return false; };
+    if (expr == "!true") return []() { return false; };
+    if (expr == "!false") return []() { return true; };
+
+    // Evaluate AND expressions
+    size_t andPos = expr.find("&&");
+    if (andPos != std::string::npos) {
+        auto left = buildEvaluator(expr.substr(0, andPos));
+        auto right = buildEvaluator(expr.substr(andPos + 2));
+        return [left, right]() { return left() && right(); };
+    }
+
+    // Evaluate OR expressions
+    size_t orPos = expr.find("||");
+    if (orPos != std::string::npos) {
+        auto left = buildEvaluator(expr.substr(0, orPos));
+        auto right = buildEvaluator(expr.substr(orPos + 2));
+        return [left, right]() { return left() || right(); };
+    }
+
+    throw std::runtime_error("Unrecognized expression: " + expr);
+}
+
 
 /**
  * @brief Adds element to sdfRequired depending on the conformance.
@@ -388,9 +586,9 @@ int map_matter_conformance(const conformanceType& conformance, const pugi::xml_n
     }
     // TODO: Currently there seems to be no way to handle conformance based on the selected feature
     // That's why the boolean expression is outsourced to the mapping file
-    if (conformance.condition.has_value()) {
-        sdf_node.append_attribute("condition").set_value(conformance.condition.value().c_str());
-    }
+    //if (conformance.condition.has_value()) {
+    //    sdf_node.append_attribute("condition").set_value(conformance.condition.value().c_str());
+    //}
     return 0;
 }
 
@@ -402,7 +600,8 @@ int map_matter_event(const eventType& event, sdfEventType& sdfEvent, pugi::xml_n
 
     // event.id
     sdfEvent.label = event.name;
-    map_matter_conformance(event.conformance, event_node, sdf_event_node);
+    if (event.conformance.has_value())
+        map_matter_conformance(event.conformance.value(), event_node, sdf_event_node);
     // event.access
     sdfEvent.description = event.summary;
     // event.priority
@@ -429,7 +628,8 @@ int map_matter_command(const commandType& client_command, sdfActionType& sdfActi
 
     // client_command.id
     sdfAction.label = client_command.name;
-    map_matter_conformance(client_command.conformance, command_node, sdf_action_node);
+    if (client_command.conformance.has_value())
+        map_matter_conformance(client_command.conformance.value(), command_node, sdf_action_node);
     // client_command.access
     sdfAction.description = client_command.summary;
     // client_command.default_
@@ -447,22 +647,23 @@ int map_matter_attribute(const attributeType& attribute, sdfPropertyType& sdfPro
 
     // attribute.id
     sdfProperty.label = attribute.name;
-    map_matter_conformance(attribute.conformance, attribute_node, sdf_property_node);
+    if (attribute.conformance.has_value())
+        map_matter_conformance(attribute.conformance.value(), attribute_node, sdf_property_node);
     // attribute.access
     sdfProperty.description = attribute.summary;
 
     // Map the Matter type to a fitting SDF type
     map_matter_type(attribute.type, sdfProperty);
-    if (attribute.quality.nullable.has_value())
+    //if (attribute.quality.nullable.has_value())
         // TODO: In this case the boundaries for some types have to be changed
-        sdfProperty.nullable = attribute.quality.nullable.value();
+        //sdfProperty.nullable = attribute.quality.nullable.value();
     // attribute.qualities.non_volatile
     // attribute.qualities.fixed
     // attribute.qualities.scene
     // attribute.qualities.reportable
     // attribute.qualities.changed_omitted
     // attribute.qualities.singleton
-    sdfProperty.default_ = attribute.default_;
+    //sdfProperty.default_ = attribute.default_;
 
     return 0;
 }
@@ -479,7 +680,8 @@ int map_matter_cluster(const clusterType& cluster, sdfObjectType& sdfObject, pug
 
     // cluster.id
     sdfObject.label = cluster.name;
-    map_matter_conformance(cluster.conformance, cluster_node, sdf_object_node);
+    if (cluster.conformance.has_value())
+        map_matter_conformance(cluster.conformance.value(), cluster_node, sdf_object_node);
     // cluster.access
     sdfObject.description = cluster.summary;
     // cluster.revision -> sdfData
@@ -524,7 +726,8 @@ int map_matter_device(const deviceType& device, sdfModelType& sdfModel, pugi::xm
     // device.enums -> sdfData
     // device.bitmaps -> sdfData
     // device.structs -> sdfData
-    map_matter_conformance(device.conformance, device_node, sdf_thing_node);
+    if (device.conformance.has_value())
+        map_matter_conformance(device.conformance.value(), device_node, sdf_thing_node);
     // device.access
     // TODO: We need to be able to create a JSON object for more complex structures like revisionHistory
     // device.revisionHistory -> sdfData
@@ -588,6 +791,26 @@ int generate_mapping(const pugi::xml_node& node, std::map<std::string, std::map<
     for (auto child_node : node.children()) {
         generate_mapping(child_node, map);
     }
+
+    return 0;
+}
+
+int map_matter_to_sdf(const clusterType& cluster, sdfModelType& sdfModel, sdfMappingType& sdfMapping)
+{
+    pugi::xml_document referenceTree;
+    referenceTree.append_child("#").append_child("sdfObject");
+    auto cluster_node = referenceTree.child("#").child("sdfObject");
+
+    sdfObjectType sdfObject;
+    map_matter_cluster(cluster, sdfObject, cluster_node);
+
+    sdfModel.infoBlock.title = cluster.name;
+    sdfModel.infoBlock.description = cluster.summary;
+
+    sdfMapping.infoBlock.title = cluster.name;
+    sdfMapping.infoBlock.description = cluster.summary;
+
+    sdfModel.sdfObject.insert({cluster.name, sdfObject});
 
     return 0;
 }

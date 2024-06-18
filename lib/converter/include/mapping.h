@@ -36,13 +36,37 @@
  *
  * @param sdfModel The input sdf-model.
  * @param sdfMappingType The input sdf-mapping.
+ * @param cluster The resulting cluster definition.
+ * @return 0 on success, negative on failure.
+ */
+int map_sdf_to_matter(const sdfModelType& sdfModel, const sdfMappingType& sdfMappingType, std::list<clusterType>& cluster);
+
+/**
+ * @brief Map a sdf-model and sdf-mapping to a matter object.
+ *
+ * This function maps a sdf-model and sdf-mapping onto a matter device and cluster definition.
+ *
+ * @param sdfModel The input sdf-model.
+ * @param sdfMappingType The input sdf-mapping.
  * @param device The resulting device definition.
  * @return 0 on success, negative on failure.
  */
 int map_sdf_to_matter(const sdfModelType& sdfModel, const sdfMappingType& sdfMappingType, deviceType& device);
 
 /**
- * @brief Map a device and cluster definition to a sdf-object.
+ * @brief Map a cluster definition onto a sdf-model and a sdf-mapping.
+ *
+ * This function maps a device onto a sdf-model and sdf-mapping.
+ *
+ * @param cluster The input cluster definition.
+ * @param sdfModel The resulting sdf-model.
+ * @param sdfMapping The resulting sdf-mapping.
+ * @return 0 on success, negative on failure.
+ */
+int map_matter_to_sdf(const clusterType& cluster, sdfModelType& sdfModel, sdfMappingType& sdfMapping);
+
+/**
+ * @brief Map a device type definition to a sdf-object.
  *
  * This function maps a device onto a sdf-model and sdf-mapping.
  *
