@@ -117,10 +117,17 @@ inline std::string decToHexa(uint32_t n)
     return ans;
 }
 
+namespace matter {
 /**
  * Type definition for the default type.
  */
 typedef std::variant<uint64_t, int64_t, double, std::string> defaultType;
+typedef std::variant<double, int64_t, uint64_t> numericType;
+/**
+ * Type used to store revision information.
+ * Maps a revision id onto a summary of changes.
+ */
+typedef std::map<u_int8_t, std::string> revisionType;
 
 /**
  * Struct which represents the quality column.
@@ -148,8 +155,6 @@ struct otherQualityType {
     std::optional<bool> quieter_reporting;
     //! Any of the above can be negated by using !.
 };
-
-typedef std::variant<double, int64_t, uint64_t> numericType;
 
 /**
  * Struct definition for constraint type.
@@ -185,12 +190,6 @@ struct constraintType {
     //! char_constraint gets mapped with the above qualities, z is mapped to the below quality.
     std::optional<int> max_unicode_endpoints;
 };
-
-/**
- * Type used to store revision information.
- * Maps a revision id onto a summary of changes.
- */
-typedef std::map<u_int8_t, std::string> revisionType;
 
 /**
  * Struct which represents feature conformance.
@@ -413,7 +412,6 @@ struct deviceType : commonDataQualityType {
     //! List of used clusters
     std::list<clusterType> clusters;
 };
-
 /**
  * @brief Parses xml-file into a device.
  *
@@ -453,5 +451,7 @@ int parse_cluster(const pugi::xml_node& cluster_xml, clusterType& cluster);
 int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi::xml_node& cluster_xml);
 
 int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml);
+
+} // namespace matter
 
 #endif //MATTER_H
