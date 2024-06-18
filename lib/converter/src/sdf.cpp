@@ -15,7 +15,9 @@
  */
 
 #include <string>
+
 #include <nlohmann/json.hpp>
+
 #include "matter.h"
 #include "sdf.h"
 
@@ -24,18 +26,18 @@ using json = nlohmann::ordered_json;
 namespace sdf {
 
 /*
- * Reference to the SDF-Model used for resolving sdfRef-Elements.
+ * Reference to the SDF-Model used for resolving sdf_ref-Elements.
  */
 json global_sdf_model = {};
 
 /*
- * Function used to resolve sdfRef qualities.
+ * Function used to resolve sdf_ref qualities.
  */
 int resolveSdfRef(json& sdf_ref_qualities_json)
 {
     std::string sdfRef;
     json sdf_ref_qualities_json_copy = sdf_ref_qualities_json;
-    sdf_ref_qualities_json.at("sdfRef").get_to(sdfRef);
+    sdf_ref_qualities_json.at("sdf_ref").get_to(sdfRef);
     json patch = global_sdf_model[json::json_pointer(sdfRef.substr(1))];
     patch.merge_patch(sdf_ref_qualities_json_copy);
     sdf_ref_qualities_json = patch;
@@ -44,12 +46,12 @@ int resolveSdfRef(json& sdf_ref_qualities_json)
 }
 
 /*
- * Parse common qualities from json into a commonQualityType object.
+ * Parse common qualities from json into a CommonQuality object.
  */
-int parseCommonQualities(json& common_qualities_json, commonQualityType& commonQuality)
+int parseCommonQualities(json& common_qualities_json, CommonQuality& commonQuality)
 {
-    // If a sdfRef-Element exists, resolve it
-    if (common_qualities_json.contains("sdfRef"))
+    // If a sdf_ref-Element exists, resolve it
+    if (common_qualities_json.contains("sdf_ref"))
         resolveSdfRef(common_qualities_json);
 
     if (common_qualities_json.contains("description"))
@@ -58,11 +60,11 @@ int parseCommonQualities(json& common_qualities_json, commonQualityType& commonQ
     if (common_qualities_json.contains("label"))
         common_qualities_json.at("label").get_to(commonQuality.label);
 
-    if (common_qualities_json.contains("$comment"))
-        common_qualities_json.at("$comment").get_to(commonQuality.$comment);
+    if (common_qualities_json.contains("comment"))
+        common_qualities_json.at("comment").get_to(commonQuality.comment);
 
-    if (common_qualities_json.contains("sdfRequired"))
-        common_qualities_json.at("sdfRequired").get_to(commonQuality.sdfRequired);
+    if (common_qualities_json.contains("sdf_required"))
+        common_qualities_json.at("sdf_required").get_to(commonQuality.sdf_required);
 
     return 0;
 }
@@ -70,16 +72,16 @@ int parseCommonQualities(json& common_qualities_json, commonQualityType& commonQ
 /*
  * Function prototype used for recursive calls.
  */
-int parseDataQualities(json& data_qualities_json, dataQualityType& dataQuality);
+int parseDataQualities(json& data_qualities_json, DataQuality& dataQuality);
 
 /*
- * Parse a sdfChoice from json into a dataQualityType map.
+ * Parse a sdf_choice from json into a DataQuality map.
  */
-int parseSdfChoice(json& sdf_choice_json, std::map<std::string, dataQualityType>& sdfChoiceMap)
+int parseSdfChoice(json& sdf_choice_json, std::map<std::string, DataQuality>& sdfChoiceMap)
 {
-    // Iterate through all sdfChoice items and parse them individually
+    // Iterate through all sdf_choice items and parse them individually
     for (const auto& choice : sdf_choice_json.items()){
-        dataQualityType dataQuality;
+        DataQuality dataQuality;
         parseDataQualities(choice.value(), dataQuality);
         sdfChoiceMap.insert({choice.key(), dataQuality});
     }
@@ -90,24 +92,24 @@ int parseSdfChoice(json& sdf_choice_json, std::map<std::string, dataQualityType>
 /*
  * Parse a JSO item type from json into a JsoItemType object.
  */
-int parseJsoItemType(json& jso_item_type_json, jsoItemType& jsoItem)
+int parseJsoItemType(json& jso_item_type_json, JsoItem& jsoItem)
 {
     // Parse the common qualities
-    if (jso_item_type_json.contains("sdfRef"))
+    if (jso_item_type_json.contains("sdf_ref"))
         resolveSdfRef(jso_item_type_json);
 
     if (jso_item_type_json.contains("description"))
         jso_item_type_json.at("description").get_to(jsoItem.description);
 
-    if (jso_item_type_json.contains("$comment"))
-        jso_item_type_json.at("$comment").get_to(jsoItem.$comment);
+    if (jso_item_type_json.contains("comment"))
+        jso_item_type_json.at("comment").get_to(jsoItem.comment);
 
     // Parse general qualities
     if (jso_item_type_json.contains("type"))
         jso_item_type_json.at("type").get_to(jsoItem.type);
 
-    if (jso_item_type_json.contains("sdfChoice"))
-        parseSdfChoice(jso_item_type_json.at("sdfChoice"), jsoItem.sdfChoice);
+    if (jso_item_type_json.contains("sdf_choice"))
+        parseSdfChoice(jso_item_type_json.at("sdf_choice"), jsoItem.sdf_choice);
 
     if (jso_item_type_json.contains("enum"))
         jso_item_type_json.at("enum").get_to(jsoItem.enum_);
@@ -123,17 +125,17 @@ int parseJsoItemType(json& jso_item_type_json, jsoItemType& jsoItem)
     if (jso_item_type_json.contains("format"))
         jso_item_type_json.at("format").get_to(jsoItem.format);
 
-    if (jso_item_type_json.contains("minLength"))
-        jso_item_type_json.at("minLength").get_to(jsoItem.minLength);
+    if (jso_item_type_json.contains("min_length"))
+        jso_item_type_json.at("min_length").get_to(jsoItem.min_length);
 
-    if (jso_item_type_json.contains("maxLength"))
-        jso_item_type_json.at("maxLength").get_to(jsoItem.maxLength);
+    if (jso_item_type_json.contains("max_length"))
+        jso_item_type_json.at("max_length").get_to(jsoItem.max_length);
 
     // Parse object qualities
     // Iterate through all items inside properties and parse them individually
     if (jso_item_type_json.contains("properties")){
         for (const auto& data : jso_item_type_json.at("properties").items()) {
-            dataQualityType sdfData;
+            DataQuality sdfData;
             parseDataQualities(data.value(), sdfData);
             jsoItem.properties.insert({data.key(), sdfData});
         }
@@ -145,9 +147,9 @@ int parseJsoItemType(json& jso_item_type_json, jsoItemType& jsoItem)
 }
 
 /*
- * Parse data qualities from json into a dataQualityType object.
+ * Parse data qualities from json into a DataQuality object.
  */
-int parseDataQualities(json& data_qualities_json, dataQualityType& dataQuality)
+int parseDataQualities(json& data_qualities_json, DataQuality& dataQuality)
 {
     // Parse the common qualities
     parseCommonQualities(data_qualities_json, dataQuality);
@@ -156,8 +158,8 @@ int parseDataQualities(json& data_qualities_json, dataQualityType& dataQuality)
     if (data_qualities_json.contains("type"))
         data_qualities_json.at("type").get_to(dataQuality.type);
 
-    if (data_qualities_json.contains("sdfChoice"))
-        parseSdfChoice(data_qualities_json.at("sdfChoice"), dataQuality.sdfChoice);
+    if (data_qualities_json.contains("sdf_choice"))
+        parseSdfChoice(data_qualities_json.at("sdf_choice"), dataQuality.sdf_choice);
 
     if (data_qualities_json.contains("enum"))
         data_qualities_json.at("enum").get_to(dataQuality.enum_);
@@ -243,51 +245,51 @@ int parseDataQualities(json& data_qualities_json, dataQualityType& dataQuality)
         }
     }
 
-    if (data_qualities_json.contains("exclusiveMinimum")) {
+    if (data_qualities_json.contains("exclusive_minimum")) {
         if (dataQuality.type == "number") {
             double number;
-            data_qualities_json.at("exclusiveMinimum").get_to(number);
-            dataQuality.exclusiveMinimum = number;
+            data_qualities_json.at("exclusive_minimum").get_to(number);
+            dataQuality.exclusive_minimum = number;
         } else if (dataQuality.type == "integer") {
             // TODO: Maybe set this to either int64 or uint64, check json documentation
             int integer;
-            data_qualities_json.at("exclusiveMinimum").get_to(integer);
-            dataQuality.exclusiveMinimum = integer;
+            data_qualities_json.at("exclusive_minimum").get_to(integer);
+            dataQuality.exclusive_minimum = integer;
         }
     }
 
-    if (data_qualities_json.contains("exclusiveMaximum")) {
+    if (data_qualities_json.contains("exclusive_maximum")) {
         if (dataQuality.type == "number") {
             double number;
-            data_qualities_json.at("exclusiveMaximum").get_to(number);
-            dataQuality.exclusiveMaximum = number;
+            data_qualities_json.at("exclusive_maximum").get_to(number);
+            dataQuality.exclusive_maximum = number;
         } else if (dataQuality.type == "integer") {
             // TODO: Maybe set this to either int64 or uint64, check json documentation
             int integer;
-            data_qualities_json.at("exclusiveMaximum").get_to(integer);
-            dataQuality.exclusiveMaximum = integer;
+            data_qualities_json.at("exclusive_maximum").get_to(integer);
+            dataQuality.exclusive_maximum = integer;
         }
     }
 
-    if (data_qualities_json.contains("multipleOf")) {
+    if (data_qualities_json.contains("multiple_of")) {
         if (dataQuality.type == "number") {
             double number;
-            data_qualities_json.at("multipleOf").get_to(number);
-            dataQuality.multipleOf = number;
+            data_qualities_json.at("multiple_of").get_to(number);
+            dataQuality.multiple_of = number;
         } else if (dataQuality.type == "integer") {
             // TODO: Maybe set this to either int64 or uint64, check json documentation
             int integer;
-            data_qualities_json.at("multipleOf").get_to(integer);
-            dataQuality.multipleOf = integer;
+            data_qualities_json.at("multiple_of").get_to(integer);
+            dataQuality.multiple_of = integer;
         }
     }
 
     // Parse string qualities
-    if (data_qualities_json.contains("minLength"))
-        data_qualities_json.at("minLength").get_to(dataQuality.minLength);
+    if (data_qualities_json.contains("min_length"))
+        data_qualities_json.at("min_length").get_to(dataQuality.min_length);
 
-    if (data_qualities_json.contains("maxLength"))
-        data_qualities_json.at("maxLength").get_to(dataQuality.maxLength);
+    if (data_qualities_json.contains("max_length"))
+        data_qualities_json.at("max_length").get_to(dataQuality.max_length);
 
     if (data_qualities_json.contains("pattern"))
         data_qualities_json.at("pattern").get_to(dataQuality.pattern);
@@ -296,17 +298,17 @@ int parseDataQualities(json& data_qualities_json, dataQualityType& dataQuality)
         data_qualities_json.at("format").get_to(dataQuality.format);
 
     // Parse array qualities
-    if (data_qualities_json.contains("minItems"))
-        data_qualities_json.at("minItems").get_to(dataQuality.minItems);
+    if (data_qualities_json.contains("min_items"))
+        data_qualities_json.at("min_items").get_to(dataQuality.min_items);
 
-    if (data_qualities_json.contains("maxItems"))
-        data_qualities_json.at("maxItems").get_to(dataQuality.maxItems);
+    if (data_qualities_json.contains("max_items"))
+        data_qualities_json.at("max_items").get_to(dataQuality.max_items);
 
-    if (data_qualities_json.contains("uniqueItems"))
-        data_qualities_json.at("uniqueItems").get_to(dataQuality.uniqueItems);
+    if (data_qualities_json.contains("unique_items"))
+        data_qualities_json.at("unique_items").get_to(dataQuality.unique_items);
 
     if (data_qualities_json.contains("items")) {
-        jsoItemType jsoItem;
+        JsoItem jsoItem;
         parseJsoItemType(data_qualities_json.at("items"), jsoItem);
         dataQuality.items = jsoItem;
     }
@@ -315,7 +317,7 @@ int parseDataQualities(json& data_qualities_json, dataQualityType& dataQuality)
     // Iterate through all items inside properties and parse them individually
     if (data_qualities_json.contains("properties")){
         for (const auto& data : data_qualities_json.at("properties").items()) {
-            dataQualityType sdfData;
+            DataQuality sdfData;
             parseDataQualities(data.value(), sdfData);
             dataQuality.properties.insert({data.key(), sdfData});
         }
@@ -330,33 +332,33 @@ int parseDataQualities(json& data_qualities_json, dataQualityType& dataQuality)
     if (data_qualities_json.contains("nullable"))
         data_qualities_json.at("nullable").get_to(dataQuality.nullable);
 
-    if (data_qualities_json.contains("sdfType"))
-        data_qualities_json.at("sdfType").get_to(dataQuality.sdfType);
+    if (data_qualities_json.contains("sdf_type"))
+        data_qualities_json.at("sdf_type").get_to(dataQuality.sdf_type);
 
-    if (data_qualities_json.contains("contentFormat"))
-        data_qualities_json.at("contentFormat").get_to(dataQuality.contentFormat);
+    if (data_qualities_json.contains("content_format"))
+        data_qualities_json.at("content_format").get_to(dataQuality.content_format);
 
     return 0;
 }
 
 /*
- * Parse a sdfEvent from json into a sdfEventType object.
+ * Parse a sdf_event from json into a SdfEvent object.
  */
-int parseSdfEvent(json& sdf_event_json, sdfEventType& sdfEvent)
+int parseSdfEvent(json& sdf_event_json, SdfEvent& sdfEvent)
 {
     // Parse the common qualities
     parseCommonQualities(sdf_event_json, sdfEvent);
 
     // Parse the remaining fields
-    if (sdf_event_json.contains("sdfOutputData"))
-        parseDataQualities(sdf_event_json.at("sdfOutputData"), sdfEvent.sdfOutputData);
+    if (sdf_event_json.contains("sdf_output_data"))
+        parseDataQualities(sdf_event_json.at("sdf_output_data"), sdfEvent.sdf_output_data);
 
-    // Iterate through all items inside sdfData and parse them individually
-    if (sdf_event_json.contains("sdfData")){
-        for (const auto& data : sdf_event_json.at("sdfData").items()) {
-            dataQualityType sdfData;
+    // Iterate through all items inside sdf_data and parse them individually
+    if (sdf_event_json.contains("sdf_data")){
+        for (const auto& data : sdf_event_json.at("sdf_data").items()) {
+            DataQuality sdfData;
             parseDataQualities(data.value(), sdfData);
-            sdfEvent.sdfData.insert({data.key(), sdfData});
+            sdfEvent.sdf_data.insert({data.key(), sdfData});
         }
     }
 
@@ -364,45 +366,45 @@ int parseSdfEvent(json& sdf_event_json, sdfEventType& sdfEvent)
 }
 
 /*
- * Parse a sdfAction from json into a sdfActionType object.
+ * Parse a sdf_action from json into a SdfAction object.
  */
-int parseSdfAction(json& sdf_action_json, sdfActionType& sdfAction)
+int parseSdfAction(json& sdf_action_json, SdfAction& sdfAction)
 {
     // Parse the common qualities
     parseCommonQualities(sdf_action_json, sdfAction);
 
     // Parse the remaining fields
-    if (sdf_action_json.contains("sdfInputData")) {
-        dataQualityType sdfInputData;
-        parseDataQualities(sdf_action_json.at("sdfInputData"), sdfInputData);
-        sdfAction.sdfInputData = sdfInputData;
+    if (sdf_action_json.contains("sdf_input_data")) {
+        DataQuality sdfInputData;
+        parseDataQualities(sdf_action_json.at("sdf_input_data"), sdfInputData);
+        sdfAction.sdf_input_data = sdfInputData;
     }
 
-    if (sdf_action_json.contains("sdfOutputData")) {
-        dataQualityType sdfOutputData;
-        parseDataQualities(sdf_action_json.at("sdfOutputData"), sdfOutputData);
-        sdfAction.sdfOutputData = sdfOutputData;
+    if (sdf_action_json.contains("sdf_output_data")) {
+        DataQuality sdfOutputData;
+        parseDataQualities(sdf_action_json.at("sdf_output_data"), sdfOutputData);
+        sdfAction.sdf_output_data = sdfOutputData;
     }
 
 
-    // Iterate through all items inside sdfData and parse them individually
-    if (sdf_action_json.contains("sdfData")){
-        sdfDataType sdfData;
-        for (const auto& data : sdf_action_json.at("sdfData").items()) {
-            dataQualityType dataQuality;
+    // Iterate through all items inside sdf_data and parse them individually
+    if (sdf_action_json.contains("sdf_data")){
+        SdfData sdfData;
+        for (const auto& data : sdf_action_json.at("sdf_data").items()) {
+            DataQuality dataQuality;
             parseDataQualities(data.value(), dataQuality);
             sdfData.insert({data.key(), dataQuality});
         }
-        sdfAction.sdfData = sdfData;
+        sdfAction.sdf_data = sdfData;
     }
 
     return 0;
 }
 
 /*
- * Parse a sdfProperty from json into a sdfPropertyType object.
+ * Parse a sdf_property from json into a SdfProperty object.
  */
-int parseSdfProperty(json& sdf_property_json, sdfPropertyType& sdfProperty)
+int parseSdfProperty(json& sdf_property_json, SdfProperty& sdfProperty)
 {
     // Parse the data qualities
     parseDataQualities(sdf_property_json, sdfProperty);
@@ -421,128 +423,128 @@ int parseSdfProperty(json& sdf_property_json, sdfPropertyType& sdfProperty)
 }
 
 /*
- * Parse a sdfObject from json into a sdfObjectType object.
+ * Parse a sdf_object from json into a SdfObject object.
  */
-int parseSdfObject(json& sdf_object_json, sdfObjectType& sdfObject)
+int parseSdfObject(json& sdf_object_json, SdfObject& sdfObject)
 {
     // Parse the common qualities
     parseCommonQualities(sdf_object_json, sdfObject);
 
     // Iterate through all sdfProperties and parse them individually
-    if (sdf_object_json.contains("sdfProperty")){
-        for (const auto& property : sdf_object_json.at("sdfProperty").items()) {
-            sdfPropertyType sdfProperty;
+    if (sdf_object_json.contains("sdf_property")){
+        for (const auto& property : sdf_object_json.at("sdf_property").items()) {
+            SdfProperty sdfProperty;
             parseSdfProperty(property.value(), sdfProperty);
-            sdfObject.sdfProperty.insert({property.key(), sdfProperty});
+            sdfObject.sdf_property.insert({property.key(), sdfProperty});
         }
     }
 
     // Iterate through all sdfActions and parse them individually
-    if (sdf_object_json.contains("sdfAction")){
-        for (const auto& action : sdf_object_json.at("sdfAction").items()) {
-            sdfActionType sdfAction;
+    if (sdf_object_json.contains("sdf_action")){
+        for (const auto& action : sdf_object_json.at("sdf_action").items()) {
+            SdfAction sdfAction;
             parseSdfAction(action.value(), sdfAction);
-            sdfObject.sdfAction.insert({action.key(), sdfAction});
+            sdfObject.sdf_action.insert({action.key(), sdfAction});
         }
     }
 
     // Iterate through all sdfEvents and parse them individually
-    if (sdf_object_json.contains("sdfEvent")){
-        for (const auto& event : sdf_object_json.at("sdfEvent").items()) {
-            sdfEventType sdfEvent;
+    if (sdf_object_json.contains("sdf_event")){
+        for (const auto& event : sdf_object_json.at("sdf_event").items()) {
+            SdfEvent sdfEvent;
             parseSdfEvent(event.value(), sdfEvent);
-            sdfObject.sdfEvent.insert({event.key(), sdfEvent});
+            sdfObject.sdf_event.insert({event.key(), sdfEvent});
         }
     }
 
-    // Iterate through all items inside sdfData and parse them individually
-    if (sdf_object_json.contains("sdfData")){
-        for (const auto& data : sdf_object_json.at("sdfData").items()) {
-            dataQualityType sdfData;
+    // Iterate through all items inside sdf_data and parse them individually
+    if (sdf_object_json.contains("sdf_data")){
+        for (const auto& data : sdf_object_json.at("sdf_data").items()) {
+            DataQuality sdfData;
             parseDataQualities(data.value(), sdfData);
-            sdfObject.sdfData.insert({data.key(), sdfData});
+            sdfObject.sdf_data.insert({data.key(), sdfData});
         }
     }
 
     // Parse the remaining fields
-    if (sdf_object_json.contains("minItems"))
-        sdf_object_json.at("minItems").get_to(sdfObject.minItems);
+    if (sdf_object_json.contains("min_items"))
+        sdf_object_json.at("min_items").get_to(sdfObject.min_items);
 
-    if (sdf_object_json.contains("maxItems"))
-        sdf_object_json.at("maxItems").get_to(sdfObject.maxItems);
+    if (sdf_object_json.contains("max_items"))
+        sdf_object_json.at("max_items").get_to(sdfObject.max_items);
 
     return 0;
 }
 
 /*
- * Parse a sdfThing from json into a sdfThingType object.
+ * Parse a sdf_thing from json into a SdfThing object.
  */
-int parseSdfThing(json& sdf_thing_json, sdfThingType& sdfThing)
+int parseSdfThing(json& sdf_thing_json, SdfThing& sdfThing)
 {
     // Parse the common qualities
     parseCommonQualities(sdf_thing_json, sdfThing);
 
-    // sdfThing
+    // sdf_thing
 
     // Iterate through all sdfObjects and parse them individually
-    if (sdf_thing_json.contains("sdfObject")){
-        for (const auto& object : sdf_thing_json.at("sdfObject").items()) {
-            sdfObjectType sdfObject;
+    if (sdf_thing_json.contains("sdf_object")){
+        for (const auto& object : sdf_thing_json.at("sdf_object").items()) {
+            SdfObject sdfObject;
             parseSdfObject(object.value(), sdfObject);
-            sdfThing.sdfObject.insert({object.key(), sdfObject});
+            sdfThing.sdf_object.insert({object.key(), sdfObject});
         }
     }
 
     // Iterate through all sdfProperties and parse them individually
-    if (sdf_thing_json.contains("sdfProperty")){
-        for (const auto& property : sdf_thing_json.at("sdfProperty").items()) {
-            sdfPropertyType sdfProperty;
+    if (sdf_thing_json.contains("sdf_property")){
+        for (const auto& property : sdf_thing_json.at("sdf_property").items()) {
+            SdfProperty sdfProperty;
             parseSdfProperty(property.value(), sdfProperty);
-            sdfThing.sdfProperty.insert({property.key(), sdfProperty});
+            sdfThing.sdf_property.insert({property.key(), sdfProperty});
         }
     }
 
     // Iterate through all sdfActions and parse them individually
-    if (sdf_thing_json.contains("sdfAction")){
-        for (const auto& action : sdf_thing_json.at("sdfAction").items()) {
-            sdfActionType sdfAction;
+    if (sdf_thing_json.contains("sdf_action")){
+        for (const auto& action : sdf_thing_json.at("sdf_action").items()) {
+            SdfAction sdfAction;
             parseSdfAction(action.value(), sdfAction);
-            sdfThing.sdfAction.insert({action.key(), sdfAction});
+            sdfThing.sdf_action.insert({action.key(), sdfAction});
         }
     }
 
     // Iterate through all sdfEvents and parse them individually
-    if (sdf_thing_json.contains("sdfEvent")){
-        for (const auto& event : sdf_thing_json.at("sdfEvent").items()) {
-            sdfEventType sdfEvent;
+    if (sdf_thing_json.contains("sdf_event")){
+        for (const auto& event : sdf_thing_json.at("sdf_event").items()) {
+            SdfEvent sdfEvent;
             parseSdfEvent(event.value(), sdfEvent);
-            sdfThing.sdfEvent.insert({event.key(), sdfEvent});
+            sdfThing.sdf_event.insert({event.key(), sdfEvent});
         }
     }
 
-    // Iterate through all items inside sdfData and parse them individually
-    if (sdf_thing_json.contains("sdfData")){
-        for (const auto& data : sdf_thing_json.at("sdfData").items()) {
-            dataQualityType sdfData;
+    // Iterate through all items inside sdf_data and parse them individually
+    if (sdf_thing_json.contains("sdf_data")){
+        for (const auto& data : sdf_thing_json.at("sdf_data").items()) {
+            DataQuality sdfData;
             parseDataQualities(data.value(), sdfData);
-            sdfThing.sdfData.insert({data.key(), sdfData});
+            sdfThing.sdf_data.insert({data.key(), sdfData});
         }
     }
 
     // Parse the remaining fields
-    if (sdf_thing_json.contains("minItems"))
-        sdf_thing_json.at("minItems").get_to(sdfThing.minItems);
+    if (sdf_thing_json.contains("min_items"))
+        sdf_thing_json.at("min_items").get_to(sdfThing.min_items);
 
-    if (sdf_thing_json.contains("maxItems"))
-        sdf_thing_json.at("maxItems").get_to(sdfThing.maxItems);
+    if (sdf_thing_json.contains("max_items"))
+        sdf_thing_json.at("max_items").get_to(sdfThing.max_items);
 
     return 0;
 }
 
 /*
- * Parse a namespace block from json into a namespaceType object.
+ * Parse a namespace block from json into a NamespaceBlock object.
  */
-int parseNamespaceBlock(json& namespace_json, namespaceType& namespace_)
+int parseNamespaceBlock(json& namespace_json, NamespaceBlock& namespace_)
 {
     // Iterate through all namespace items and parse them individually
     for (const auto& nsp_item : namespace_json.items()) {
@@ -553,9 +555,9 @@ int parseNamespaceBlock(json& namespace_json, namespaceType& namespace_)
 }
 
 /*
- * Parse an information block from json into a infoBlockType object.
+ * Parse an information block from json into a InformationBlock object.
  */
-int parseInfoBlock(json& info_block_json, infoBlockType& infoBlock)
+int parseInfoBlock(json& info_block_json, InformationBlock& infoBlock)
 {
     if (info_block_json.contains("title"))
         info_block_json.at("title").get_to(infoBlock.title);
@@ -578,54 +580,54 @@ int parseInfoBlock(json& info_block_json, infoBlockType& infoBlock)
     if (info_block_json.contains("features"))
         info_block_json.at("features").get_to(infoBlock.features);
 
-    if (info_block_json.contains("$comment"))
-        info_block_json.at("$comment").get_to(infoBlock.$comment);
+    if (info_block_json.contains("comment"))
+        info_block_json.at("comment").get_to(infoBlock.comment);
 
     return 0;
 }
 
 /*
- * Parse a sdf-model from json into a sdfModelType object.
+ * Parse a sdf-model from json into a SdfModel object.
  */
-int parseSdfModel(json& sdf_model_json, sdfModelType& sdfModel)
+int parseSdfModel(json& sdf_model_json, SdfModel& sdf_model)
 {
     // Set the global sdf_model reference
     global_sdf_model = sdf_model_json;
 
     // Parse the information block
     if (sdf_model_json.contains("info"))
-        parseInfoBlock(sdf_model_json.at("info"), sdfModel.infoBlock);
+        parseInfoBlock(sdf_model_json.at("info"), sdf_model.information_block);
 
     // Parse the namespace block
     if (sdf_model_json.contains("namespace")) {
-        if (sdf_model_json.contains("defaultNamespace")) {
-            parseNamespaceBlock(sdf_model_json.at("namespace"), sdfModel.namespaceBlock);
-            sdf_model_json.at("defaultNamespace").get_to(sdfModel.namespaceBlock.defaultNamespace);
+        if (sdf_model_json.contains("default_namespace")) {
+            parseNamespaceBlock(sdf_model_json.at("namespace"), sdf_model.namespace_block);
+            sdf_model_json.at("default_namespace").get_to(sdf_model.namespace_block.default_namespace);
         }
     }
 
     // Parse the sdfThings
-    if (sdf_model_json.contains("sdfThing")){
-        for (const auto& thing : sdf_model_json.at("sdfThing").items()) {
-            sdfThingType sdfThing;
+    if (sdf_model_json.contains("sdf_thing")){
+        for (const auto& thing : sdf_model_json.at("sdf_thing").items()) {
+            SdfThing sdfThing;
             parseSdfThing(thing.value(), sdfThing);
-            sdfModel.sdfThing[thing.key()] = sdfThing;
+            sdf_model.sdf_thing[thing.key()] = sdfThing;
         }
     }
 
     // Parse the sdfObjects
-    else if (sdf_model_json.contains("sdfObject")) {
-        for (const auto& object : sdf_model_json.at("sdfObject").items()) {
-            sdfObjectType sdfObject;
+    else if (sdf_model_json.contains("sdf_object")) {
+        for (const auto& object : sdf_model_json.at("sdf_object").items()) {
+            SdfObject sdfObject;
             parseSdfObject(object.value(), sdfObject);
-            sdfModel.sdfObject[object.key()] = sdfObject;
+            sdf_model.sdf_object[object.key()] = sdfObject;
         }
     }
     // As described in Section 3.4 [https://datatracker.ietf.org/doc/draft-ietf-asdf-sdf/], SDF grants the possibility
-    // to have sdfProperty, sdfAction or sdfEvent as a top level affordance. But as these are meant to be used as
-    // re-usable definitions for usage via sdfRef, these are meaningless for the converter, hence they're ignored.
+    // to have sdf_property, sdf_action or sdf_event as a top level affordance. But as these are meant to be used as
+    // re-usable definitions for usage via sdf_ref, these are meaningless for the converter, hence they're ignored.
 
-    // If neither sdfThing nor sdfObject are present, the model is empty and thus invalid
+    // If neither sdf_thing nor sdf_object are present, the model is empty and thus invalid
     else {
         return -1;
     }
@@ -634,20 +636,20 @@ int parseSdfModel(json& sdf_model_json, sdfModelType& sdfModel)
 }
 
 /*
- * Parse a sdf-mapping from json into a sdfMappingType object.
+ * Parse a sdf-mapping from json into a SdfMapping object.
  */
-int parseSdfMapping(json& sdf_mapping_json, sdfMappingType& sdfMapping)
+int parseSdfMapping(json& sdf_mapping_json, SdfMapping& sdf_mapping)
 {
     // Parse the information block
     if (sdf_mapping_json.contains("info")) {
-        parseInfoBlock(sdf_mapping_json.at("info"), sdfMapping.infoBlock);
+        parseInfoBlock(sdf_mapping_json.at("info"), sdf_mapping.information_block);
     }
 
     // Parse the namespace block
     if (sdf_mapping_json.contains("namespace")) {
-        if (sdf_mapping_json.contains("defaultNamespace")) {
-            parseNamespaceBlock(sdf_mapping_json.at("namespace"), sdfMapping.namespaceBlock);
-            sdf_mapping_json.at("defaultNamespace").get_to(sdfMapping.namespaceBlock.defaultNamespace);
+        if (sdf_mapping_json.contains("default_namespace")) {
+            parseNamespaceBlock(sdf_mapping_json.at("namespace"), sdf_mapping.namespace_block);
+            sdf_mapping_json.at("default_namespace").get_to(sdf_mapping.namespace_block.default_namespace);
         }
     }
 
@@ -655,7 +657,7 @@ int parseSdfMapping(json& sdf_mapping_json, sdfMappingType& sdfMapping)
     if (sdf_mapping_json.contains("map")) {
         for (const auto& reference : sdf_mapping_json.at("map").items()) {
             for (const auto& field : reference.value().items()) {
-                sdfMapping.map[reference.key()].insert({field.key(), field.value()});
+                sdf_mapping.map[reference.key()].insert({field.key(), field.value()});
             }
         }
     }
@@ -666,7 +668,7 @@ int parseSdfMapping(json& sdf_mapping_json, sdfMappingType& sdfMapping)
 /*
  * Serialize common qualities into the json format.
  */
-int serializeCommonQualities(const commonQualityType& commonQuality, json& common_quality_json)
+int serializeCommonQualities(const CommonQuality& commonQuality, json& common_quality_json)
 {
     if (!commonQuality.description.empty())
         common_quality_json["description"] = commonQuality.description;
@@ -674,14 +676,14 @@ int serializeCommonQualities(const commonQualityType& commonQuality, json& commo
     if (!commonQuality.label.empty())
         common_quality_json["label"] = commonQuality.label;
 
-    if (!commonQuality.$comment.empty())
-        common_quality_json["$comment"] = commonQuality.$comment;
+    if (!commonQuality.comment.empty())
+        common_quality_json["comment"] = commonQuality.comment;
 
-    if (!commonQuality.sdfRef.empty())
-        common_quality_json["sdfRef"] = commonQuality.sdfRef;
+    if (!commonQuality.sdf_ref.empty())
+        common_quality_json["sdf_ref"] = commonQuality.sdf_ref;
 
-    if (!commonQuality.sdfRequired.empty())
-        common_quality_json["sdfRequired"] = commonQuality.sdfRequired;
+    if (!commonQuality.sdf_required.empty())
+        common_quality_json["sdf_required"] = commonQuality.sdf_required;
 
     return 0;
 }
@@ -689,34 +691,34 @@ int serializeCommonQualities(const commonQualityType& commonQuality, json& commo
 /*
  * Function prototype used for recursive calls.
  */
-int serializeDataQualities(const dataQualityType& dataQuality, json& data_quality_json);
+int serializeDataQualities(const DataQuality& dataQuality, json& data_quality_json);
 
 /*
  * Serialize jso items into the json format.
  */
-int serializeJsoItemType(const jsoItemType& jsoItem, json& jso_item_type_json)
+int serializeJsoItemType(const JsoItem& jsoItem, json& jso_item_type_json)
 {
-    if (!jsoItem.sdfRef.empty())
-        jso_item_type_json["sdfRef"] = jsoItem.sdfRef;
+    if (!jsoItem.sdf_ref.empty())
+        jso_item_type_json["sdf_ref"] = jsoItem.sdf_ref;
 
     if (!jsoItem.description.empty())
         jso_item_type_json["description"] = jsoItem.description;
 
-    if (!jsoItem.$comment.empty())
-        jso_item_type_json["$comment"] = jsoItem.$comment;
+    if (!jsoItem.comment.empty())
+        jso_item_type_json["comment"] = jsoItem.comment;
 
     if (!jsoItem.type.empty())
         jso_item_type_json["type"] = jsoItem.type;
 
     // Iterate through all fields and serialize them individually
-    if (!jsoItem.sdfChoice.empty()){
+    if (!jsoItem.sdf_choice.empty()){
         json sdf_choice_map_json;
-        for (const auto& sdf_choice_map : jsoItem.sdfChoice) {
+        for (const auto& sdf_choice_map : jsoItem.sdf_choice) {
             json sdf_choice_json = json({});
             serializeDataQualities(sdf_choice_map.second, sdf_choice_json);
             sdf_choice_map_json[sdf_choice_map.first] = sdf_choice_json;
         }
-        jso_item_type_json["sdfChoice"] = sdf_choice_map_json;
+        jso_item_type_json["sdf_choice"] = sdf_choice_map_json;
     }
 
     if (!jsoItem.enum_.empty())
@@ -731,11 +733,11 @@ int serializeJsoItemType(const jsoItemType& jsoItem, json& jso_item_type_json)
     if (!jsoItem.format.empty())
         jso_item_type_json["format"] = jsoItem.format;
 
-    if (jsoItem.minLength.has_value())
-        jso_item_type_json["minLength"] = jsoItem.minLength.value();
+    if (jsoItem.min_length.has_value())
+        jso_item_type_json["min_length"] = jsoItem.min_length.value();
 
-    if (jsoItem.maxLength.has_value())
-        jso_item_type_json["maxLength"] = jsoItem.maxLength.value();
+    if (jsoItem.max_length.has_value())
+        jso_item_type_json["max_length"] = jsoItem.max_length.value();
 
     if (!jsoItem.properties.empty()) {
         json sdf_properties_json;
@@ -756,7 +758,7 @@ int serializeJsoItemType(const jsoItemType& jsoItem, json& jso_item_type_json)
 /*
  * Serialize data qualities into the json format.
  */
-int serializeDataQualities(const dataQualityType& dataQuality, json& data_quality_json)
+int serializeDataQualities(const DataQuality& dataQuality, json& data_quality_json)
 {
     // Serialize common qualities
     serializeCommonQualities(dataQuality, data_quality_json);
@@ -766,14 +768,14 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
         data_quality_json["type"] = dataQuality.type;
 
     // Iterate through all fields and serialize them individually
-    if (!dataQuality.sdfChoice.empty()){
+    if (!dataQuality.sdf_choice.empty()){
         json sdf_choice_map_json;
-        for (const auto& sdf_choice_map : dataQuality.sdfChoice) {
+        for (const auto& sdf_choice_map : dataQuality.sdf_choice) {
             json sdf_choice_json = json({});
             serializeDataQualities(sdf_choice_map.second, sdf_choice_json);
             sdf_choice_map_json[sdf_choice_map.first] = sdf_choice_json;
         }
-        data_quality_json["sdfChoice"] = sdf_choice_map_json;
+        data_quality_json["sdf_choice"] = sdf_choice_map_json;
     }
 
     if (!dataQuality.enum_.empty())
@@ -840,44 +842,44 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
         }
     }
 
-    if (dataQuality.exclusiveMinimum.has_value()) {
+    if (dataQuality.exclusive_minimum.has_value()) {
         if (dataQuality.type == "number") {
-            data_quality_json["exclusiveMinimum"] = std::get<double>(dataQuality.exclusiveMinimum.value());
+            data_quality_json["exclusive_minimum"] = std::get<double>(dataQuality.exclusive_minimum.value());
         } else if (dataQuality.type == "integer") {
-            if (std::holds_alternative<int64_t>(dataQuality.exclusiveMinimum.value()))
-                data_quality_json["exclusiveMinimum"] = std::get<int64_t >(dataQuality.exclusiveMinimum.value());
-            if (std::holds_alternative<uint64_t>(dataQuality.exclusiveMinimum.value()))
-                data_quality_json["exclusiveMinimum"] = std::get<uint64_t >(dataQuality.exclusiveMinimum.value());
+            if (std::holds_alternative<int64_t>(dataQuality.exclusive_minimum.value()))
+                data_quality_json["exclusive_minimum"] = std::get<int64_t >(dataQuality.exclusive_minimum.value());
+            if (std::holds_alternative<uint64_t>(dataQuality.exclusive_minimum.value()))
+                data_quality_json["exclusive_minimum"] = std::get<uint64_t >(dataQuality.exclusive_minimum.value());
         }
     }
 
-    if (dataQuality.exclusiveMaximum.has_value()) {
+    if (dataQuality.exclusive_maximum.has_value()) {
         if (dataQuality.type == "number") {
-            data_quality_json["exclusiveMaximum"] = std::get<double>(dataQuality.exclusiveMaximum.value());
+            data_quality_json["exclusive_maximum"] = std::get<double>(dataQuality.exclusive_maximum.value());
         } else if (dataQuality.type == "integer") {
-            if (std::holds_alternative<int64_t>(dataQuality.exclusiveMaximum.value()))
-                data_quality_json["exclusiveMaximum"] = std::get<int64_t >(dataQuality.exclusiveMaximum.value());
-            if (std::holds_alternative<uint64_t>(dataQuality.exclusiveMaximum.value()))
-                data_quality_json["exclusiveMaximum"] = std::get<uint64_t >(dataQuality.exclusiveMaximum.value());
+            if (std::holds_alternative<int64_t>(dataQuality.exclusive_maximum.value()))
+                data_quality_json["exclusive_maximum"] = std::get<int64_t >(dataQuality.exclusive_maximum.value());
+            if (std::holds_alternative<uint64_t>(dataQuality.exclusive_maximum.value()))
+                data_quality_json["exclusive_maximum"] = std::get<uint64_t >(dataQuality.exclusive_maximum.value());
         }
     }
 
-    if (dataQuality.multipleOf.has_value()) {
+    if (dataQuality.multiple_of.has_value()) {
         if (dataQuality.type == "number") {
-            data_quality_json["multipleOf"] = std::get<double>(dataQuality.multipleOf.value());
+            data_quality_json["multiple_of"] = std::get<double>(dataQuality.multiple_of.value());
         } else if (dataQuality.type == "integer") {
-            if (std::holds_alternative<int64_t>(dataQuality.multipleOf.value()))
-                data_quality_json["multipleOf"] = std::get<int64_t >(dataQuality.multipleOf.value());
-            if (std::holds_alternative<uint64_t>(dataQuality.multipleOf.value()))
-                data_quality_json["multipleOf"] = std::get<uint64_t >(dataQuality.multipleOf.value());
+            if (std::holds_alternative<int64_t>(dataQuality.multiple_of.value()))
+                data_quality_json["multiple_of"] = std::get<int64_t >(dataQuality.multiple_of.value());
+            if (std::holds_alternative<uint64_t>(dataQuality.multiple_of.value()))
+                data_quality_json["multiple_of"] = std::get<uint64_t >(dataQuality.multiple_of.value());
         }
     }
 
-    if (dataQuality.minLength.has_value())
-        data_quality_json["minLength"] = dataQuality.minLength.value();
+    if (dataQuality.min_length.has_value())
+        data_quality_json["min_length"] = dataQuality.min_length.value();
 
-    if (dataQuality.maxLength.has_value())
-        data_quality_json["maxLength"] = dataQuality.maxLength.value();
+    if (dataQuality.max_length.has_value())
+        data_quality_json["max_length"] = dataQuality.max_length.value();
 
     if (!dataQuality.pattern.empty())
         data_quality_json["pattern"] = dataQuality.pattern;
@@ -885,14 +887,14 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
     if (!dataQuality.format.empty())
         data_quality_json["format"] = dataQuality.format;
 
-    if (dataQuality.minItems.has_value())
-        data_quality_json["minItems"] = dataQuality.minItems.value();
+    if (dataQuality.min_items.has_value())
+        data_quality_json["min_items"] = dataQuality.min_items.value();
 
-    if (dataQuality.maxItems.has_value())
-        data_quality_json["maxItems"] = dataQuality.maxItems.value();
+    if (dataQuality.max_items.has_value())
+        data_quality_json["max_items"] = dataQuality.max_items.value();
 
-    if (dataQuality.uniqueItems.has_value())
-        data_quality_json["uniqueItems"] = dataQuality.uniqueItems.value();
+    if (dataQuality.unique_items.has_value())
+        data_quality_json["unique_items"] = dataQuality.unique_items.value();
 
     if (dataQuality.items.has_value()) {
         json jso_item_json;
@@ -919,19 +921,19 @@ int serializeDataQualities(const dataQualityType& dataQuality, json& data_qualit
     if (dataQuality.nullable.has_value())
         data_quality_json["nullable"] = dataQuality.nullable.value();
 
-    if (!dataQuality.sdfType.empty())
-        data_quality_json["sdfType"] = dataQuality.sdfType;
+    if (!dataQuality.sdf_type.empty())
+        data_quality_json["sdf_type"] = dataQuality.sdf_type;
 
-    if (!dataQuality.contentFormat.empty())
-        data_quality_json["contentFormat"] = dataQuality.contentFormat;
+    if (!dataQuality.content_format.empty())
+        data_quality_json["content_format"] = dataQuality.content_format;
 
     return 0;
 }
 
 /*
- * Serialize sdfData into the json format.
+ * Serialize sdf_data into the json format.
  */
-int serializeSdfData(const sdfDataType& sdfData, json& sdf_data_json)
+int serializeSdfData(const SdfData& sdfData, json& sdf_data_json)
 {
     // Iterate through all elements and serialize them individually
     for (const auto& data_quality_map : sdfData){
@@ -944,62 +946,62 @@ int serializeSdfData(const sdfDataType& sdfData, json& sdf_data_json)
 }
 
 /*
- * Serialize a sdfEvent into the json format.
+ * Serialize a sdf_event into the json format.
  */
-int serializeSdfEvent(const sdfEventType& sdfEvent, json& sdf_event_json)
+int serializeSdfEvent(const SdfEvent& sdfEvent, json& sdf_event_json)
 {
     // Serialize common qualities
     serializeCommonQualities(sdfEvent,sdf_event_json);
 
     // Serialize the output data
     json sdf_output_data_json;
-    serializeDataQualities(sdfEvent.sdfOutputData, sdf_output_data_json);
-    sdf_event_json["sdfOutputData"] = sdf_output_data_json;
+    serializeDataQualities(sdfEvent.sdf_output_data, sdf_output_data_json);
+    sdf_event_json["sdf_output_data"] = sdf_output_data_json;
 
-    // Serialize the sdfData elements
+    // Serialize the sdf_data elements
     json sdf_data_json;
-    serializeSdfData(sdfEvent.sdfData, sdf_data_json);
-    sdf_event_json["sdfData"] = sdf_data_json;
+    serializeSdfData(sdfEvent.sdf_data, sdf_data_json);
+    sdf_event_json["sdf_data"] = sdf_data_json;
 
     return 0;
 }
 
 /*
- * Serialize a sdfAction into the json format.
+ * Serialize a sdf_action into the json format.
  */
-int serializeSdfAction(const sdfActionType& sdfAction, json& sdf_action_json)
+int serializeSdfAction(const SdfAction& sdfAction, json& sdf_action_json)
 {
     // Serialize common qualities
     serializeCommonQualities(sdfAction, sdf_action_json);
 
     // Serialize the input data
-    if (sdfAction.sdfInputData.has_value()) {
+    if (sdfAction.sdf_input_data.has_value()) {
         json sdf_input_data_json;
-        serializeDataQualities(sdfAction.sdfInputData.value(), sdf_input_data_json);
-        sdf_action_json["sdfInputData"] = sdf_input_data_json;
+        serializeDataQualities(sdfAction.sdf_input_data.value(), sdf_input_data_json);
+        sdf_action_json["sdf_input_data"] = sdf_input_data_json;
     }
 
     // Serialize the output data
-    if (sdfAction.sdfOutputData.has_value()) {
+    if (sdfAction.sdf_output_data.has_value()) {
         json sdf_output_data_json;
-        serializeDataQualities(sdfAction.sdfOutputData.value(), sdf_output_data_json);
-        sdf_action_json["sdfOutputData"] = sdf_output_data_json;
+        serializeDataQualities(sdfAction.sdf_output_data.value(), sdf_output_data_json);
+        sdf_action_json["sdf_output_data"] = sdf_output_data_json;
     }
 
-    // Serialize the sdfData elements
-    if (sdfAction.sdfData.has_value()) {
+    // Serialize the sdf_data elements
+    if (sdfAction.sdf_data.has_value()) {
         json sdf_data_json;
-        serializeSdfData(sdfAction.sdfData.value(), sdf_data_json);
-        sdf_action_json["sdfData"] = sdf_data_json;
+        serializeSdfData(sdfAction.sdf_data.value(), sdf_data_json);
+        sdf_action_json["sdf_data"] = sdf_data_json;
     }
 
     return 0;
 }
 
 /*
- * Serialize a sdfProperty into the json format.
+ * Serialize a sdf_property into the json format.
  */
-int serializeSdfProperty(const sdfPropertyType& sdfProperty, json& sdf_property_json)
+int serializeSdfProperty(const SdfProperty& sdfProperty, json& sdf_property_json)
 {
     // Serialize data qualities
     serializeDataQualities(sdfProperty, sdf_property_json);
@@ -1018,130 +1020,130 @@ int serializeSdfProperty(const sdfPropertyType& sdfProperty, json& sdf_property_
 }
 
 /*
- * Serialize a sdfObject into the json format
+ * Serialize a sdf_object into the json format
  */
-int serializeSdfObject(const sdfObjectType& sdfObject, json& sdf_object_json)
+int serializeSdfObject(const SdfObject& sdfObject, json& sdf_object_json)
 {
     // Serialize the common qualities
     serializeCommonQualities(sdfObject, sdf_object_json);
 
     // Serialize the sdfProperties
-    if (!sdfObject.sdfProperty.empty()) {
+    if (!sdfObject.sdf_property.empty()) {
         json sdf_property_map_json;
-        for (const auto& sdf_property_map: sdfObject.sdfProperty) {
+        for (const auto& sdf_property_map: sdfObject.sdf_property) {
             json sdf_property_json;
             serializeSdfProperty(sdf_property_map.second, sdf_property_json);
             sdf_property_map_json[sdf_property_map.first] = sdf_property_json;
         }
-        sdf_object_json["sdfProperty"] = sdf_property_map_json;
+        sdf_object_json["sdf_property"] = sdf_property_map_json;
     }
 
     // Serialize the sdfActions
-    if (!sdfObject.sdfAction.empty()) {
+    if (!sdfObject.sdf_action.empty()) {
         json sdf_action_map_json;
-        for (const auto& sdf_action_map: sdfObject.sdfAction) {
+        for (const auto& sdf_action_map: sdfObject.sdf_action) {
             json sdf_action_json;
             serializeSdfAction(sdf_action_map.second, sdf_action_json);
             sdf_action_map_json[sdf_action_map.first] = sdf_action_json;
         }
-        sdf_object_json["sdfAction"] = sdf_action_map_json;
+        sdf_object_json["sdf_action"] = sdf_action_map_json;
     }
 
     // Serialize the sdfEvents
-    if (!sdfObject.sdfEvent.empty()) {
+    if (!sdfObject.sdf_event.empty()) {
         json sdf_event_map_json;
-        for (const auto& sdf_event_map: sdfObject.sdfEvent) {
+        for (const auto& sdf_event_map: sdfObject.sdf_event) {
             json sdf_event_json;
             serializeSdfEvent(sdf_event_map.second, sdf_event_json);
             sdf_event_map_json[sdf_event_map.first] = sdf_event_json;
         }
-        sdf_object_json["sdfEvent"] = sdf_event_map_json;
+        sdf_object_json["sdf_event"] = sdf_event_map_json;
     }
 
-    // Serialize the sdfData
-    if (!sdfObject.sdfData.empty()) {
+    // Serialize the sdf_data
+    if (!sdfObject.sdf_data.empty()) {
         json sdf_data_json;
-        serializeSdfData(sdfObject.sdfData, sdf_data_json);
-        sdf_object_json["sdfData"] = sdf_data_json;
+        serializeSdfData(sdfObject.sdf_data, sdf_data_json);
+        sdf_object_json["sdf_data"] = sdf_data_json;
     }
 
     // Serialize the remaining fields
-    if (sdfObject.minItems.has_value())
-        sdf_object_json["minItems"] = sdfObject.minItems.value();
+    if (sdfObject.min_items.has_value())
+        sdf_object_json["min_items"] = sdfObject.min_items.value();
 
-    if (sdfObject.maxItems.has_value())
-        sdf_object_json["maxItems"] = sdfObject.maxItems.value();
+    if (sdfObject.max_items.has_value())
+        sdf_object_json["max_items"] = sdfObject.max_items.value();
 
     return 0;
 }
 
 /*
- * Serialize a sdfThing into the json format.
+ * Serialize a sdf_thing into the json format.
  */
-int serializeSdfThing(const sdfThingType& sdfThing, json& sdf_thing_json)
+int serializeSdfThing(const SdfThing& sdfThing, json& sdf_thing_json)
 {
     // Serialize the common qualities
     serializeCommonQualities(sdfThing, sdf_thing_json);
 
-    // sdfThing
+    // sdf_thing
 
     // Serialize the sdfObjects
-    if (!sdfThing.sdfObject.empty()) {
+    if (!sdfThing.sdf_object.empty()) {
         json sdf_object_map_json;
-        for (const auto& sdf_object_map: sdfThing.sdfObject) {
+        for (const auto& sdf_object_map: sdfThing.sdf_object) {
             json sdf_object_json;
             serializeSdfObject(sdf_object_map.second, sdf_object_json);
             sdf_object_map_json[sdf_object_map.first] = sdf_object_json;
         }
-        sdf_thing_json["sdfObject"] = sdf_object_map_json;
+        sdf_thing_json["sdf_object"] = sdf_object_map_json;
     }
 
     // Serialize the sdfProperties
-    if (!sdfThing.sdfProperty.empty()) {
+    if (!sdfThing.sdf_property.empty()) {
         json sdf_property_map_json;
-        for (const auto& sdf_property_map: sdfThing.sdfProperty) {
+        for (const auto& sdf_property_map: sdfThing.sdf_property) {
             json sdf_property_json;
             serializeSdfProperty(sdf_property_map.second, sdf_property_json);
             sdf_property_map_json[sdf_property_map.first] = sdf_property_json;
         }
-        sdf_thing_json["sdfProperty"] = sdf_property_map_json;
+        sdf_thing_json["sdf_property"] = sdf_property_map_json;
     }
 
     // Serialize the sdfActions
-    if (!sdfThing.sdfAction.empty()) {
+    if (!sdfThing.sdf_action.empty()) {
         json sdf_action_map_json;
-        for (const auto& sdf_action_map: sdfThing.sdfAction) {
+        for (const auto& sdf_action_map: sdfThing.sdf_action) {
             json sdf_action_json;
             serializeSdfAction(sdf_action_map.second, sdf_action_json);
             sdf_action_map_json[sdf_action_map.first] = sdf_action_json;
         }
-        sdf_thing_json["sdfAction"] = sdf_action_map_json;
+        sdf_thing_json["sdf_action"] = sdf_action_map_json;
     }
 
     // Serialize the sdfEvents
-    if (!sdfThing.sdfEvent.empty()) {
+    if (!sdfThing.sdf_event.empty()) {
         json sdf_event_map_json;
-        for (const auto& sdf_event_map: sdfThing.sdfEvent) {
+        for (const auto& sdf_event_map: sdfThing.sdf_event) {
             json sdf_event_json;
             serializeSdfEvent(sdf_event_map.second, sdf_event_json);
             sdf_event_map_json[sdf_event_map.first] = sdf_event_json;
         }
-        sdf_thing_json["sdfEvent"] = sdf_event_map_json;
+        sdf_thing_json["sdf_event"] = sdf_event_map_json;
     }
 
-    // Serialize the sdfData
-    if (!sdfThing.sdfData.empty()) {
+    // Serialize the sdf_data
+    if (!sdfThing.sdf_data.empty()) {
         json sdf_data_json;
-        serializeSdfData(sdfThing.sdfData, sdf_data_json);
-        sdf_thing_json["sdfData"] = sdf_data_json;
+        serializeSdfData(sdfThing.sdf_data, sdf_data_json);
+        sdf_thing_json["sdf_data"] = sdf_data_json;
     }
 
     // Serialize the remaining fields
-    if (sdfThing.minItems.has_value())
-        sdf_thing_json["minItems"] = sdfThing.minItems.value();
+    if (sdfThing.min_items.has_value())
+        sdf_thing_json["min_items"] = sdfThing.min_items.value();
 
-    if (sdfThing.maxItems.has_value())
-        sdf_thing_json["maxItems"] = sdfThing.maxItems.value();
+    if (sdfThing.max_items.has_value())
+        sdf_thing_json["max_items"] = sdfThing.max_items.value();
 
     return 0;
 }
@@ -1149,13 +1151,13 @@ int serializeSdfThing(const sdfThingType& sdfThing, json& sdf_thing_json)
 /*
  * Serialize a namespace block into the json format.
  */
-int serializeNamespaceBlock(const namespaceType& namespaceBlock, json& namespace_block_json)
+int serializeNamespaceBlock(const NamespaceBlock& namespaceBlock, json& namespace_block_json)
 {
     if (!namespaceBlock.namespaces.empty())
         namespace_block_json["namespace"] = namespaceBlock.namespaces;
 
-    if (!namespaceBlock.defaultNamespace.empty())
-        namespace_block_json["defaultNamespace"] = namespaceBlock.defaultNamespace;
+    if (!namespaceBlock.default_namespace.empty())
+        namespace_block_json["default_namespace"] = namespaceBlock.default_namespace;
 
     return 0;
 }
@@ -1163,7 +1165,7 @@ int serializeNamespaceBlock(const namespaceType& namespaceBlock, json& namespace
 /*
  * Serialize an information block into the json format.
  */
-int serializeInfoBlock(const infoBlockType& infoBlock, json& info_block_json)
+int serializeInfoBlock(const InformationBlock& infoBlock, json& info_block_json)
 {
     if (!infoBlock.title.empty())
         info_block_json["title"] = infoBlock.title;
@@ -1186,8 +1188,8 @@ int serializeInfoBlock(const infoBlockType& infoBlock, json& info_block_json)
     if (!infoBlock.features.empty())
         info_block_json["features"] = infoBlock.features;
 
-    if (!infoBlock.$comment.empty())
-        info_block_json["$comment"] = infoBlock.$comment;
+    if (!infoBlock.comment.empty())
+        info_block_json["comment"] = infoBlock.comment;
 
     return 0;
 }
@@ -1195,40 +1197,40 @@ int serializeInfoBlock(const infoBlockType& infoBlock, json& info_block_json)
 /*
  * Serialize a sdf-model into the json format.
  */
-int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json)
+int serializeSdfModel(const SdfModel& sdf_model, json& sdf_model_json)
 {
     // Serialize the information block
     json info_block_json;
-    serializeInfoBlock(sdfModel.infoBlock, info_block_json);
+    serializeInfoBlock(sdf_model.information_block, info_block_json);
     if (!info_block_json.is_null())
         sdf_model_json["info"] = info_block_json;
 
     // Serialize the namespace block
-    serializeNamespaceBlock(sdfModel.namespaceBlock, sdf_model_json);
+    serializeNamespaceBlock(sdf_model.namespace_block, sdf_model_json);
 
-    // Serialize the sdfThing
-    if (!sdfModel.sdfThing.empty()){
+    // Serialize the sdf_thing
+    if (!sdf_model.sdf_thing.empty()){
         json sdf_thing_json;
-        for (const auto& thing : sdfModel.sdfThing) {
+        for (const auto& thing : sdf_model.sdf_thing) {
             json current_sdf_thing_json;
             serializeSdfThing(thing.second, current_sdf_thing_json);
             sdf_thing_json[thing.first] = current_sdf_thing_json;
         }
-        sdf_model_json["sdfThing"] = sdf_thing_json;
+        sdf_model_json["sdf_thing"] = sdf_thing_json;
     }
 
-    // Serialize the sdfObject
-    else if (!sdfModel.sdfObject.empty()){
+    // Serialize the sdf_object
+    else if (!sdf_model.sdf_object.empty()){
         json sdf_object_json;
-        for (const auto& object : sdfModel.sdfObject) {
+        for (const auto& object : sdf_model.sdf_object) {
             json current_sdf_object_json;
             serializeSdfObject(object.second, current_sdf_object_json);
             sdf_object_json[object.first] = current_sdf_object_json;
         }
-        sdf_model_json["sdfObject"] = sdf_object_json;
+        sdf_model_json["sdf_object"] = sdf_object_json;
     }
     else {
-        // If neither sdfThing nor sdfObject are present, the models definition block is empty and thus invalid
+        // If neither sdf_thing nor sdf_object are present, the models definition block is empty and thus invalid
         return -1;
     }
 
@@ -1238,19 +1240,19 @@ int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json)
 /*
  * Serialize a sdf-mapping back into the json format.
  */
-int serializeSdfMapping(const sdfMappingType& sdfMapping, json& sdf_mapping_json)
+int serializeSdfMapping(const SdfMapping& sdf_mapping, json& sdf_mapping_json)
 {
     // Serialize the information block
     json info_block_json;
-    serializeInfoBlock(sdfMapping.infoBlock, info_block_json);
+    serializeInfoBlock(sdf_mapping.information_block, info_block_json);
     if (!info_block_json.is_null())
         sdf_mapping_json["info"] = info_block_json;
 
     // Serialize the namespace block
-    serializeNamespaceBlock(sdfMapping.namespaceBlock, sdf_mapping_json);
+    serializeNamespaceBlock(sdf_mapping.namespace_block, sdf_mapping_json);
 
     // Serialize the mapping section
-    sdf_mapping_json["map"] = sdfMapping.map;
+    sdf_mapping_json["map"] = sdf_mapping.map;
 
     return 0;
 }

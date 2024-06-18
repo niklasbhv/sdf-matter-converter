@@ -22,9 +22,9 @@
 
 int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping, pugi::xml_document& cluster_xml)
 {
-    sdf::sdfModelType sdfModel;
+    sdf::SdfModel sdfModel;
     parseSdfModel(sdf_model, sdfModel);
-    sdf::sdfMappingType sdfMapping;
+    sdf::SdfMapping sdfMapping;
 
     parseSdfMapping(sdf_mapping, sdfMapping);
 
@@ -39,9 +39,9 @@ int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json
 
 int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping, pugi::xml_document& device_xml, pugi::xml_document& cluster_xml)
 {
-    sdf::sdfModelType sdfModel;
+    sdf::SdfModel sdfModel;
     parseSdfModel(sdf_model, sdfModel);
-    sdf::sdfMappingType sdfMapping;
+    sdf::SdfMapping sdfMapping;
 
     parseSdfMapping(sdf_mapping, sdfMapping);
 
@@ -57,8 +57,8 @@ int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_doc
     matter::deviceType device;
     parse_device(device_xml.document_element(), cluster_xml.document_element(), device, false);
 
-    sdf::sdfModelType sdfModel;
-    sdf::sdfMappingType sdfMapping;
+    sdf::SdfModel sdfModel;
+    sdf::SdfMapping sdfMapping;
     map_matter_to_sdf(device, sdfModel, sdfMapping);
 
     serializeSdfModel(sdfModel, sdf_model);
@@ -71,8 +71,8 @@ int convertMatterToSdf(const pugi::xml_document& cluster_xml, nlohmann::ordered_
     matter::clusterType cluster;
     parse_cluster(cluster_xml.document_element(), cluster);
 
-    sdf::sdfModelType sdfModel;
-    sdf::sdfMappingType sdfMapping;
+    sdf::SdfModel sdfModel;
+    sdf::SdfMapping sdfMapping;
     map_matter_to_sdf(cluster, sdfModel, sdfMapping);
 
     serializeSdfModel(sdfModel, sdf_model);
@@ -82,9 +82,9 @@ int convertMatterToSdf(const pugi::xml_document& cluster_xml, nlohmann::ordered_
 
 int testJsonParseSerialize(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping)
 {
-    sdf::sdfModelType sdfModel;
+    sdf::SdfModel sdfModel;
     parseSdfModel(sdf_model, sdfModel);
-    sdf::sdfMappingType sdfMapping;
+    sdf::SdfMapping sdfMapping;
     parseSdfMapping(sdf_mapping, sdfMapping);
 
 
