@@ -21,6 +21,8 @@
 
 using json = nlohmann::ordered_json;
 
+namespace sdf {
+
 /*
  * Reference to the SDF-Model used for resolving sdfRef-Elements.
  */
@@ -1252,3 +1254,5 @@ int serializeSdfMapping(const sdfMappingType& sdfMapping, json& sdf_mapping_json
 
     return 0;
 }
+
+} // namespace sdf

@@ -70,6 +70,8 @@ template <typename ...Args> struct adl_serializer<std::variant<Args...>> {
 };
 NLOHMANN_JSON_NAMESPACE_END
 
+namespace sdf {
+
 /**
  * Struct which contains common quality information.
  */
@@ -300,5 +302,7 @@ int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json);
  * @return 0 on success, negative on failure.
  */
 int serializeSdfMapping(const sdfMappingType& sdfMapping, json& sdf_mapping_json);
+
+} // namespace sdf
 
 #endif //SDF_H
