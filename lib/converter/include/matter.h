@@ -149,6 +149,8 @@ struct otherQualityType {
     //! Any of the above can be negated by using !.
 };
 
+typedef std::variant<double, int64_t, uint64_t> numericType;
+
 /**
  * Struct definition for constraint type.
  */
@@ -161,14 +163,14 @@ struct constraintType {
     std::string type;
     //! The interpretation for each of these values depends on the data type its applied to
     //! Exact value.
-    std::optional<int> value;
+    std::optional<defaultType> value;
     //! For range constraints -> x to y.
-    std::optional<int> from;
-    std::optional<int> to;
+    std::optional<numericType> from;
+    std::optional<numericType> to;
     //! Minimum value.
-    std::optional<int> min;
+    std::optional<numericType> min;
     //! Maximum value.
-    std::optional<int> max;
+    std::optional<numericType> max;
     //! No constraints.
     //! Same as min to max.
     std::optional<bool> all;
@@ -194,18 +196,24 @@ typedef std::map<u_int8_t, std::string> revisionType;
  * Struct which represents feature conformance.
  */
 struct conformanceType {
-    //! M -> Mandatory
+    //! M -> Mandatory conformance
     std::optional<bool> mandatory;
-    //! O -> Optional
+    //! O -> Optional conformance
     std::optional<bool> optional;
-    //! P -> Provisional
+    //! P -> Provisional conformance
     std::optional<bool> provisional;
-    //! D -> Deprecated
+    //! D -> Deprecated conformance
     std::optional<bool> deprecated;
-    //! X -> Disallowed
+    //! X -> Disallowed conformance
     std::optional<bool> disallowed;
-    //! Represents the boolean expression.
-    std::optional<std::string> condition;
+    //! List representing the otherwise conformance
+    //! Note that the first true conformance in this list will be chosen
+    std::list<conformanceType> otherwise;
+    //! List representing the choice element
+    std::list<conformanceType> choice;
+    //! Represents the entire logical term
+    //! Note that this will be in a C++ fashion format
+    std::string condition;
 };
 
 /**
@@ -409,14 +417,27 @@ struct deviceType : commonDataQualityType {
 /**
  * @brief Parses xml-file into a device.
  *
- * This function takes a device definition and the cluster definitions in xml format and converts it into a device.
+ * This function takes a device type definition and the cluster definitions in XML format and converts it into a device.
  *
  * @param device_xml Device definitions in xml format.
  * @param cluster_xml Cluster definitions in xml format.
  * @param device The resulting device.
+ * @param client If the resulting SDF-Model should be a client.
  * @return 0 on success, negative on failure.
  */
-int parse_device(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device);
+int parse_device(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device, bool client);
+
+
+/**
+ * @brief Parses xml-file into a cluster.
+ *
+ * This functions takes a cluster definition in XML format and converts it into a cluster.
+ *
+ * @param cluster_xml Cluster definition in XML format.
+ * @param cluster The resulting cluster.
+ * @return 0 on success, negative on failure.
+ */
+int parse_cluster(const pugi::xml_node& cluster_xml, clusterType& cluster);
 
 
 /**
@@ -430,5 +451,7 @@ int parse_device(const pugi::xml_node& device_xml, const pugi::xml_node& cluster
  * @return 0 on success, negative on failure.
  */
 int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi::xml_node& cluster_xml);
+
+int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml);
 
 #endif //MATTER_H
