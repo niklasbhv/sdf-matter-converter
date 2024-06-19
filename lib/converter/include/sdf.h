@@ -167,7 +167,7 @@ struct DataQuality : CommonQuality {
  * Struct which contains sdf_event information.
  */
 struct SdfEvent : CommonQuality {
-    DataQuality sdf_output_data;
+    std::optional<DataQuality> sdf_output_data;
     SdfData sdf_data;
 };
 
@@ -177,7 +177,7 @@ struct SdfEvent : CommonQuality {
 struct SdfAction : CommonQuality {
     std::optional<DataQuality> sdf_input_data;
     std::optional<DataQuality> sdf_output_data;
-    std::optional<SdfData> sdf_data;
+    SdfData sdf_data;
 };
 
 /**
@@ -243,8 +243,8 @@ struct InformationBlock {
  * Struct which contains sdf-model information.
  */
 struct SdfModel {
-    InformationBlock information_block;
-    NamespaceBlock namespace_block;
+    std::optional<InformationBlock> information_block;
+    std::optional<NamespaceBlock> namespace_block;
     std::map<std::string, SdfThing> sdf_thing;
     std::map<std::string, SdfObject> sdf_object;
 };
@@ -253,8 +253,8 @@ struct SdfModel {
  * Struct which contains sdf-mapping information.
  */
 struct SdfMapping {
-    InformationBlock information_block;
-    NamespaceBlock namespace_block;
+    std::optional<InformationBlock> information_block;
+    std::optional<NamespaceBlock> namespace_block;
     std::map<std::string, std::map<std::string, std::string>> map;
 };
 
@@ -267,7 +267,7 @@ struct SdfMapping {
  * @param sdf_model The resulting object.
  * @return 0 on success, negative on failure.
  */
-int parseSdfModel(json& sdf_model_json, SdfModel& sdf_model);
+SdfModel ParseSdfModel(json& sdf_model_json);
 
 /**
  * @brief Parse a sdf-mapping.
@@ -278,7 +278,7 @@ int parseSdfModel(json& sdf_model_json, SdfModel& sdf_model);
  * @param sdf_mapping The resulting object.
  * @return 0 on success, negative on failure.
  */
-int parseSdfMapping(json& sdf_mapping_json, SdfMapping& sdf_mapping);
+SdfMapping ParseSdfMapping(json& sdf_mapping_json);
 
 
 /**
@@ -290,7 +290,7 @@ int parseSdfMapping(json& sdf_mapping_json, SdfMapping& sdf_mapping);
  * @param sdf_model_json The resulting json.
  * @return 0 on success, negative on failure.
  */
-int serializeSdfModel(const SdfModel& sdf_model, json& sdf_model_json);
+json SerializeSdfModel(const SdfModel& sdf_model);
 
 /**
  * @bried Serialize a sdf-mapping.
@@ -301,7 +301,7 @@ int serializeSdfModel(const SdfModel& sdf_model, json& sdf_model_json);
  * @param sdf_mapping_json The resulting json.
  * @return 0 on success, negative on failure.
  */
-int serializeSdfMapping(const SdfMapping& sdf_mapping, json& sdf_mapping_json);
+json SerializeSdfMapping(const SdfMapping& sdf_mapping);
 
 } // namespace sdf
 

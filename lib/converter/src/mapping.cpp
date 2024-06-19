@@ -733,9 +733,9 @@ int map_matter_device(const matter::deviceType& device, sdf::SdfModel& sdfModel,
     // device.revisionHistory -> sdf_data
 
     // Map the information block
-    sdfModel.information_block.title = device.name;
-    sdfModel.information_block.description = device.summary;
-    sdfModel.information_block.version = std::to_string(device.revision);
+    //sdfModel.information_block.title = device.name;
+    //sdfModel.information_block.description = device.summary;
+    //sdfModel.information_block.version = std::to_string(device.revision);
     // sdfModel.information_block.modified
     // sdfModel.information_block.copyright <-- Maybe parse from the comment?
     // sdfModel.information_block.license <-- Maybe parse from the comment?
@@ -743,8 +743,8 @@ int map_matter_device(const matter::deviceType& device, sdf::SdfModel& sdfModel,
     // sdfModel.information_block.comment
 
     // Map the namespace block
-    sdfModel.namespace_block.namespaces.insert({"zcl", "https://zcl.example.com/sdf"});
-    sdfModel.namespace_block.default_namespace = "zcl";
+    //sdfModel.namespace_block.namespaces.insert({"zcl", "https://zcl.example.com/sdf"});
+    //sdfModel.namespace_block.default_namespace = "zcl";
 
     // Map the definition block
     sdf::SdfThing sdfThing;
@@ -804,11 +804,11 @@ int map_matter_to_sdf(const matter::clusterType& cluster, sdf::SdfModel& sdfMode
     sdf::SdfObject sdfObject;
     map_matter_cluster(cluster, sdfObject, cluster_node);
 
-    sdfModel.information_block.title = cluster.name;
-    sdfModel.information_block.description = cluster.summary;
+    //sdfModel.information_block.title = cluster.name;
+    //sdfModel.information_block.description = cluster.summary;
 
-    sdfMapping.information_block.title = cluster.name;
-    sdfMapping.information_block.description = cluster.summary;
+    //sdfMapping.information_block.title = cluster.name;
+    //sdfMapping.information_block.description = cluster.summary;
 
     sdfModel.sdf_object.insert({cluster.name, sdfObject});
 
@@ -825,11 +825,11 @@ int map_matter_to_sdf(const matter::deviceType& device, sdf::SdfModel& sdfModel,
     map_matter_device(device, sdfModel, device_node);
 
     // Initial sdfMapping mapping
-    sdfMapping.information_block.title = device.name;
-    sdfMapping.information_block.description = device.summary;
-    sdfMapping.information_block.version = std::to_string(device.revision);
-    sdfMapping.namespace_block.namespaces = {{"zcl", "https://zcl.example.com/sdf"}};
-    sdfMapping.namespace_block.default_namespace = "zcl";
+    //sdfMapping.information_block.title = device.name;
+    //sdfMapping.information_block.description = device.summary;
+    //sdfMapping.information_block.version = std::to_string(device.revision);
+    //sdfMapping.namespace_block.namespaces = {{"zcl", "https://zcl.example.com/sdf"}};
+    //sdfMapping.namespace_block.default_namespace = "zcl";
     std::map<std::string, std::map<std::string, std::string>> map;
     generate_mapping(referenceTree.document_element(), map);
     sdfMapping.map = map;

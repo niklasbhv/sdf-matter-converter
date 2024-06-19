@@ -40,7 +40,7 @@
  * @param cluster_xml The output cluster definition.
  * @return 0 on success, negative on failure.
  */
-int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping, pugi::xml_document& device_xml, pugi::xml_document& cluster_xml);
+int ConvertSdfToMatter(nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json, pugi::xml_document& device_xml, pugi::xml_document& cluster_xml);
 
 /**
  * @brief Convert sdf to matter.
@@ -52,7 +52,7 @@ int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json
  * @param cluster_xml The output cluster definition.
  * @return 0 on success, negative on failure.
  */
-int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping, pugi::xml_document& cluster_xml);
+int ConvertSdfToMatter(nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json, pugi::xml_document& cluster_xml);
 
 /**
  * @brief Convert matter to sdf.
@@ -65,7 +65,7 @@ int convertSdfToMatter(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json
  * @param sdf_mapping The output sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping);
+int ConvertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json);
 
 /**
  * @brief Convert matter to sdf.
@@ -77,10 +77,10 @@ int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_doc
  * @param sdf_mapping The output sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int convertMatterToSdf(const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping);
+int ConvertMatterToSdf(const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json);
 
-int testJsonParseSerialize(nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping);
+int TestJsonParseSerialize(nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json);
 
-int testXmlParseSerialize(pugi::xml_document& device_xml, pugi::xml_document& cluster_xml);
+int TestXmlParseSerialize(pugi::xml_document& device_xml, pugi::xml_document& cluster_xml);
 
 #endif //CONVERTER_H
