@@ -20,56 +20,46 @@
 #include "sdf.h"
 #include "mapping.h"
 
-int ConvertSdfToMatter(nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json, pugi::xml_document& cluster_xml)
+using json = nlohmann::ordered_json;
+
+int ConvertSdfToMatter(json& sdf_model_json, json& sdf_mapping_json,
+                       std::optional<pugi::xml_document>& device_xml, std::list<pugi::xml_document>& cluster_xml_list)
 {
     sdf::SdfModel sdf_model = sdf::ParseSdfModel(sdf_model_json);
     sdf::SdfMapping sdf_mapping = sdf::ParseSdfMapping(sdf_mapping_json);
 
-    std::list<matter::clusterType> clusters;
-    map_sdf_to_matter(sdf_model, sdf_mapping, clusters);
+    matter::Device device;
+    std::list<matter::Cluster> clusters;
+    //map_sdf_to_matter(sdf_model, sdf_mapping, device, clusters);
+
+    if (device_xml.has_value())
+        device_xml = SerializeDevice(device);
+
     for (const auto& cluster : clusters) {
-        serialize_cluster(cluster, cluster_xml);
+        pugi::xml_document cluster_xml = SerializeCluster(cluster);
+        //cluster_xml_list.push_back(cluster_xml);
     }
 
     return 0;
 }
 
-int ConvertSdfToMatter(nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json, pugi::xml_document& device_xml, pugi::xml_document& cluster_xml)
+int ConvertMatterToSdf(const std::optional<pugi::xml_document>& device_xml,
+                       const std::list<pugi::xml_document>& cluster_xml_list,
+                       json& sdf_model_json, json& sdf_mapping_json)
 {
-    sdf::SdfModel sdf_model = sdf::ParseSdfModel(sdf_model_json);
-    sdf::SdfMapping sdfMapping = sdf::ParseSdfMapping(sdf_mapping_json);
+    std::optional<matter::Device> device;
+    if (device_xml.has_value()) {
+        device = matter::ParseDevice(device_xml.value().document_element(), false);
+    }
+    //std::list<matter::Cluster>
+    for (auto const& cluster_xml : cluster_xml_list) {
+        matter::Cluster cluster =  matter::ParseCluster(cluster_xml.document_element());
 
-    matter::deviceType device;
-    map_sdf_to_matter(sdf_model, sdfMapping, device);
-
-    serialize_device(device, device_xml, cluster_xml);
-
-    return 0;
-}
-
-int ConvertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json)
-{
-    matter::deviceType device;
-    parse_device(device_xml.document_element(), cluster_xml.document_element(), device, false);
+    }
 
     sdf::SdfModel sdf_model;
     sdf::SdfMapping sdf_mapping;
-    map_matter_to_sdf(device, sdf_model, sdf_mapping);
-
-    sdf_model_json = sdf::SerializeSdfModel(sdf_model);
-    sdf_mapping_json = sdf::SerializeSdfMapping(sdf_mapping);
-
-    return 0;
-}
-
-int ConvertMatterToSdf(const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json)
-{
-    matter::clusterType cluster;
-    parse_cluster(cluster_xml.document_element(), cluster);
-
-    sdf::SdfModel sdf_model;
-    sdf::SdfMapping sdf_mapping;
-    map_matter_to_sdf(cluster, sdf_model, sdf_mapping);
+    //map_matter_to_sdf(device, sdf_model, sdf_mapping);
 
     sdf_model_json = sdf::SerializeSdfModel(sdf_model);
     sdf_mapping_json = sdf::SerializeSdfMapping(sdf_mapping);
@@ -92,12 +82,15 @@ int TestJsonParseSerialize(nlohmann::ordered_json& sdf_model_json, nlohmann::ord
 
 int TestXmlParseSerialize(pugi::xml_document& device_xml, pugi::xml_document& cluster_xml)
 {
-    matter::deviceType device;
-    parse_device(device_xml.document_element(), cluster_xml.document_element(), device, false);
+    matter::Device device;
+    matter::Cluster cluster;
+    device = matter::ParseDevice(device_xml.document_element(), false);
+    cluster = matter::ParseCluster(cluster_xml.document_element());
 
     device_xml.reset();
     cluster_xml.reset();
-    serialize_device(device, device_xml, cluster_xml);
+    device_xml = matter::SerializeDevice(device);
+    cluster_xml = matter::SerializeCluster(cluster);
 
     return 0;
 }

@@ -39,7 +39,7 @@
  * @param cluster The resulting cluster definition.
  * @return 0 on success, negative on failure.
  */
-int map_sdf_to_matter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, std::list<matter::clusterType>& cluster);
+int map_sdf_to_matter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, std::list<matter::Cluster>& cluster);
 
 /**
  * @brief Map a sdf-model and sdf-mapping to a matter object.
@@ -51,7 +51,7 @@ int map_sdf_to_matter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfM
  * @param device The resulting device definition.
  * @return 0 on success, negative on failure.
  */
-int map_sdf_to_matter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, matter::deviceType& device);
+int map_sdf_to_matter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, matter::Device& device);
 
 /**
  * @brief Map a cluster definition onto a sdf-model and a sdf-mapping.
@@ -63,7 +63,7 @@ int map_sdf_to_matter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfM
  * @param sdfMapping The resulting sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int map_matter_to_sdf(const matter::clusterType& cluster, sdf::SdfModel& sdfModel, sdf::SdfMapping& sdfMapping);
+int map_matter_to_sdf(const matter::Cluster& cluster, sdf::SdfModel& sdfModel, sdf::SdfMapping& sdfMapping);
 
 /**
  * @brief Map a device type definition to a sdf-object.
@@ -75,6 +75,6 @@ int map_matter_to_sdf(const matter::clusterType& cluster, sdf::SdfModel& sdfMode
  * @param sdfMapping The resulting sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int map_matter_to_sdf(const matter::deviceType& device, sdf::SdfModel& sdfModel, sdf::SdfMapping& sdfMapping);
+int map_matter_to_sdf(const matter::Device& device, sdf::SdfModel& sdfModel, sdf::SdfMapping& sdfMapping);
 
 #endif //MAPPING_H

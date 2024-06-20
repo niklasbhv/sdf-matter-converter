@@ -73,7 +73,7 @@
 /**
  * Function used to convert decimal uint32 numbers to hexadecimal.
  */
-inline std::string decToHexa(uint32_t n)
+inline std::string DecToHexa(uint32_t n)
 {
     // TODO: Has to be reworked in order to account für uint32 size numbers
     // ans string to store hexadecimal number
@@ -118,21 +118,21 @@ inline std::string decToHexa(uint32_t n)
 }
 
 namespace matter {
-/**
- * Type definition for the default type.
- */
-typedef std::variant<uint64_t, int64_t, double, std::string> defaultType;
-typedef std::variant<double, int64_t, uint64_t> numericType;
-/**
- * Type used to store revision information.
- * Maps a revision id onto a summary of changes.
- */
-typedef std::map<u_int8_t, std::string> revisionType;
+
+//!Type definition for the default type.
+typedef std::variant<double, int64_t, uint64_t, std::string> DefaultType;
+
+//! Type definition for the numeric type.
+typedef std::variant<double, int64_t, uint64_t> NumericType;
+
+//!Type used to store revision information.
+//!Maps a revision id onto a summary of changes.
+typedef std::map<u_int8_t, std::string> Revision;
 
 /**
  * Struct which represents the quality column.
  */
-struct otherQualityType {
+struct OtherQuality {
     //! X -> Nullable.
     std::optional<bool> nullable;
     //! N -> Non-Volatile.
@@ -159,23 +159,23 @@ struct otherQualityType {
 /**
  * Struct definition for constraint type.
  */
-struct constraintType;
+struct Constraint;
 
 /**
  * Struct which represents constraints.
  */
-struct constraintType {
+struct Constraint {
     std::string type;
     //! The interpretation for each of these values depends on the data type its applied to
     //! Exact value.
-    std::optional<defaultType> value;
+    std::optional<DefaultType> value;
     //! For range constraints -> x to y.
-    std::optional<numericType> from;
-    std::optional<numericType> to;
+    std::optional<NumericType> from;
+    std::optional<NumericType> to;
     //! Minimum value.
-    std::optional<numericType> min;
+    std::optional<NumericType> min;
     //! Maximum value.
-    std::optional<numericType> max;
+    std::optional<NumericType> max;
     //! No constraints.
     //! Same as min to max.
     std::optional<bool> all;
@@ -194,7 +194,7 @@ struct constraintType {
 /**
  * Struct which represents feature conformance.
  */
-struct conformanceType {
+struct Conformance {
     //! M -> Mandatory conformance
     std::optional<bool> mandatory;
     //! O -> Optional conformance
@@ -207,9 +207,9 @@ struct conformanceType {
     std::optional<bool> disallowed;
     //! List representing the otherwise conformance
     //! Note that the first true conformance in this list will be chosen
-    std::list<conformanceType> otherwise;
+    std::list<Conformance> otherwise;
     //! List representing the choice element
-    std::list<conformanceType> choice;
+    std::list<Conformance> choice;
     //! Represents the entire logical term
     //! Note that this will be in a C++ fashion format
     std::string condition;
@@ -218,7 +218,7 @@ struct conformanceType {
 /**
  * Struct which represents access qualities.
  */
-struct accessType {
+struct Access {
     //! Each access is a combination of [RW FS VOMA T] seperated by spaces
     //! R -> Read
     //! W -> Write
@@ -246,62 +246,60 @@ struct accessType {
 /**
  * Struct which represents the common data.
  */
-struct commonDataQualityType {
+struct CommonQuality {
     //! Unique identifier.
     u_int32_t id;
     //! CamelCase name of the element.
     std::string name;
     //! Field is being stripped as it is deprecated, use name instead.
     //! Defines dependencies.
-    std::optional<conformanceType> conformance;
+    std::optional<Conformance> conformance;
     //! Defines how an element is accessed.
-    std::optional<accessType> access;
+    std::optional<Access> access;
     //! Short summary of the element.
     std::string summary;
 };
 
 // TODO: Temporary, derived from the xml definitions
-struct enumItemType {
+struct Item {
     int value;
     std::string name;
     std::string summary;
-    std::optional<conformanceType> conformance;
+    std::optional<Conformance> conformance;
 };
 
 // TODO: Temporary, derived from the xml definitions
-struct bitmapBitfieldType {
+struct Bitfield {
     int bit;
     std::string name;
     std::string summary;
-    std::optional<conformanceType> conformance;
+    std::optional<Conformance> conformance;
 };
 
 /**
  * Struct which contains data field information.
  */
-struct dataFieldType : commonDataQualityType {
+struct DataField : CommonQuality {
     //! Data type
     std::string type;
     //! Constraints
-    std::optional<constraintType> constraint;
+    std::optional<Constraint> constraint;
     //! Other qualities
-    std::optional<otherQualityType> quality;
+    std::optional<OtherQuality> quality;
     //! Default value
-    defaultType default_;
+    DefaultType default_;
 };
 
-/**
- * Type definition for the struct.
- */
-typedef std::list<dataFieldType> structType;
+//! Type definition for the struct.
+typedef std::list<DataField> Struct;
 
 /**
  * Struct which represents FeatureMap Attribute.
  * Used to define optional features.
  */
-struct featureMapType {
+struct FeatureMap {
     u_int8_t bit;
-    std::optional<conformanceType> conformance;
+    std::optional<Conformance> conformance;
     //! Capitalized, short code
     std::string code;
     std::string name;
@@ -311,44 +309,44 @@ struct featureMapType {
 /**
  * Struct which contains Matter event information.
  */
-struct eventType : commonDataQualityType {
+struct Event : CommonQuality {
     //! Currently either debug, info or critical
     std::string priority;
     //! Other qualities
-    std::optional<otherQualityType> quality;
+    std::optional<OtherQuality> quality;
     //! Data used for the event record
-    structType data;
+    Struct data;
 };
 
 /**
  * Struct which contains Matter command information.
  */
-struct commandType : commonDataQualityType {
-    defaultType default_;
+struct Command : CommonQuality {
+    DefaultType default_;
     //! Either commandToServer or responseFromServer
     std::string direction;
     //! Either Y, N or the name of the response command
     std::string response;
     //! Command fields
-    structType command_fields;
+    Struct command_fields;
 };
 
 /**
  * Struct which contains Matter attribute information.
  */
-struct attributeType : commonDataQualityType {
+struct Attribute : CommonQuality {
     //! Data type
     std::string type;
     //! Other qualities
-    std::optional<otherQualityType> quality;
+    std::optional<OtherQuality> quality;
     //! Default value
-    defaultType default_;
+    DefaultType default_;
 };
 
 /**
  * Struct which contains cluster classification information.
  */
-struct clusterClassificationType {
+struct ClusterClassification {
     //! Either base or derived
     std::string hierarchy;
     //! Either utility or application
@@ -358,37 +356,37 @@ struct clusterClassificationType {
     //! Either Endpoint or Node
     std::string scope;
     //! Cluster name of the base cluster
-    std::string baseCluster;
+    std::string base_cluster;
     //! Number of the primary transaction
-    std::string primaryTransaction;
+    std::string primary_transaction;
 };
 
 /**
  * Struct which contains Matter cluster information.
  */
-struct clusterType : commonDataQualityType {
+struct Cluster : CommonQuality {
     //! Current revision
     int revision;
     //! History of revisions
-    revisionType revision_history;
+    Revision revision_history;
     //! Cluster classification
-    std::optional<clusterClassificationType> classification;
+    std::optional<ClusterClassification> classification;
     //! List of attributes
-    std::list<attributeType> attributes;
+    std::list<Attribute> attributes;
     //! List of commands
-    std::list<commandType> commands;
+    std::list<Command> commands;
     //! List of events
-    std::list<eventType> events;
+    std::list<Event> events;
     //! Map for globally defined enums
-    std::map<std::string, std::list<enumItemType>> enums;
+    std::map<std::string, std::list<Item>> enums;
     //! Map for globally defined bitmaps
-    std::map<std::string, std::list<bitmapBitfieldType>> bitmaps;
+    std::map<std::string, std::list<Bitfield>> bitmaps;
 };
 
 /**
  * Struct which contains device classification information.
  */
-struct deviceClassificationType {
+struct DeviceClassification {
     //! Name of the superset device type
     std::string superset;
     //! Either simple, utility or node
@@ -400,30 +398,29 @@ struct deviceClassificationType {
 /**
  *  Struct which contains Matter device type information.
  */
-struct deviceType : commonDataQualityType {
+struct Device : CommonQuality {
     //! Current revision
     int revision;
     //! History of revisions
-    revisionType revision_history;
+    Revision revision_history;
     //! Device classification
-    std::optional<deviceClassificationType> classification;
+    std::optional<DeviceClassification> classification;
     //! Device conditions
     std::map<std::string, std::string> conditions;
     //! List of used clusters
-    std::list<clusterType> clusters;
+    std::list<Cluster> clusters;
 };
+
 /**
  * @brief Parses xml-file into a device.
  *
  * This function takes a device type definition and the cluster definitions in XML format and converts it into a device.
  *
  * @param device_xml Device definitions in xml format.
- * @param cluster_xml Cluster definitions in xml format.
- * @param device The resulting device.
  * @param client If the resulting SDF-Model should be a client.
- * @return 0 on success, negative on failure.
+ * @return The resulting device.
  */
-int parse_device(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device, bool client);
+Device ParseDevice(const pugi::xml_node& device_xml, bool client);
 
 
 /**
@@ -432,25 +429,31 @@ int parse_device(const pugi::xml_node& device_xml, const pugi::xml_node& cluster
  * This functions takes a cluster definition in XML format and converts it into a cluster.
  *
  * @param cluster_xml Cluster definition in XML format.
- * @param cluster The resulting cluster.
- * @return 0 on success, negative on failure.
+ * @return The resulting cluster.
  */
-int parse_cluster(const pugi::xml_node& cluster_xml, clusterType& cluster);
+Cluster ParseCluster(const pugi::xml_node& cluster_xml);
 
 
 /**
  * @brief Serializes device into xml-file.
  *
- * This functions takes a device object and serializes it into a device and a cluster xml.
+ * This functions takes a device object and serializes it into a device xml.
  *
  * @param device The input device object.
- * @param device_xml The resulting device xml.
- * @param cluster_xml The resulting cluster xml.
- * @return 0 on success, negative on failure.
+ * @return The resulting device xml.
  */
-int serialize_device(const deviceType& device, pugi::xml_node& device_xml, pugi::xml_node& cluster_xml);
+pugi::xml_document SerializeDevice(const Device& device);
 
-int serialize_cluster(const clusterType& cluster, pugi::xml_node& cluster_xml);
+
+/**
+ * @brief Serializes cluster into xml-file.
+ *
+ * This functions takes a cluster object and serializes it into a cluster xml.
+ *
+ * @param device The input cluster object.
+ * @return The resulting cluster xml.
+ */
+pugi::xml_document SerializeCluster(const Cluster& cluster);
 
 } // namespace matter
 
