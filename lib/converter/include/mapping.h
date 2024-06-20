@@ -36,10 +36,10 @@
  *
  * @param sdfModel The input sdf-model.
  * @param sdfMappingType The input sdf-mapping.
- * @param cluster The resulting cluster definition.
+ * @param clusters The resulting cluster definition.
  * @return 0 on success, negative on failure.
  */
-int map_sdf_to_matter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, std::list<matter::Cluster>& cluster);
+int MapSdfToMatter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, std::list<matter::Cluster>& clusters);
 
 /**
  * @brief Map a sdf-model and sdf-mapping to a matter object.
@@ -51,7 +51,7 @@ int map_sdf_to_matter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfM
  * @param device The resulting device definition.
  * @return 0 on success, negative on failure.
  */
-int map_sdf_to_matter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, matter::Device& device);
+int MapSdfToMatter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, matter::Device& device);
 
 /**
  * @brief Map a cluster definition onto a sdf-model and a sdf-mapping.
@@ -59,11 +59,11 @@ int map_sdf_to_matter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfM
  * This function maps a device onto a sdf-model and sdf-mapping.
  *
  * @param cluster The input cluster definition.
- * @param sdfModel The resulting sdf-model.
- * @param sdfMapping The resulting sdf-mapping.
+ * @param sdf_model The resulting sdf-model.
+ * @param sdf_mapping The resulting sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int map_matter_to_sdf(const matter::Cluster& cluster, sdf::SdfModel& sdfModel, sdf::SdfMapping& sdfMapping);
+int MapMatterToSdf(const matter::Cluster& cluster, sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping);
 
 /**
  * @brief Map a device type definition to a sdf-object.
@@ -71,10 +71,10 @@ int map_matter_to_sdf(const matter::Cluster& cluster, sdf::SdfModel& sdfModel, s
  * This function maps a device onto a sdf-model and sdf-mapping.
  *
  * @param device The input device definition.
- * @param sdfModel The resulting sdf-model.
- * @param sdfMapping The resulting sdf-mapping.
+ * @param sdf_model The resulting sdf-model.
+ * @param sdf_mapping The resulting sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int map_matter_to_sdf(const matter::Device& device, sdf::SdfModel& sdfModel, sdf::SdfMapping& sdfMapping);
+int MapMatterToSdf(const matter::Device& device, sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping);
 
 #endif //MAPPING_H
