@@ -61,8 +61,13 @@ public:
         std::map<std::string, std::map<std::string, sdf::MappingValue>> map;
         ReferenceTreeNode* current = node;
         for (const auto& child : current->children) {
-            if (!child->attributes.empty())
+            std::cout << "Current Child: " << child->name << std::endl;
+            std::cout << "Child Path: " << GeneratePath(child) << std::endl;
+            if (!child->attributes.empty()) {
+                std::cout << "Found Attribute!" << std::endl;
                 map[GeneratePath(child)] = child->attributes;
+            }
+            map.merge(GenerateMapping(child));
         }
         return map;
     }
@@ -71,7 +76,7 @@ private:
         std::string path;
         ReferenceTreeNode* current = node;
         while (current != nullptr) {
-            path.append("/").append(current->name);
+            path = current->name + (path.empty() ? "" : "/" + path);
             current = current->parent;
         }
         return path;
@@ -749,8 +754,9 @@ sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute)
     sdf::SdfProperty sdf_property;
     // Append the attribute node to the tree
     //auto attribute_node = sdf_property_node.append_child(attribute.name.c_str());
-
-    // attribute.id
+    auto* attribute_reference = new ReferenceTreeNode(attribute.name);
+    current_node->AddChild(attribute_reference);
+    attribute_reference->AddAttribute("id", (uint64_t) attribute.id);
     sdf_property.label = attribute.name;
     if (attribute.conformance.has_value())
         MapMatterConformance(attribute.conformance.value());
@@ -776,14 +782,10 @@ sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute)
 sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
 {
     sdf::SdfObject sdf_object;
-    // Append the name of the cluster to the tree
-    // Also append sdf_property, sdf_action and sdf_event to the tree
-    //auto cluster_node = sdf_object_node.append_child(cluster.name.c_str());
-    //cluster_node.append_child("sdf_property");
-    //cluster_node.append_child("sdf_action");
-    //cluster_node.append_child("sdf_event");
+    auto* cluster_reference = new ReferenceTreeNode(cluster.name);
 
-    // cluster.id
+    cluster_reference->AddAttribute("id", (uint64_t) cluster.id);
+    current_node->AddChild(cluster_reference);
     sdf_object.label = cluster.name;
     if (cluster.conformance.has_value())
         MapMatterConformance(cluster.conformance.value());
@@ -793,7 +795,9 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
     // cluster.revision_history -> sdf_data
 
     // Iterate through the attributes and map them
-    //auto attribute_node = cluster_node.child("sdf_property");
+    auto* sdf_property_node = new ReferenceTreeNode("sdfProperty");
+    cluster_reference->AddChild(sdf_property_node);
+    current_node = sdf_property_node;
     for (const auto& attribute : cluster.attributes){
         sdf::SdfProperty sdf_property = MapMatterAttribute(attribute);
         sdf_object.sdf_property.insert({attribute.name, sdf_property});
@@ -895,6 +899,7 @@ int MapMatterToSdf(const std::optional<matter::Device>& device,
     //sdf_mapping.namespace_block.namespaces = {{"zcl", "https://zcl.example.com/sdf"}};
     //sdf_mapping.namespace_block.default_namespace = "zcl";
     sdf_mapping.map = reference_tree.GenerateMapping(reference_tree.root);
+    std::cout << sdf_mapping.map.size() << std::endl;
     // Print the resulting tree
     //simple_walker walker;
     //referenceTree.traverse(walker);
