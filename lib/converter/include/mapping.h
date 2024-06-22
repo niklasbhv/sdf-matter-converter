@@ -36,34 +36,12 @@
  *
  * @param sdfModel The input sdf-model.
  * @param sdfMappingType The input sdf-mapping.
- * @param clusters The resulting cluster definition.
- * @return 0 on success, negative on failure.
- */
-int MapSdfToMatter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, std::list<matter::Cluster>& clusters);
-
-/**
- * @brief Map a sdf-model and sdf-mapping to a matter object.
- *
- * This function maps a sdf-model and sdf-mapping onto a matter device and cluster definition.
- *
- * @param sdfModel The input sdf-model.
- * @param sdfMappingType The input sdf-mapping.
  * @param device The resulting device definition.
  * @return 0 on success, negative on failure.
  */
-int MapSdfToMatter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, matter::Device& device);
-
-/**
- * @brief Map a cluster definition onto a sdf-model and a sdf-mapping.
- *
- * This function maps a device onto a sdf-model and sdf-mapping.
- *
- * @param cluster The input cluster definition.
- * @param sdf_model The resulting sdf-model.
- * @param sdf_mapping The resulting sdf-mapping.
- * @return 0 on success, negative on failure.
- */
-int MapMatterToSdf(const matter::Cluster& cluster, sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping);
+int MapSdfToMatter(const sdf::SdfModel& sdfModel,
+                   const sdf::SdfMapping& sdfMappingType,
+                   std::optional<matter::Device>& device, std::list<matter::Cluster>& clusters);
 
 /**
  * @brief Map a device type definition to a sdf-object.
@@ -75,6 +53,8 @@ int MapMatterToSdf(const matter::Cluster& cluster, sdf::SdfModel& sdf_model, sdf
  * @param sdf_mapping The resulting sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int MapMatterToSdf(const matter::Device& device, sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping);
+int MapMatterToSdf(const std::optional<matter::Device>& device,
+                   const std::list<matter::Cluster>& cluster,
+                   sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping);
 
 #endif //MAPPING_H

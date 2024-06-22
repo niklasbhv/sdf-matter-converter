@@ -17,22 +17,71 @@
 #include <iostream>
 #include <regex>
 #include <functional>
+#include <utility>
 #include "mapping.h"
 #include "matter.h"
 #include "sdf.h"
 
+//! Map containing the elements of the sdf mapping
+//! This map is used to resolve the elements outsourced into the map
+std::map<std::string, std::map<std::string, sdf::MappingValue>> reference_map;
 
-/*
- * Map containing the elements of the sdf mapping
- * This map is used to resolve the elements outsourced into the map
- */
-std::map<std::string, std::map<std::string, std::string>> reference_map;
-
-/*
- * List containing required sdf elements
- * This list gets filled while mapping and afterward appended to the corresponding sdfModel
- */
+//! List containing required sdf elements
+//! This list gets filled while mapping and afterward appended to the corresponding sdfModel
 std::list<std::string> sdf_required_list;
+
+class ReferenceTreeNode {
+public:
+    std::string name;
+    std::map<std::string, sdf::MappingValue> attributes;
+    ReferenceTreeNode* parent;
+    std::vector<ReferenceTreeNode*> children;
+
+    ReferenceTreeNode(std::string name) : name(std::move(name)), attributes(), parent(nullptr) {}
+
+    void AddChild(ReferenceTreeNode* child) {
+        child->parent = this;
+        children.push_back(child);
+    }
+
+    void AddAttribute(std::string key, sdf::MappingValue value) {
+        attributes[key] = std::move(value);
+    }
+};
+
+class ReferenceTree {
+public:
+    ReferenceTreeNode* root;
+
+    ReferenceTree() {
+        root = new ReferenceTreeNode("#");
+    }
+
+    std::map<std::string, std::map<std::string, sdf::MappingValue>> GenerateMapping(ReferenceTreeNode* node) {
+        std::map<std::string, std::map<std::string, sdf::MappingValue>> map;
+        ReferenceTreeNode* current = node;
+        for (const auto& child : current->children) {
+            if (!child->attributes.empty())
+                map[GeneratePath(child)] = child->attributes;
+        }
+        return map;
+    }
+private:
+    std::string GeneratePath(ReferenceTreeNode* node) {
+        std::string path;
+        ReferenceTreeNode* current = node;
+        while (current != nullptr) {
+            path.append("/").append(current->name);
+            current = current->parent;
+        }
+        return path;
+    }
+};
+
+//! This is a global point to the current node
+//! This is designed to point at the top level SDF element like
+//! for example the `sdfThing` node, not a specific sdfThing
+ReferenceTreeNode* current_node = nullptr;
 
 //! For debug purposes, prints a visual representation of the tree
 struct simple_walker : pugi::xml_tree_walker
@@ -45,28 +94,103 @@ struct simple_walker : pugi::xml_tree_walker
     }
 };
 
-template <typename T>
+// Function to escape JSON Pointer according to RFC 6901
+std::string EscapeJsonPointer(const std::string& input) {
+    std::string result = input;
+    std::size_t pos = 0;
+    while ((pos = result.find('~', pos)) != std::string::npos) {
+        result.replace(pos, 1, "~0");
+        pos += 2;
+    }
+    pos = 0;
+    while ((pos = result.find('/', pos)) != std::string::npos) {
+        result.replace(pos, 1, "~1");
+        pos += 2;
+    }
+    return result;
+}
+
+// Function to unescape JSON Pointer according to RFC 6901
+std::string UnescapeJsonPointer(const std::string& input) {
+    std::string result = input;
+    std::size_t pos = 0;
+    while ((pos = result.find("~1", pos)) != std::string::npos) {
+        result.replace(pos, 2, "/");
+        pos += 1;
+    }
+    pos = 0;
+    while ((pos = result.find("~0", pos)) != std::string::npos) {
+        result.replace(pos, 2, "~");
+        pos += 1;
+    }
+    return result;
+}
 
 // TODO: Check how this function should behave on an not available mapping
-// Generically typed for now as the mapping will later contain different types
-int ResolveMapping(const std::string& reference, const std::string& entry, T& result)
+//! Generically typed for now as the mapping will later contain different types
+//! @brief Imports given key value combination from the SDF Mapping file
+//! @param name Name of the target field.
+sdf::MappingValue ImportFromMapping(const std::string& name)
 {
+    sdf::MappingValue mapping_value;
     // Be aware that this function removes the first character from the reference string
-    result = reference_map.at(reference.substr(1)).at(entry);
-    return 0;
+    //result = reference_map.at(reference.substr(1)).at(entry);
+    return mapping_value;
 }
 
-/*
- * Generates a Matter conformance.
- */
-int GenerateMatterConformance()
+//! @brief Exports given key value combination to the SDF Mapping file.
+//! @param name Name of the target field.
+//! @param value Value for the target field.
+void ExportToMapping(const std::string& name, const sdf::MappingValue& value)
 {
-    return 0;
+    // reference_map[reference_tree.path()].insert({name, value});
 }
 
 /*
- * Generates a Matter constraint with the information given by the data qualities
- */
+std::map<std::string, std::map<std::string, sdf::MappingValue>> GenerateMapping(const pugi::xml_node& node)
+{
+    std::map<std::string, std::map<std::string, sdf::MappingValue>> map;
+    // If available, iterate through the attributes of a node
+    std::map<std::string, sdf::MappingValue> attribute_map;
+    for (auto attribute : node.attributes()) {
+        attribute_map.insert({attribute.name(), attribute.value()});
+    }
+
+    // If one or more attributes are found insert them into the map
+    if (!attribute_map.empty())
+        // Remove the first slash as it is not needed
+        // TODO: Cluster names can contain slashes (e.g. On/Off) which might render the function unusable
+        // TODO: A potential workaround might be to encase such names like sdf_object/[CLUSTER_NAME]/sdf_action
+        map.insert({node.path().substr(1), attribute_map});
+
+    // Recursive call to iterate to all nodes in the tree
+    for (auto child_node : node.children()) {
+        map = GenerateMapping(child_node);
+    }
+
+    return map;
+}*/
+
+matter::Access GenerateMatterAccess()
+{
+    matter::Access access;
+    return access;
+}
+
+//! @brief Generates a Matter conformance.
+//! The resulting conformance depends on the following factors:
+//! - required quality for the object type
+//! - being part of a sdfRequired quality
+//! If the referred element mentioned in either of these factors,
+//! a mandatory conformance will be created.
+//! Otherwise a optional conformance will be created.
+matter::Conformance GenerateMatterConformance()
+{
+    matter::Conformance conformance;
+    return conformance;
+}
+
+//! Generates a Matter constraint with the information given by the data qualities
 matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
 {
     matter::Constraint constraint;
@@ -104,37 +228,44 @@ matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
 /*
  * SDF data type -> Matter type
  */
-std::string MapSdfDataType(const sdf::DataQuality& dataQuality)
+std::string MapSdfDataType(const sdf::DataQuality& data_quality)
 {
     std::string result;
-    if (dataQuality.type == "number") {
+    if (data_quality.type == "number") {
         result = "double";
-    } else if (dataQuality.type == "string") {
+    } else if (data_quality.type == "string") {
         result = "string";
-    } else if (dataQuality.type == "boolean") {
+    } else if (data_quality.type == "boolean") {
         result = "bool";
-    } else if (dataQuality.type == "integer") {
+    } else if (data_quality.type == "integer") {
 
-    } else if (dataQuality.type == "array") {
+    } else if (data_quality.type == "array") {
 
-    } else if (dataQuality.type == "object") {
+    } else if (data_quality.type == "object") {
 
-    } else if (dataQuality.sdf_type == "byte-string") {
+    } else if (data_quality.sdf_type == "byte-string") {
         result = "octstr";
-    } else if (dataQuality.sdf_type == "unix-time") {
+    } else if (data_quality.sdf_type == "unix-time") {
 
     }
     return result;
 }
 
-//! sdf_data -> Global Matter Data Definition
-//! As Matter only supports defining data structures globally these all have to be added to the global list
+//! Maps a data quality onto a data field.
 matter::DataField MapSdfData(sdf::DataQuality& data_quality)
 {
     matter::DataField data_field;
+    // data_field.id
+    data_field.name = data_quality.label;
+    data_field.conformance = GenerateMatterConformance();
+    //data_field.access
+    data_field.summary = data_quality.description;
+    //data_field.type =
+    data_field.constraint = GenerateMatterConstraint(data_quality);
+    data_field.quality;
+    //data_field.default_ = data_quality.default_;
     return data_field;
 }
-
 
 matter::Event MapSdfEvent(const sdf::SdfEvent& sdf_event, pugi::xml_node& sdf_event_node)
 {
@@ -253,7 +384,7 @@ matter::Cluster MapSdfObject(const sdf::SdfObject& sdf_object, pugi::xml_node& s
     auto current_object_node = sdf_object_node.append_child(sdf_object.label.c_str());
     // id
     //std::string id_variable;
-    //ResolveMapping(current_object_node.path(), "id", id_variable);
+    //ImportFromMapping(current_object_node.path(), "id", id_variable);
     //cluster.id = std::stoi(id_variable);
     cluster.name = sdf_object.label;
     // conformance
@@ -290,7 +421,7 @@ matter::Device MapSdfThing(const sdf::SdfThing& sdfThing, pugi::xml_node& sdf_th
     // Add the current sdf_thing to the reference tree
     auto current_thing_node = sdf_thing_node.append_child(sdfThing.label.c_str());
     // TODO: Find a way to make the mapping compatible with multiple types
-    // ResolveMapping(current_thing_node.path(), "id" ,device.id);
+    // ImportFromMapping(current_thing_node.path(), "id" ,device.id);
     device.name = sdfThing.label;
     // conformance
     // access
@@ -310,6 +441,7 @@ matter::Device MapSdfThing(const sdf::SdfThing& sdfThing, pugi::xml_node& sdf_th
 /*
  * SDF-Model + SDF-Mapping -> List of Matter clusters<
  */
+/*
 int MapSdfToMatter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, std::list<matter::Cluster>& clusters)
 {
     // Make the mapping a global variable
@@ -317,37 +449,39 @@ int MapSdfToMatter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMapp
         reference_map = sdfMappingType.map;
 
     // Initialize a reference tree used to resolve json references
-    pugi::xml_document reference_tree;
-    auto reference_root_node = reference_tree.append_child("#");
-    auto sdf_object_node = reference_tree.append_child("sdfObject");
+    //pugi::xml_document reference_tree;
+    //auto reference_root_node = reference_tree.append_child("#");
+    //auto sdf_object_node = reference_tree.append_child("sdfObject");
 
     for (const auto& sdf_object_pair : sdfModel.sdf_object) {
-        auto current_cluster_node = sdf_object_node.append_child(sdf_object_pair.first.c_str());
-        clusters.push_back(MapSdfObject(sdf_object_pair.second, current_cluster_node));
+        //auto current_cluster_node = sdf_object_node.append_child(sdf_object_pair.first.c_str());
+        //clusters.push_back(MapSdfObject(sdf_object_pair.second, current_cluster_node));
     }
 
     return 0;
-}
+}*/
 
 /*
  * SDF-Model + SDF-Mapping -> Matter Device
  */
-int MapSdfToMatter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, matter::Device& device)
+int MapSdfToMatter(const sdf::SdfModel& sdfModel,
+                   const sdf::SdfMapping& sdfMappingType,
+                   std::optional<matter::Device>& device, std::list<matter::Cluster>& clusters)
 {
     // Make the mapping a global variable
     if (!sdfMappingType.map.empty())
         reference_map = sdfMappingType.map;
 
     // Initialize a reference tree used to resolve json references
-    pugi::xml_document reference_tree;
-    auto reference_root_node = reference_tree.append_child("#");
+    //pugi::xml_document reference_tree;
+    //auto reference_root_node = reference_tree.append_child("#");
 
     // TODO: How do we handle multiple sdf_thing or sdf_object definitions
     if (!sdfModel.sdf_thing.empty()){
-        auto sdf_thing_node = reference_tree.append_child("sdfThing");
+        //auto sdf_thing_node = reference_tree.append_child("sdfThing");
         //MapSdfThing(sdfModel.sdf_thing.value(), device, sdf_thing_node);
     } else if (!sdfModel.sdf_object.empty()){
-        auto sdf_object_node = reference_tree.append_child("sdfObject");
+        //auto sdf_object_node = reference_tree.append_child("sdfObject");
         // TODO: Special case, initialize a device with a single cluster
     }
 
@@ -551,10 +685,10 @@ std::function<bool()> buildEvaluator(const std::string& expr) {
  * @param current_node The reference tree node of the current element.
  * @return 0 on success, negative on failure.
  */
-int MapMatterConformance(const matter::Conformance& conformance, const pugi::xml_node current_node, pugi::xml_node& sdf_node) {
+int MapMatterConformance(const matter::Conformance& conformance) {
     if (conformance.mandatory.has_value()) {
         if (conformance.mandatory.value()) {
-            sdf_required_list.push_back(current_node.path().substr(1));
+            //sdf_required_list.push_back(current_node.path().substr(1));
         }
     }
     // TODO: Currently there seems to be no way to handle conformance based on the selected feature
@@ -565,16 +699,16 @@ int MapMatterConformance(const matter::Conformance& conformance, const pugi::xml
     return 0;
 }
 
-sdf::SdfEvent MapMatterEvent(const matter::Event& event, pugi::xml_node& sdf_event_node)
+sdf::SdfEvent MapMatterEvent(const matter::Event& event)
 {
     sdf::SdfEvent sdf_event;
     // Append the event node to the tree
-    auto event_node = sdf_event_node.append_child(event.name.c_str());
+    //auto event_node = sdf_event_node.append_child(event.name.c_str());
 
     // event.id
     sdf_event.label = event.name;
     if (event.conformance.has_value())
-        MapMatterConformance(event.conformance.value(), event_node, sdf_event_node);
+        MapMatterConformance(event.conformance.value());
     // event.access
     sdf_event.description = event.summary;
     // event.priority
@@ -585,22 +719,22 @@ sdf::SdfEvent MapMatterEvent(const matter::Event& event, pugi::xml_node& sdf_eve
     return sdf_event;
 }
 
-sdf::SdfAction MapMatterCommand(const matter::Command& client_command, matter::Command& server_command, pugi::xml_node& sdf_action_node)
+sdf::SdfAction MapMatterCommand(const matter::Command& client_command, matter::Command& server_command)
 {
     sdf::SdfAction sdf_action;
     return sdf_action;
 }
 
-sdf::SdfAction MapMatterCommand(const matter::Command& client_command, pugi::xml_node& sdf_action_node)
+sdf::SdfAction MapMatterCommand(const matter::Command& client_command)
 {
     sdf::SdfAction sdf_action;
     // Append the command node to the tree
-    auto command_node = sdf_action_node.append_child(client_command.name.c_str());
+    //auto command_node = sdf_action_node.append_child(client_command.name.c_str());
 
     // client_command.id
     sdf_action.label = client_command.name;
     if (client_command.conformance.has_value())
-        MapMatterConformance(client_command.conformance.value(), command_node, sdf_action_node);
+        MapMatterConformance(client_command.conformance.value());
     // client_command.access
     sdf_action.description = client_command.summary;
     // client_command.default_
@@ -610,16 +744,16 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, pugi::xml
     return sdf_action;
 }
 
-sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute, pugi::xml_node& sdf_property_node)
+sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute)
 {
     sdf::SdfProperty sdf_property;
     // Append the attribute node to the tree
-    auto attribute_node = sdf_property_node.append_child(attribute.name.c_str());
+    //auto attribute_node = sdf_property_node.append_child(attribute.name.c_str());
 
     // attribute.id
     sdf_property.label = attribute.name;
     if (attribute.conformance.has_value())
-        MapMatterConformance(attribute.conformance.value(), attribute_node, sdf_property_node);
+        MapMatterConformance(attribute.conformance.value());
     // attribute.access
     sdf_property.description = attribute.summary;
 
@@ -639,82 +773,79 @@ sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute, pugi::xm
     return sdf_property;
 }
 
-sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster, pugi::xml_node& sdf_object_node)
+sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
 {
     sdf::SdfObject sdf_object;
     // Append the name of the cluster to the tree
     // Also append sdf_property, sdf_action and sdf_event to the tree
-    auto cluster_node = sdf_object_node.append_child(cluster.name.c_str());
-    cluster_node.append_child("sdf_property");
-    cluster_node.append_child("sdf_action");
-    cluster_node.append_child("sdf_event");
+    //auto cluster_node = sdf_object_node.append_child(cluster.name.c_str());
+    //cluster_node.append_child("sdf_property");
+    //cluster_node.append_child("sdf_action");
+    //cluster_node.append_child("sdf_event");
 
     // cluster.id
     sdf_object.label = cluster.name;
     if (cluster.conformance.has_value())
-        MapMatterConformance(cluster.conformance.value(), cluster_node, sdf_object_node);
+        MapMatterConformance(cluster.conformance.value());
     // cluster.access
     sdf_object.description = cluster.summary;
     // cluster.revision -> sdf_data
     // cluster.revision_history -> sdf_data
 
     // Iterate through the attributes and map them
-    auto attribute_node = cluster_node.child("sdf_property");
+    //auto attribute_node = cluster_node.child("sdf_property");
     for (const auto& attribute : cluster.attributes){
-        sdf::SdfProperty sdf_property = MapMatterAttribute(attribute, attribute_node);
+        sdf::SdfProperty sdf_property = MapMatterAttribute(attribute);
         sdf_object.sdf_property.insert({attribute.name, sdf_property});
     }
 
     // Iterate through the commands and map them
-    auto command_node = cluster_node.child("sdf_action");
+    //auto command_node = cluster_node.child("sdf_action");
     for (const auto& command : cluster.commands){
-        sdf::SdfAction sdf_action = MapMatterCommand(command, command_node);
+        sdf::SdfAction sdf_action = MapMatterCommand(command);
         sdf_object.sdf_action.insert({command.name, sdf_action});
     }
 
     // Iterate through the events and map them
-    auto event_node = cluster_node.child("sdf_event");
+    //auto event_node = cluster_node.child("sdf_event");
     for (const auto& event : cluster.events){
-        sdf::SdfEvent sdf_event =  MapMatterEvent(event, event_node);
+        sdf::SdfEvent sdf_event =  MapMatterEvent(event);
         sdf_object.sdf_event.insert({event.name, sdf_event});
     }
 
     return sdf_object;
 }
 
-sdf::SdfModel MapMatterDevice(const matter::Device& device, pugi::xml_node& sdf_thing_node)
+sdf::InformationBlock GenerateInformationBlock(const std::variant<matter::Device, matter::Cluster>& input)
 {
-    sdf::SdfModel sdf_model;
+    sdf::InformationBlock information_block;
+    if (std::holds_alternative<matter::Device>(input)) {
+        information_block.title = std::get<matter::Device>(input).name;
+        information_block.description = std::get<matter::Device>(input).summary;
+    } else if (std::holds_alternative<matter::Cluster>(input)) {
+        information_block.title = std::get<matter::Cluster>(input).name;
+        information_block.description = std::get<matter::Cluster>(input).summary;
+    }
+    return information_block;
+}
+
+sdf::SdfThing MapMatterDevice(const matter::Device& device)
+{
     // Append a new sdf_object node to the tree
-    sdf_thing_node.append_child(device.name.c_str()).append_child("sdfObject");
-    auto device_node = sdf_thing_node.child(device.name.c_str());
-    device_node.append_attribute("id").set_value(device.id);
+    //sdf_thing_node.append_child(device.name.c_str()).append_child("sdfObject");
+    //auto device_node = sdf_thing_node.child(device.name.c_str());
+    //device_node.append_attribute("id").set_value(device.id);
     // device.classification -> sdfMapping
     // device.features -> sdf_data
     // device.enums -> sdf_data
     // device.bitmaps -> sdf_data
     // device.structs -> sdf_data
     if (device.conformance.has_value())
-        MapMatterConformance(device.conformance.value(), device_node, sdf_thing_node);
+        MapMatterConformance(device.conformance.value());
     // device.access
     // TODO: We need to be able to create a JSON object for more complex structures like revisionHistory
     // device.revisionHistory -> sdf_data
 
-    // Map the information block
-    //sdfModel.information_block.title = device.name;
-    //sdfModel.information_block.description = device.summary;
-    //sdfModel.information_block.version = std::to_string(device.revision);
-    // sdfModel.information_block.modified
-    // sdfModel.information_block.copyright <-- Maybe parse from the comment?
-    // sdfModel.information_block.license <-- Maybe parse from the comment?
-    // sdfModel.information_block.features <-- This can definitely be parsed from the features section
-    // sdfModel.information_block.comment
-
-    // Map the namespace block
-    //sdfModel.namespace_block.namespaces.insert({"zcl", "https://zcl.example.com/sdf"});
-    //sdfModel.namespace_block.default_namespace = "zcl";
-
-    // Map the definition block
     sdf::SdfThing sdf_thing;
     sdf_thing.label = device.name;
     sdf_thing.description = device.summary;
@@ -727,80 +858,46 @@ sdf::SdfModel MapMatterDevice(const matter::Device& device, pugi::xml_node& sdf_
     // sdf_thing.min_items
     // sdf_thing.max_items
     // Iterate through cluster definitions for the device
-    auto sdf_object_node = device_node.child("sdfObject");
+    //auto sdf_object_node = device_node.child("sdfObject");
     for (const auto& cluster : device.clusters){
-        sdf::SdfObject sdf_object = MapMatterCluster(cluster, sdf_object_node);;
+        sdf::SdfObject sdf_object = MapMatterCluster(cluster);;
         sdf_thing.sdf_object.insert({cluster.name, sdf_object});
     }
     sdf_thing.sdf_required = sdf_required_list;
     //sdfModel.sdf_thing = sdf_thing;
 
-    return sdf_model;
+    return sdf_thing;
 }
 
-int GenerateMapping(const pugi::xml_node& node, std::map<std::string, std::map<std::string, std::string>>& map)
+int MapMatterToSdf(const std::optional<matter::Device>& device,
+                   const std::list<matter::Cluster>& cluster_list,
+                   sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping)
 {
-    // If available, iterate through the attributes of a node
-    std::map<std::string, std::string> attribute_map;
-    for (auto attribute : node.attributes()) {
-        attribute_map.insert({attribute.name(), attribute.value()});
+    ReferenceTree reference_tree;
+    current_node = new ReferenceTreeNode("sdfObject");
+    reference_tree.root->AddChild(current_node);
+
+    if (device.has_value()) {
+        sdf_model.information_block = GenerateInformationBlock(device.value());
+        sdf_mapping.information_block = GenerateInformationBlock(device.value());
+    } else {
+        for (const auto& cluster : cluster_list) {
+            sdf_model.information_block = GenerateInformationBlock(cluster);
+            sdf_mapping.information_block = GenerateInformationBlock(cluster);
+            sdf::SdfObject sdf_object = MapMatterCluster(cluster);
+            sdf_model.sdf_object.insert({sdf_object.label, sdf_object});
+        }
     }
-
-    // If one or more attributes are found insert them into the map
-    if (!attribute_map.empty())
-        // Remove the first slash as it is not needed
-        // TODO: Cluster names can contain slashes (e.g. On/Off) which might render the function unusable
-        // TODO: A potential workaround might be to encase such names like sdf_object/[CLUSTER_NAME]/sdf_action
-        map.insert({node.path().substr(1), attribute_map});
-
-    // Recursive call to iterate to all nodes in the tree
-    for (auto child_node : node.children()) {
-        GenerateMapping(child_node, map);
-    }
-
-    return 0;
-}
-
-int MapMatterToSdf(const matter::Cluster& cluster, sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping)
-{
-    pugi::xml_document referenceTree;
-    referenceTree.append_child("#").append_child("sdf_object");
-    auto cluster_node = referenceTree.child("#").child("sdf_object");
-
-    sdf::SdfObject sdf_object = MapMatterCluster(cluster, cluster_node);
-
-    //sdf_model.information_block.title = cluster.name;
-    //sdf_model.information_block.description = cluster.summary;
-
-    //sdf_mapping.information_block.title = cluster.name;
-    //sdf_mapping.information_block.description = cluster.summary;
-
-    sdf_model.sdf_object.insert({cluster.name, sdf_object});
-
-    return 0;
-}
-
-int MapMatterToSdf(const matter::Device& device, sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping)
-{
-    pugi::xml_document referenceTree;
-    referenceTree.append_child("#").append_child("sdfThing");
-    auto device_node = referenceTree.child("#").child("sdfThing");
-
-    sdf_model = MapMatterDevice(device, device_node);
 
     // Initial sdf_mapping mapping
-    //sdf_mapping.information_block.title = device.name;
-    //sdf_mapping.information_block.description = device.summary;
     //sdf_mapping.information_block.version = std::to_string(device.revision);
+
     //sdf_mapping.namespace_block.namespaces = {{"zcl", "https://zcl.example.com/sdf"}};
     //sdf_mapping.namespace_block.default_namespace = "zcl";
-    std::map<std::string, std::map<std::string, std::string>> map;
-    GenerateMapping(referenceTree.document_element(), map);
-    sdf_mapping.map = map;
-
+    sdf_mapping.map = reference_tree.GenerateMapping(reference_tree.root);
     // Print the resulting tree
-    simple_walker walker;
-    referenceTree.traverse(walker);
+    //simple_walker walker;
+    //referenceTree.traverse(walker);
 
     return 0;
 }
