@@ -38,8 +38,20 @@ using json = nlohmann::ordered_json;
  * Template used to add to_json and from_json for the std::optional type.
  */
 NLOHMANN_JSON_NAMESPACE_BEGIN
+
+/**
+ * Template used to add to_json for the sdf::variant type.
+ */
+template <typename... Types> struct adl_serializer<std::variant<Types...>> {
+    static void to_json(ordered_json& j, const std::variant<Types...> &v) {
+        std::visit([&j](const auto &value) {
+            j = value; // Serialize the current value to JSON
+        }, v);
+    }
+};
+
 template <typename T> struct adl_serializer<std::optional<T>> {
-    static void to_json(json& j, const std::optional<T>& opt) {
+    static void to_json(ordered_json& j, const std::optional<T>& opt) {
         if (opt == std::nullopt) {
             j = nullptr;
         } else {
@@ -49,7 +61,7 @@ template <typename T> struct adl_serializer<std::optional<T>> {
         }
     }
 
-    static void from_json(const json& j, std::optional<T>& opt) {
+    static void from_json(const ordered_json& j, std::optional<T>& opt) {
         if (j.is_null()) {
             opt = std::nullopt;
         } else {
@@ -58,19 +70,12 @@ template <typename T> struct adl_serializer<std::optional<T>> {
         }
     }
 };
-/**
- * Template used to add to_json for the sdf::variant type.
- */
-template <typename ...Args> struct adl_serializer<std::variant<Args...>> {
-    static void to_json(json& j, std::variant<Args...> const& v) {
-        std::visit([&](auto&& value) {
-            j = std::forward<decltype(value)>(value);
-        }, v);
-    }
-};
+
 NLOHMANN_JSON_NAMESPACE_END
 
 namespace sdf {
+
+typedef std::variant<uint64_t, int64_t, double, std::string, bool> MappingValue;
 
 /**
  * Struct which contains common quality information.
@@ -255,7 +260,7 @@ struct SdfModel {
 struct SdfMapping {
     std::optional<InformationBlock> information_block;
     std::optional<NamespaceBlock> namespace_block;
-    std::map<std::string, std::map<std::string, std::string>> map;
+    std::map<std::string, std::map<std::string, MappingValue>> map;
 };
 
 /**

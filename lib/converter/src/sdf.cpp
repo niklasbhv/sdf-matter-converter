@@ -620,7 +620,7 @@ SdfMapping ParseSdfMapping(json& sdf_mapping_json)
     if (sdf_mapping_json.contains("map")) {
         for (const auto& reference : sdf_mapping_json.at("map").items()) {
             for (const auto& field : reference.value().items()) {
-                sdf_mapping.map[reference.key()].insert({field.key(), field.value()});
+                //sdf_mapping.map[reference.key()].insert({field.key(), field.value()});
             }
         }
     }
@@ -631,25 +631,23 @@ SdfMapping ParseSdfMapping(json& sdf_mapping_json)
 /*
  * Serialize common qualities into the json format.
  */
-json SerializeCommonQualities(const CommonQuality& commonQuality)
+void SerializeCommonQualities(const CommonQuality& common_quality, json& common_quality_json)
 {
-    json common_quality_json;
-    if (!commonQuality.description.empty())
-        common_quality_json["description"] = commonQuality.description;
+    if (!common_quality.description.empty())
+        common_quality_json["description"] = common_quality.description;
 
-    if (!commonQuality.label.empty())
-        common_quality_json["label"] = commonQuality.label;
+    if (!common_quality.label.empty())
+        common_quality_json["label"] = common_quality.label;
 
-    if (!commonQuality.comment.empty())
-        common_quality_json["$comment"] = commonQuality.comment;
+    if (!common_quality.comment.empty())
+        common_quality_json["$comment"] = common_quality.comment;
 
-    if (!commonQuality.sdf_ref.empty())
-        common_quality_json["sdfRef"] = commonQuality.sdf_ref;
+    if (!common_quality.sdf_ref.empty())
+        common_quality_json["sdfRef"] = common_quality.sdf_ref;
 
-    if (!commonQuality.sdf_required.empty())
-        common_quality_json["sdfRequired"] = commonQuality.sdf_required;
+    if (!common_quality.sdf_required.empty())
+        common_quality_json["sdfRequired"] = common_quality.sdf_required;
 
-    return common_quality_json;
 }
 
 /*
@@ -720,12 +718,10 @@ json SerializeJsoItemType(const JsoItem& jso_item)
 /*
  * Serialize data qualities into the json format.
  */
-json SerializeDataQualities(const DataQuality& data_quality)
+void SerializeDataQualities(const DataQuality& data_quality, json& data_quality_json)
 {
-    json data_quality_json;
     // Serialize common qualities
-
-    data_quality_json.push_back(SerializeCommonQualities(data_quality));
+    SerializeCommonQualities(data_quality, data_quality_json);
 
     // Serialize the remaining fields
     if (!data_quality.type.empty())
@@ -774,8 +770,10 @@ json SerializeDataQualities(const DataQuality& data_quality)
         } else if (data_quality.type == "boolean") {
             data_quality_json["default"] = std::get<bool>(data_quality.default_.value());
         } else if (data_quality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            data_quality_json["default"] = std::get<uint64_t>(data_quality.default_.value());
+            if (std::holds_alternative<int64_t>(data_quality.default_.value()))
+                data_quality_json["default"] = std::get<int64_t>(data_quality.default_.value());
+            else if (std::holds_alternative<uint64_t>(data_quality.default_.value()))
+                data_quality_json["default"] = std::get<uint64_t>(data_quality.default_.value());
         } else if (data_quality.type == "array") {
             //data_quality_json["default"] = std::get<double>(data_quality.default_.value());
         } else if (data_quality.type == "object") {
@@ -788,9 +786,9 @@ json SerializeDataQualities(const DataQuality& data_quality)
             data_quality_json["minimum"] = std::get<double>(data_quality.minimum.value());
         } else if (data_quality.type == "integer") {
             if (std::holds_alternative<int64_t>(data_quality.minimum.value()))
-                data_quality_json["minimum"] = std::get<int64_t >(data_quality.minimum.value());
+                data_quality_json["minimum"] = std::get<int64_t>(data_quality.minimum.value());
             if (std::holds_alternative<uint64_t>(data_quality.minimum.value()))
-                data_quality_json["minimum"] = std::get<uint64_t >(data_quality.minimum.value());
+                data_quality_json["minimum"] = std::get<uint64_t>(data_quality.minimum.value());
         }
     }
 
@@ -884,7 +882,11 @@ json SerializeDataQualities(const DataQuality& data_quality)
 
     if (!data_quality.content_format.empty())
         data_quality_json["contentFormat"] = data_quality.content_format;
+}
 
+json SerializeDataQualities(const DataQuality& data_quality) {
+    json data_quality_json;
+    SerializeDataQualities(data_quality, data_quality_json);
     return data_quality_json;
 }
 
@@ -909,7 +911,7 @@ json SerializeSdfEvent(const SdfEvent& sdf_event)
 {
     json sdf_event_json;
     // Serialize common qualities
-    sdf_event_json.push_back(SerializeCommonQualities(sdf_event));
+    SerializeCommonQualities(sdf_event, sdf_event_json);
 
     // Serialize the output data
     if (sdf_event.sdf_output_data.has_value())
@@ -925,23 +927,23 @@ json SerializeSdfEvent(const SdfEvent& sdf_event)
 /*
  * Serialize a sdf_action into the json format.
  */
-json SerializeSdfAction(const SdfAction& sdfAction)
+json SerializeSdfAction(const SdfAction& sdf_action)
 {
     json sdf_action_json;
     // Serialize common qualities
-    sdf_action_json.push_back(SerializeCommonQualities(sdfAction));
+    SerializeCommonQualities(sdf_action, sdf_action_json);
 
     // Serialize the input data
-    if (sdfAction.sdf_input_data.has_value())
-        sdf_action_json["sdfInputData"] = SerializeDataQualities(sdfAction.sdf_input_data.value());;
+    if (sdf_action.sdf_input_data.has_value())
+        sdf_action_json["sdfInputData"] = SerializeDataQualities(sdf_action.sdf_input_data.value());;
 
     // Serialize the output data
-    if (sdfAction.sdf_output_data.has_value())
-        sdf_action_json["sdfOutputData"] = SerializeDataQualities(sdfAction.sdf_output_data.value());
+    if (sdf_action.sdf_output_data.has_value())
+        sdf_action_json["sdfOutputData"] = SerializeDataQualities(sdf_action.sdf_output_data.value());
 
     // Serialize the sdf_data elements
-    if (!sdfAction.sdf_data.empty())
-        sdf_action_json["sdfData"] = SerializeSdfData(sdfAction.sdf_data);
+    if (!sdf_action.sdf_data.empty())
+        sdf_action_json["sdfData"] = SerializeSdfData(sdf_action.sdf_data);
 
     return sdf_action_json;
 }
@@ -953,7 +955,7 @@ json SerializeSdfProperty(const SdfProperty& sdf_property)
 {
     json sdf_property_json;
     // Serialize data qualities
-    sdf_property_json.push_back(SerializeDataQualities(sdf_property));
+    SerializeDataQualities(sdf_property, sdf_property_json);
 
     // Serialize the remaining fields
     if (sdf_property.readable.has_value())
@@ -975,7 +977,7 @@ json SerializeSdfObject(const SdfObject& sdf_object)
 {
      json sdf_object_json;
     // Serialize the common qualities
-    sdf_object_json.push_back(SerializeCommonQualities(sdf_object));
+    SerializeCommonQualities(sdf_object, sdf_object_json);
 
     // Serialize the sdfProperties
     if (!sdf_object.sdf_property.empty()) {
@@ -1025,7 +1027,7 @@ json SerializeSdfThing(const SdfThing& sdf_thing)
 {
     json sdf_thing_json;
     // Serialize the common qualities
-    sdf_thing_json.push_back(SerializeCommonQualities(sdf_thing));
+    SerializeCommonQualities(sdf_thing, sdf_thing_json);
 
     // sdf_thing
 
@@ -1162,6 +1164,14 @@ json SerializeSdfModel(const SdfModel& sdf_model)
     return sdf_model_json;
 }
 
+// Custom to_json function for std::variant
+template <typename... Types>
+void to_json(nlohmann::ordered_json& j, const std::variant<Types...>& v) {
+    std::visit([&j](const auto& value) {
+        j = value; // Serialize the current value to JSON
+    }, v);
+}
+
 /*
  * Serialize a sdf-mapping back into the json format.
  */
@@ -1169,6 +1179,9 @@ json SerializeSdfMapping(const SdfMapping& sdf_mapping)
 {
     json sdf_mapping_json;
     // Serialize the information block
+    json j;
+    MappingValue test = 1;
+    to_json(j, test);
     if (sdf_mapping.information_block.has_value())
         sdf_mapping_json["info"] = SerializeInformationBlock(sdf_mapping.information_block.value());
 
@@ -1178,7 +1191,6 @@ json SerializeSdfMapping(const SdfMapping& sdf_mapping)
 
     // Serialize the mapping section
     sdf_mapping_json["map"] = sdf_mapping.map;
-
     return sdf_mapping_json;
 }
 
