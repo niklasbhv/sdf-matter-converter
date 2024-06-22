@@ -23,21 +23,25 @@
 using json = nlohmann::ordered_json;
 
 int ConvertSdfToMatter(json& sdf_model_json, json& sdf_mapping_json,
-                       std::optional<pugi::xml_document>& device_xml, std::list<pugi::xml_document>& cluster_xml_list)
+                       std::optional<pugi::xml_document>& device_xml,
+                       std::list<pugi::xml_document>& cluster_xml_list)
 {
     sdf::SdfModel sdf_model = sdf::ParseSdfModel(sdf_model_json);
     sdf::SdfMapping sdf_mapping = sdf::ParseSdfMapping(sdf_mapping_json);
-
-    matter::Device device;
     std::list<matter::Cluster> clusters;
-    //MapSdfToMatter(sdf_model, sdf_mapping, device, clusters);
+    if (!device_xml.has_value()) {
+        MapSdfToMatter(sdf_model, sdf_mapping, (std::optional<matter::Device> &) std::nullopt, clusters);
+    }
 
-    if (device_xml.has_value())
-        device_xml = SerializeDevice(device);
+    if (device_xml.has_value()) {
+        //device_xml = SerializeDevice(device);
+    }
 
     for (const auto& cluster : clusters) {
+        pugi::xml_document test = pugi::xml_document();
+        pugi::xml_node test2;
         pugi::xml_document cluster_xml = SerializeCluster(cluster);
-        //cluster_xml_list.push_back(cluster_xml);
+        cluster_xml_list.push_back(std::move(cluster_xml));
     }
 
     return 0;
@@ -47,19 +51,21 @@ int ConvertMatterToSdf(const std::optional<pugi::xml_document>& device_xml,
                        const std::list<pugi::xml_document>& cluster_xml_list,
                        json& sdf_model_json, json& sdf_mapping_json)
 {
-    std::optional<matter::Device> device;
-    if (device_xml.has_value()) {
-        device = matter::ParseDevice(device_xml.value().document_element(), false);
-    }
-    //std::list<matter::Cluster>
+    std::list<matter::Cluster> cluster_list;
     for (auto const& cluster_xml : cluster_xml_list) {
         matter::Cluster cluster =  matter::ParseCluster(cluster_xml.document_element());
-
+        cluster_list.push_back(cluster);
     }
 
     sdf::SdfModel sdf_model;
     sdf::SdfMapping sdf_mapping;
-    //MapMatterToSdf(device, sdf_model, sdf_mapping);
+
+    if (device_xml.has_value()) {
+        matter::Device device = matter::ParseDevice(device_xml.value().document_element(), false);
+        MapMatterToSdf(device, cluster_list, sdf_model, sdf_mapping);
+    } else {
+        MapMatterToSdf(std::nullopt, cluster_list, sdf_model, sdf_mapping);
+    }
 
     sdf_model_json = sdf::SerializeSdfModel(sdf_model);
     sdf_mapping_json = sdf::SerializeSdfMapping(sdf_mapping);
