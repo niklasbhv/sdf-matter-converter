@@ -28,18 +28,17 @@ int ConvertSdfToMatter(json& sdf_model_json, json& sdf_mapping_json,
 {
     sdf::SdfModel sdf_model = sdf::ParseSdfModel(sdf_model_json);
     sdf::SdfMapping sdf_mapping = sdf::ParseSdfMapping(sdf_mapping_json);
+    std::optional<matter::Device> device;
     std::list<matter::Cluster> clusters;
-    if (!device_xml.has_value()) {
-        MapSdfToMatter(sdf_model, sdf_mapping, (std::optional<matter::Device> &) std::nullopt, clusters);
-    }
+    MapSdfToMatter(sdf_model, sdf_mapping, device, clusters);
 
-    if (device_xml.has_value()) {
-        //device_xml = SerializeDevice(device);
+    if (device.has_value()) {
+        device_xml = SerializeDevice(device.value());
+    } else {
+        device_xml.reset();
     }
 
     for (const auto& cluster : clusters) {
-        pugi::xml_document test = pugi::xml_document();
-        pugi::xml_node test2;
         pugi::xml_document cluster_xml = SerializeCluster(cluster);
         cluster_xml_list.push_back(std::move(cluster_xml));
     }
