@@ -24,11 +24,28 @@
 
 //! Map containing the elements of the sdf mapping
 //! This map is used to resolve the elements outsourced into the map
-std::map<std::string, std::map<std::string, sdf::MappingValue>> reference_map;
+//std::map<std::string, std::map<std::string, sdf::MappingValue>> reference_map;
+json reference_map;
 
 //! List containing required sdf elements
 //! This list gets filled while mapping and afterward appended to the corresponding sdfModel
 std::list<std::string> sdf_required_list;
+
+// Function to escape JSON Pointer according to RFC 6901
+std::string EscapeJsonPointer(const std::string& input) {
+    std::string result = input;
+    std::size_t pos = 0;
+    while ((pos = result.find('~', pos)) != std::string::npos) {
+        result.replace(pos, 1, "~0");
+        pos += 2;
+    }
+    pos = 0;
+    while ((pos = result.find('/', pos)) != std::string::npos) {
+        result.replace(pos, 1, "~1");
+        pos += 2;
+    }
+    return result;
+}
 
 class ReferenceTreeNode {
 public:
@@ -47,24 +64,17 @@ public:
     void AddAttribute(std::string key, sdf::MappingValue value) {
         attributes[key] = std::move(value);
     }
+
+    std::string GeneratePointer() {
+        std::string path;
+        ReferenceTreeNode* current = this;
+        while (current != nullptr) {
+            path = EscapeJsonPointer(current->name) + (path.empty() ? "" : "/" + path);
+            current = current->parent;
+        }
+        return path;
+    }
 };
-
-
-// Function to escape JSON Pointer according to RFC 6901
-std::string EscapeJsonPointer(const std::string& input) {
-    std::string result = input;
-    std::size_t pos = 0;
-    while ((pos = result.find('~', pos)) != std::string::npos) {
-        result.replace(pos, 1, "~0");
-        pos += 2;
-    }
-    pos = 0;
-    while ((pos = result.find('/', pos)) != std::string::npos) {
-        result.replace(pos, 1, "~1");
-        pos += 2;
-    }
-    return result;
-}
 
 class ReferenceTree {
 public:
@@ -85,7 +95,7 @@ public:
         }
         return map;
     }
-private:
+
     std::string GeneratePointer(ReferenceTreeNode* node) {
         std::string path;
         ReferenceTreeNode* current = node;
@@ -129,24 +139,27 @@ std::string UnescapeJsonPointer(const std::string& input) {
     return result;
 }
 
-// TODO: Check how this function should behave on an not available mapping
 //! Generically typed for now as the mapping will later contain different types
 //! @brief Imports given key value combination from the SDF Mapping file
 //! @param name Name of the target field.
-sdf::MappingValue ImportFromMapping(const std::string& name)
+/*
+std::optional<sdf::MappingValue> ImportFromMapping(const std::string& json_pointer, const std::string& field)
 {
-    sdf::MappingValue mapping_value;
-    // Be aware that this function removes the first character from the reference string
-    //result = reference_map.at(reference.substr(1)).at(entry);
-    return mapping_value;
-}
+    if (reference_map.count(json_pointer)) {
+        if (reference_map.at(json_pointer).count(field)) {
+            return reference_map.at(json_pointer).at(field);
+        }
+    }
+    return std::nullopt;
+}*/
 
-//! @brief Exports given key value combination to the SDF Mapping file.
-//! @param name Name of the target field.
-//! @param value Value for the target field.
-void ExportToMapping(const std::string& name, const sdf::MappingValue& value)
+template <typename T> void ImportFromMapping(const std::string& json_pointer, const std::string& field, T& input)
 {
-    // reference_map[reference_tree.path()].insert({name, value});
+    if (!reference_map.at(json_pointer).is_null()) {
+        if (!reference_map.at(json_pointer).at(field).is_null()) {
+            reference_map.at(json_pointer).at(field).get_to(input);
+        }
+    }
 }
 
 matter::Access GenerateMatterAccess()
@@ -203,9 +216,7 @@ matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
     return constraint;
 }
 
-/*
- * SDF data type -> Matter type
- */
+//! Generate a Matter type from the information's of the given data quality
 std::string MapSdfDataType(const sdf::DataQuality& data_quality)
 {
     std::string result;
@@ -220,7 +231,7 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality)
     } else if (data_quality.type == "array") {
 
     } else if (data_quality.type == "object") {
-
+        result = "struct";
     } else if (data_quality.sdf_type == "byte-string") {
         result = "octstr";
     } else if (data_quality.sdf_type == "unix-time") {
@@ -236,27 +247,27 @@ matter::DataField MapSdfData(sdf::DataQuality& data_quality)
     // data_field.id
     data_field.name = data_quality.label;
     data_field.conformance = GenerateMatterConformance();
-    //data_field.access
+    // data_field.access
     data_field.summary = data_quality.description;
-    //data_field.type =
+    // data_field.type =
     data_field.constraint = GenerateMatterConstraint(data_quality);
-    data_field.quality;
-    //data_field.default_ = data_quality.default_;
+    // data_field.quality;
+    // data_field.default_ = data_quality.default_;
     return data_field;
 }
 
-matter::Event MapSdfEvent(const sdf::SdfEvent& sdf_event, pugi::xml_node& sdf_event_node)
+matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event_pair)
 {
     matter::Event event;
-    auto current_event_node = sdf_event_node.append_child(sdf_event.label.c_str());
+    auto* sdf_event_reference = new ReferenceTreeNode(sdf_event_pair.first);
+    current_node->AddChild(sdf_event_reference);
     //TODO: Event needs an ID, this needs to be set here
-    event.name = sdf_event.label;
-    event.summary = sdf_event.description;
+    event.name = sdf_event_pair.second.label;
+    event.summary = sdf_event_pair.second.description;
     //comment TODO: Try to fit this into an XML Comment
-    //sdf_ref TODO: Convert this to a global name instead of a path
     //sdf_required TODO: Collect these and set the conformance for the corresponding element to mandatory
     //sdf_output_data TODO: How do we map sdf_output_data to the Event Fields?
-    for (auto elem : sdf_event.sdf_data) {
+    for (auto elem : sdf_event_pair.second.sdf_data) {
         MapSdfData(elem.second);
     }
     return event;
@@ -293,27 +304,28 @@ matter::DataField MapSdfInputData(const sdf::DataQuality& data_quality)
     return data_field;
 }
 
-matter::Command MapSdfAction(const sdf::SdfAction& sdf_action, pugi::xml_node& sdf_action_node)
+matter::Command MapSdfAction(const std::pair<std::string, sdf::SdfAction>& sdf_action_pair)
 {
     matter::Command command;
-    auto current_action_node = sdf_action_node.append_child(sdf_action.label.c_str());
+    auto* sdf_action_reference = new ReferenceTreeNode(sdf_action_pair.first);
+    current_node->AddChild(sdf_action_reference);
 
     // TODO: As client and server commands are seperated, we have to create two new commands
     // TODO: Currently this only handles a single command
     // command.id
-    command.name = sdf_action.label;
+    command.name = sdf_action_pair.second.label;
     // conformance
     // access
-    command.summary = sdf_action.description;
+    command.summary = sdf_action_pair.second.description;
     // default
     command.direction = "commandToServer";
     command.response = "N";
 
     // Map the sdf_input_data Qualities
     // If object is used as a type, the elements of the object have to be mapped individually
-    if (sdf_action.sdf_input_data.has_value()) {
-        if (sdf_action.sdf_input_data.value().type == "object") {
-            for (const auto& quality_pair : sdf_action.sdf_input_data.value().properties) {
+    if (sdf_action_pair.second.sdf_input_data.has_value()) {
+        if (sdf_action_pair.second.sdf_input_data.value().type == "object") {
+            for (const auto& quality_pair : sdf_action_pair.second.sdf_input_data.value().properties) {
                 matter::DataField field = MapSdfInputData(quality_pair.second);
                 // If no label is given, set the quality name
                 if (field.name.empty())
@@ -322,7 +334,7 @@ matter::Command MapSdfAction(const sdf::SdfAction& sdf_action, pugi::xml_node& s
             }
             //required
         } else {
-            matter::DataField field = MapSdfInputData(sdf_action.sdf_input_data.value());
+            matter::DataField field = MapSdfInputData(sdf_action_pair.second.sdf_input_data.value());
             command.command_fields.push_back(field);
         }
     }
@@ -330,24 +342,23 @@ matter::Command MapSdfAction(const sdf::SdfAction& sdf_action, pugi::xml_node& s
     return command;
 }
 
-matter::Attribute MapSdfProperty(const sdf::SdfProperty& sdfProperty, pugi::xml_node& sdf_property_node)
+matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>& sdf_property_pair)
 {
     matter::Attribute attribute;
-    auto current_property_node = sdf_property_node.append_child(sdfProperty.label.c_str());
+    auto* sdf_property_reference = new ReferenceTreeNode(sdf_property_pair.first);
+    current_node->AddChild(sdf_property_reference);
 
-    // TODO: Currently constraints are missing, they are essential for the mapping
-    // attribute.id
-    attribute.name = sdfProperty.label;
+    ImportFromMapping(sdf_property_reference->GeneratePointer(), "id", attribute.id);
+    attribute.name = sdf_property_pair.second.label;
     // sdf_property.comment
     // sdf_property.sdf_ref
     // sdf_property.sdf_required
     // conformance
-    attribute.access->write = sdfProperty.writable;
-    attribute.access->read = sdfProperty.readable;
+    attribute.access->write = sdf_property_pair.second.writable;
+    attribute.access->read = sdf_property_pair.second.readable;
     // sdf_property.observable
-    attribute.summary = sdfProperty.description;
-    // TODO: Create type mapper from SDF to Matter
-    // type
+    attribute.summary = sdf_property_pair.second.description;
+    attribute.type = MapSdfDataType(sdf_property_pair.second);
     //attribute.default_ = sdf_property.default_;
     //attribute.quality.nullable = sdf_property.nullable;
     // TODO: Check if this should in this case be set or ignored
@@ -356,196 +367,205 @@ matter::Attribute MapSdfProperty(const sdf::SdfProperty& sdfProperty, pugi::xml_
     return attribute;
 }
 
-matter::Cluster MapSdfObject(const sdf::SdfObject& sdf_object, pugi::xml_node& sdf_object_node)
+matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_object_pair)
 {
     matter::Cluster cluster;
-    auto current_object_node = sdf_object_node.append_child(sdf_object.label.c_str());
-    // id
-    //std::string id_variable;
-    //ImportFromMapping(current_object_node.path(), "id", id_variable);
-    //cluster.id = std::stoi(id_variable);
-    cluster.name = sdf_object.label;
+    auto* sdf_object_reference = new ReferenceTreeNode(sdf_object_pair.first);
+    current_node->AddChild(sdf_object_reference);
+
+    ImportFromMapping(sdf_object_reference->GeneratePointer(), "id", cluster.id);
+    cluster.name = sdf_object_pair.second.label;
     // conformance
     // access
-    cluster.summary = sdf_object.description;
+    cluster.summary = sdf_object_pair.second.description;
     // revision
     // revision_history
     // classification
 
     // Iterate through all sdfProperties and parse them individually
-    auto sdf_property_node = current_object_node.append_child("sdf_property");
-    for (const auto& sdfProperty : sdf_object.sdf_property) {
-        cluster.attributes.push_back(MapSdfProperty(sdfProperty.second, sdf_property_node));
+    auto* sdf_property_reference = new ReferenceTreeNode("sdfProperty");
+    sdf_object_reference->AddChild(sdf_property_reference);
+    current_node = sdf_property_reference;
+    for (const auto& sdf_property_pair : sdf_object_pair.second.sdf_property) {
+        cluster.attributes.push_back(MapSdfProperty(sdf_property_pair));
     }
 
     // Iterate through all sdfActions and parse them individually
-    auto sdf_action_node = current_object_node.append_child("sdf_action");
-    for (const auto& sdfAction : sdf_object.sdf_action) {
-        cluster.commands.push_back(MapSdfAction(sdfAction.second, sdf_action_node));
+    auto* sdf_action_reference = new ReferenceTreeNode("sdfAction");
+    sdf_object_reference->AddChild(sdf_action_reference);
+    current_node = sdf_action_reference;
+    for (const auto& sdf_action_pair : sdf_object_pair.second.sdf_action) {
+        cluster.commands.push_back(MapSdfAction(sdf_action_pair));
     }
 
     // Iterate through all sdfEvents and parse them individually
-    auto sdf_event_node = current_object_node.append_child("sdf_event");
-    for (const auto& sdfEvent : sdf_object.sdf_event) {
-        cluster.events.push_back(MapSdfEvent(sdfEvent.second, sdf_event_node));
+    auto* sdf_event_reference = new ReferenceTreeNode("sdfEvent");
+    sdf_object_reference->AddChild(sdf_event_reference);
+    current_node = sdf_event_reference;
+    for (const auto& sdf_event_pair : sdf_object_pair.second.sdf_event) {
+        cluster.events.push_back(MapSdfEvent(sdf_event_pair));
     }
 
     return cluster;
 }
 
-matter::Device MapSdfThing(const sdf::SdfThing& sdfThing, pugi::xml_node& sdf_thing_node)
+matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thing_pair)
 {
     matter::Device device;
     // Add the current sdf_thing to the reference tree
-    auto current_thing_node = sdf_thing_node.append_child(sdfThing.label.c_str());
-    // TODO: Find a way to make the mapping compatible with multiple types
-    // ImportFromMapping(current_thing_node.path(), "id" ,device.id);
-    device.name = sdfThing.label;
+    auto* sdf_thing_reference = new ReferenceTreeNode(sdf_thing_pair.first);
+    current_node->AddChild(sdf_thing_reference);
+    // Import the ID from the mapping
+    ImportFromMapping(sdf_thing_reference->GeneratePointer(), "id", device.id);
+    device.name = sdf_thing_pair.second.label;
     // conformance
     // access
-    device.summary = sdfThing.description;
+    device.summary = sdf_thing_pair.second.description;
     // revision
     // revision_history
 
     // Iterate through all sdfObjects and map them individually
-    for (const auto& sdfObject : sdfThing.sdf_object) {
-        auto sdf_object_node = current_thing_node.append_child("sdfObject");
-        device.clusters.push_back(MapSdfObject(sdfObject.second, sdf_object_node));
+    for (const auto& sdf_object_pair : sdf_thing_pair.second.sdf_object) {
+        current_node = new ReferenceTreeNode("sdfObject");
+        sdf_thing_reference->AddChild(current_node);
+        device.clusters.push_back(MapSdfObject(sdf_object_pair));
     }
 
     return device;
 }
 
-/*
- * SDF-Model + SDF-Mapping -> List of Matter clusters<
- */
-/*
-int MapSdfToMatter(const sdf::SdfModel& sdfModel, const sdf::SdfMapping& sdfMappingType, std::list<matter::Cluster>& clusters)
+//! Creates Matter device as well as cluster definitions from a given SDF Model and SDF Mapping
+int MapSdfToMatter(const sdf::SdfModel& sdf_model,
+                   const sdf::SdfMapping& sdf_mapping,
+                   std::optional<matter::Device>& device,
+                   std::list<matter::Cluster>& cluster_list)
 {
     // Make the mapping a global variable
-    if (!sdfMappingType.map.empty())
-        reference_map = sdfMappingType.map;
-
-    // Initialize a reference tree used to resolve json references
-    //pugi::xml_document reference_tree;
-    //auto reference_root_node = reference_tree.append_child("#");
-    //auto sdf_object_node = reference_tree.append_child("sdfObject");
-
-    for (const auto& sdf_object_pair : sdfModel.sdf_object) {
-        //auto current_cluster_node = sdf_object_node.append_child(sdf_object_pair.first.c_str());
-        //clusters.push_back(MapSdfObject(sdf_object_pair.second, current_cluster_node));
+    if (!sdf_mapping.map.empty()) {
+        reference_map = sdf_mapping.map;
     }
 
-    return 0;
-}*/
-
-/*
- * SDF-Model + SDF-Mapping -> Matter Device
- */
-int MapSdfToMatter(const sdf::SdfModel& sdfModel,
-                   const sdf::SdfMapping& sdfMappingType,
-                   std::optional<matter::Device>& device, std::list<matter::Cluster>& clusters)
-{
-    // Make the mapping a global variable
-    if (!sdfMappingType.map.empty())
-        reference_map = sdfMappingType.map;
 
     // Initialize a reference tree used to resolve json references
-    //pugi::xml_document reference_tree;
-    //auto reference_root_node = reference_tree.append_child("#");
+    ReferenceTree reference_tree;
 
-    // TODO: How do we handle multiple sdf_thing or sdf_object definitions
-    if (!sdfModel.sdf_thing.empty()){
-        //auto sdf_thing_node = reference_tree.append_child("sdfThing");
-        //MapSdfThing(sdfModel.sdf_thing.value(), device, sdf_thing_node);
-    } else if (!sdfModel.sdf_object.empty()){
-        //auto sdf_object_node = reference_tree.append_child("sdfObject");
-        // TODO: Special case, initialize a device with a single cluster
+    if (!sdf_model.sdf_thing.empty()){
+        current_node = new ReferenceTreeNode("sdfThing");
+        reference_tree.root->AddChild(current_node);
+        for (const auto& sdf_thing_pair : sdf_model.sdf_thing) {
+            // TODO: Should we consider multiple sdfThing definitions?
+            device = MapSdfThing(sdf_thing_pair);
+        }
+    } else if (!sdf_model.sdf_object.empty()){
+        // Make sure, that device is empty, as there is no sdfThing present
+        device.reset();
+        current_node = new ReferenceTreeNode("sdfObject");
+        reference_tree.root->AddChild(current_node);
+        for (const auto& sdf_object_pair : sdf_model.sdf_object) {
+            matter::Cluster cluster = MapSdfObject(sdf_object_pair);
+            cluster_list.push_back(cluster);
+        }
     }
 
     return 0;
 }
 
-//! Matter type -> SDF type
-int MapMatterType(const std::string& matter_type, sdf::DataQuality& dataQuality)
+void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty& sdf_property)
+{
+    /*
+    if (other_quality.nullable.has_value())
+    if (other_quality.non_volatile.has_value())
+    if (other_quality.fixed.has_value())
+    if (other_quality.scene.has_value())
+    if (other_quality.reportable.has_value())
+    if (other_quality.change_omitted.has_value())
+    if (other_quality.singleton.has_value())
+    if (other_quality.diagnostics.has_value())
+    if (other_quality.large_message.has_value())
+    if (other_quality.quieter_reporting.has_value())
+     */
+}
+
+//! Generates data qualities based on the given matter type
+void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_quality)
 {
     // TODO: Custom types should be handled here
     // TODO: Maybe also set the default value here?
     if (matter_type == "bool") {
-        dataQuality.type = "boolean";
+        data_quality.type = "boolean";
     }
     else if (matter_type == "single") {
-        dataQuality.type = "number";
+        data_quality.type = "number";
     }
     else if (matter_type == "double") {
-        dataQuality.type = "number";
+        data_quality.type = "number";
     }
     else if (matter_type == "octstr") {
-        dataQuality.type = "string";
+        data_quality.type = "string";
+        data_quality.sdf_type = "byte-string";
     }
     else if (matter_type == "list") {
-        dataQuality.type = "array";
+        data_quality.type = "array";
     }
     else if (matter_type == "struct") {
-        dataQuality.type = "object";
+        data_quality.type = "object";
     }
     else if (matter_type.substr(0, 3) == "map") {
-        dataQuality.type = "string";
+        data_quality.type = "string";
     }
     else if (matter_type.substr(0, 3) == "int") {
         // TODO: These boundaries change if the corresponding value is nullable
-        dataQuality.type = "integer";
-        dataQuality.minimum = 0;
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
         if (matter_type.substr(3) == "8") {
-            dataQuality.maximum = MATTER_U_INT_8_MAX;
+            data_quality.maximum = MATTER_U_INT_8_MAX;
         } else if (matter_type.substr(3) == "16") {
-            dataQuality.maximum = MATTER_U_INT_16_MAX;
+            data_quality.maximum = MATTER_U_INT_16_MAX;
         } else if (matter_type.substr(3) == "24") {
-            dataQuality.maximum = MATTER_U_INT_24_MAX;
+            data_quality.maximum = MATTER_U_INT_24_MAX;
         } else if (matter_type.substr(3) == "32") {
-            dataQuality.maximum = MATTER_U_INT_32_MAX;
+            data_quality.maximum = MATTER_U_INT_32_MAX;
         } else if (matter_type.substr(3) == "40") {
-            dataQuality.maximum = MATTER_U_INT_40_MAX;
+            data_quality.maximum = MATTER_U_INT_40_MAX;
         } else if (matter_type.substr(3) == "48") {
-            dataQuality.maximum = MATTER_U_INT_48_MAX;
+            data_quality.maximum = MATTER_U_INT_48_MAX;
         } else if (matter_type.substr(3) == "56") {
-            dataQuality.maximum = MATTER_U_INT_56_MAX;
+            data_quality.maximum = MATTER_U_INT_56_MAX;
         } else if (matter_type.substr(3) == "64") {
-            dataQuality.maximum = MATTER_U_INT_64_MAX;
+            data_quality.maximum = MATTER_U_INT_64_MAX;
         }
     }
     else if (matter_type.substr(0, 4) == "uint") {
-        dataQuality.type = "integer";
+        data_quality.type = "integer";
         if (matter_type.substr(4) == "8") {
-            dataQuality.minimum = MATTER_INT_8_MIN;
-            dataQuality.maximum = MATTER_INT_8_MAX;
+            data_quality.minimum = MATTER_INT_8_MIN;
+            data_quality.maximum = MATTER_INT_8_MAX;
         } else if (matter_type.substr(4) == "16") {
-            dataQuality.minimum = MATTER_INT_16_MIN;
-            dataQuality.maximum = MATTER_INT_16_MAX;
+            data_quality.minimum = MATTER_INT_16_MIN;
+            data_quality.maximum = MATTER_INT_16_MAX;
         } else if (matter_type.substr(4) == "24") {
-            dataQuality.minimum = MATTER_INT_24_MIN;
-            dataQuality.maximum = MATTER_INT_24_MAX;
+            data_quality.minimum = MATTER_INT_24_MIN;
+            data_quality.maximum = MATTER_INT_24_MAX;
         } else if (matter_type.substr(4) == "32") {
-            dataQuality.minimum = MATTER_INT_32_MIN;
-            dataQuality.maximum = MATTER_INT_32_MAX;
+            data_quality.minimum = MATTER_INT_32_MIN;
+            data_quality.maximum = MATTER_INT_32_MAX;
         } else if (matter_type.substr(4) == "40") {
-            dataQuality.minimum = MATTER_INT_40_MIN;
-            dataQuality.maximum = MATTER_INT_40_MAX;
+            data_quality.minimum = MATTER_INT_40_MIN;
+            data_quality.maximum = MATTER_INT_40_MAX;
         } else if (matter_type.substr(4) == "48") {
-            dataQuality.minimum = MATTER_INT_48_MIN;
-            dataQuality.maximum = MATTER_INT_48_MAX;
+            data_quality.minimum = MATTER_INT_48_MIN;
+            data_quality.maximum = MATTER_INT_48_MAX;
         } else if (matter_type.substr(4) == "56") {
-            dataQuality.minimum = MATTER_INT_56_MIN;
-            dataQuality.maximum = MATTER_INT_56_MAX;
+            data_quality.minimum = MATTER_INT_56_MIN;
+            data_quality.maximum = MATTER_INT_56_MAX;
         } else if (matter_type.substr(4) == "64") {
-            dataQuality.minimum = MATTER_INT_64_MIN;
-            dataQuality.maximum = MATTER_INT_64_MAX;
+            data_quality.minimum = MATTER_INT_64_MIN;
+            data_quality.maximum = MATTER_INT_64_MAX;
         }
     }
 
     // If the type is not a known standard type
     std::cout << "Found: " << matter_type << std::endl;
-    return 0;
 }
 
 //! Matter Constraint -> Data Quality
@@ -572,59 +592,28 @@ int MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality d
     return 0;
 }
 
-//! Matter Access Type -> sdf_property
-//! This function is used in combination with a sdf_property object
-int MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdfProperty, pugi::xml_node& sdf_property_node)
-{
-    //! Most of the access qualities need to be moved to the mapping
-    //TODO: Check if we should set default booleans here
-    if (access.read.has_value())
-        sdfProperty.readable = access.read;
-    if (access.write.has_value())
-        sdfProperty.writable = access.write;
-    //sdf_property.observable
-    if (access.fabric_scoped.has_value())
-        sdf_property_node.append_attribute("fabricScoped").set_value(access.fabric_scoped.value());
-    if (access.fabric_sensitive.has_value())
-        sdf_property_node.append_attribute("fabricSensitive").set_value(access.fabric_sensitive.value());
-    //if (access.requires_view_privilege.has_value())
-    //    sdf_property_node.append_attribute("requiresViewPrivilege").set_value(access.requires_view_privilege.value());
-    //if (access.requires_operate_privilege.has_value())
-    //    sdf_property_node.append_attribute("requiresOperatePrivilege").set_value(access.requires_operate_privilege.value());
-    //if (access.requires_manage_privilege.has_value())
-    //    sdf_property_node.append_attribute("requiresManagePrivilege").set_value(access.requires_manage_privilege.value());
-    //if (access.requires_administer_privilege.has_value())
-    //    sdf_property_node.append_attribute("requiresAdministerPrivilege").set_value(access.requires_administer_privilege.value());
-    if (access.timed.has_value())
-        sdf_property_node.append_attribute("timed").set_value(access.timed.value());
-
-    return 0;
-}
-
 //! Matter Access Type -> SDF Mapping
 //! This function is used standalone to move all qualities to the SDF Mapping
-int MapMatterAccess(const matter::Access& access, pugi::xml_node& current_node)
+void MapMatterAccess(const matter::Access& access)
 {
-    // TODO: Check if these are the actual field names from the xml
+    auto* access_reference = new ReferenceTreeNode("access");
+    current_node->AddChild(access_reference);
     if (access.read.has_value())
-        current_node.append_attribute("read").set_value(access.read.value());
+        access_reference->AddAttribute("read", access.read.value());
     if (access.write.has_value())
-        current_node.append_attribute("write").set_value(access.write.value());
+        access_reference->AddAttribute("write", access.write.value());
     if (access.fabric_scoped.has_value())
-        current_node.append_attribute("fabricScoped").set_value(access.fabric_scoped.value());
+        access_reference->AddAttribute("fabricScoped", access.fabric_scoped.value());
     if (access.fabric_sensitive.has_value())
-        current_node.append_attribute("fabricSensitive").set_value(access.fabric_sensitive.value());
-    //if (access.requires_view_privilege.has_value())
-    //    current_node.append_attribute("requiresViewPrivilege").set_value(access.requires_view_privilege.value());
-    //if (access.requires_operate_privilege.has_value())
-    //    current_node.append_attribute("requiresOperatePrivilege").set_value(access.requires_operate_privilege.value());
-    //if (access.requires_manage_privilege.has_value())
-    //    current_node.append_attribute("requiresManagePrivilege").set_value(access.requires_manage_privilege.value());
-    //if (access.requires_administer_privilege.has_value())
-    //    current_node.append_attribute("requiresAdministerPrivilege").set_value(access.requires_administer_privilege.value());
+        access_reference->AddAttribute("fabricSensitive", access.fabric_sensitive.value());
+    if (!access.read_privilege.empty())
+        access_reference->AddAttribute("readPrivilege", access.read_privilege);
+    if (!access.write_privilege.empty())
+        access_reference->AddAttribute("writePrivilege", access.write_privilege);
+    if (!access.invoke_privilege.empty())
+        access_reference->AddAttribute("invokePrivilege", access.invoke_privilege);
     if (access.timed.has_value())
-        current_node.append_attribute("timed").set_value(access.timed.value());
-    return 0;
+        access_reference->AddAttribute("times", access.timed.value());
 }
 
 // Function used to evaluate a string expression
@@ -681,9 +670,10 @@ sdf::SdfEvent MapMatterEvent(const matter::Event& event)
 {
     sdf::SdfEvent sdf_event;
     // Append the event node to the tree
-    //auto event_node = sdf_event_node.append_child(event.name.c_str());
-
-    // event.id
+    auto* event_reference = new ReferenceTreeNode(event.name);
+    current_node->AddChild(event_reference);
+    // Export the id to the mapping
+    event_reference->AddAttribute("id", (uint64_t) event.id);
     sdf_event.label = event.name;
     if (event.conformance.has_value())
         MapMatterConformance(event.conformance.value());
@@ -707,9 +697,10 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command)
 {
     sdf::SdfAction sdf_action;
     // Append the command node to the tree
-    //auto command_node = sdf_action_node.append_child(client_command.name.c_str());
-
-    // client_command.id
+    auto* command_reference = new ReferenceTreeNode(client_command.name);
+    current_node->AddChild(command_reference);
+    // Export the id to the mapping
+    command_reference->AddAttribute("id", (uint64_t) client_command.id);
     sdf_action.label = client_command.name;
     if (client_command.conformance.has_value())
         MapMatterConformance(client_command.conformance.value());
@@ -726,28 +717,27 @@ sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute)
 {
     sdf::SdfProperty sdf_property;
     // Append the attribute node to the tree
-    //auto attribute_node = sdf_property_node.append_child(attribute.name.c_str());
     auto* attribute_reference = new ReferenceTreeNode(attribute.name);
     current_node->AddChild(attribute_reference);
+
+    // Export the id to the mapping
     attribute_reference->AddAttribute("id", (uint64_t) attribute.id);
     sdf_property.label = attribute.name;
+
     if (attribute.conformance.has_value())
         MapMatterConformance(attribute.conformance.value());
-    // attribute.access
+
+    if (attribute.access.has_value())
+        MapMatterAccess(attribute.access.value());
+
     sdf_property.description = attribute.summary;
 
-    // Map the Matter type to a fitting SDF type
+    // Map the Matter type onto data qualities
     MapMatterType(attribute.type, sdf_property);
-    //if (attribute.quality.nullable.has_value())
-        // TODO: In this case the boundaries for some types have to be changed
-        //sdf_property.nullable = attribute.quality.nullable.value();
-    // attribute.qualities.non_volatile
-    // attribute.qualities.fixed
-    // attribute.qualities.scene
-    // attribute.qualities.reportable
-    // attribute.qualities.changed_omitted
-    // attribute.qualities.singleton
-    //sdf_property.default_ = attribute.default_;
+    if (attribute.quality.has_value())
+        MapOtherQuality(attribute.quality.value(), sdf_property);
+
+    // sdf_property.default_ = attribute.default_;
 
     return sdf_property;
 }
@@ -756,9 +746,9 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
 {
     sdf::SdfObject sdf_object;
     auto* cluster_reference = new ReferenceTreeNode(cluster.name);
+    current_node->AddChild(cluster_reference);
 
     cluster_reference->AddAttribute("id", (uint64_t) cluster.id);
-    current_node->AddChild(cluster_reference);
     sdf_object.label = cluster.name;
     if (cluster.conformance.has_value())
         MapMatterConformance(cluster.conformance.value());
@@ -777,14 +767,18 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
     }
 
     // Iterate through the commands and map them
-    //auto command_node = cluster_node.child("sdf_action");
+    auto* sdf_action_node = new ReferenceTreeNode("sdfAction");
+    cluster_reference->AddChild(sdf_action_node);
+    current_node = sdf_action_node;
     for (const auto& command : cluster.commands){
         sdf::SdfAction sdf_action = MapMatterCommand(command);
         sdf_object.sdf_action.insert({command.name, sdf_action});
     }
 
     // Iterate through the events and map them
-    //auto event_node = cluster_node.child("sdf_event");
+    auto* sdf_event_node = new ReferenceTreeNode("sdfEvent");
+    cluster_reference->AddChild(sdf_event_node);
+    current_node = sdf_event_node;
     for (const auto& event : cluster.events){
         sdf::SdfEvent sdf_event =  MapMatterEvent(event);
         sdf_object.sdf_event.insert({event.name, sdf_event});
@@ -793,6 +787,8 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
     return sdf_object;
 }
 
+//! Generate a SDF-Model or SDF-Mapping information block based on information of either
+//! a Matter device or a Matter cluster
 sdf::InformationBlock GenerateInformationBlock(const std::variant<matter::Device, matter::Cluster>& input)
 {
     sdf::InformationBlock information_block;
@@ -808,10 +804,12 @@ sdf::InformationBlock GenerateInformationBlock(const std::variant<matter::Device
 
 sdf::SdfThing MapMatterDevice(const matter::Device& device)
 {
+    sdf::SdfThing sdf_thing;
     // Append a new sdf_object node to the tree
-    //sdf_thing_node.append_child(device.name.c_str()).append_child("sdfObject");
-    //auto device_node = sdf_thing_node.child(device.name.c_str());
-    //device_node.append_attribute("id").set_value(device.id);
+    auto* device_reference = new ReferenceTreeNode(device.name);
+    current_node->AddChild(device_reference);
+
+    device_reference->AddAttribute("id", (uint64_t) device.id);
     // device.classification -> sdfMapping
     // device.features -> sdf_data
     // device.enums -> sdf_data
@@ -823,7 +821,6 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
     // TODO: We need to be able to create a JSON object for more complex structures like revisionHistory
     // device.revisionHistory -> sdf_data
 
-    sdf::SdfThing sdf_thing;
     sdf_thing.label = device.name;
     sdf_thing.description = device.summary;
     // sdf_thing.comment
@@ -866,11 +863,6 @@ int MapMatterToSdf(const std::optional<matter::Device>& device,
         }
     }
 
-    // Initial sdf_mapping mapping
-    //sdf_mapping.information_block.version = std::to_string(device.revision);
-
-    //sdf_mapping.namespace_block.namespaces = {{"zcl", "https://zcl.example.com/sdf"}};
-    //sdf_mapping.namespace_block.default_namespace = "zcl";
     sdf_mapping.map = reference_tree.GenerateMapping(reference_tree.root);
     std::cout << sdf_mapping.map.size() << std::endl;
     // Print the resulting tree
