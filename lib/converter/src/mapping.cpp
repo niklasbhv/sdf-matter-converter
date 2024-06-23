@@ -49,6 +49,23 @@ public:
     }
 };
 
+
+// Function to escape JSON Pointer according to RFC 6901
+std::string EscapeJsonPointer(const std::string& input) {
+    std::string result = input;
+    std::size_t pos = 0;
+    while ((pos = result.find('~', pos)) != std::string::npos) {
+        result.replace(pos, 1, "~0");
+        pos += 2;
+    }
+    pos = 0;
+    while ((pos = result.find('/', pos)) != std::string::npos) {
+        result.replace(pos, 1, "~1");
+        pos += 2;
+    }
+    return result;
+}
+
 class ReferenceTree {
 public:
     ReferenceTreeNode* root;
@@ -61,22 +78,19 @@ public:
         std::map<std::string, std::map<std::string, sdf::MappingValue>> map;
         ReferenceTreeNode* current = node;
         for (const auto& child : current->children) {
-            std::cout << "Current Child: " << child->name << std::endl;
-            std::cout << "Child Path: " << GeneratePath(child) << std::endl;
             if (!child->attributes.empty()) {
-                std::cout << "Found Attribute!" << std::endl;
-                map[GeneratePath(child)] = child->attributes;
+                map[GeneratePointer(child)] = child->attributes;
             }
             map.merge(GenerateMapping(child));
         }
         return map;
     }
 private:
-    std::string GeneratePath(ReferenceTreeNode* node) {
+    std::string GeneratePointer(ReferenceTreeNode* node) {
         std::string path;
         ReferenceTreeNode* current = node;
         while (current != nullptr) {
-            path = current->name + (path.empty() ? "" : "/" + path);
+            path = EscapeJsonPointer(current->name) + (path.empty() ? "" : "/" + path);
             current = current->parent;
         }
         return path;
@@ -98,22 +112,6 @@ struct simple_walker : pugi::xml_tree_walker
         return true; // continue traversal
     }
 };
-
-// Function to escape JSON Pointer according to RFC 6901
-std::string EscapeJsonPointer(const std::string& input) {
-    std::string result = input;
-    std::size_t pos = 0;
-    while ((pos = result.find('~', pos)) != std::string::npos) {
-        result.replace(pos, 1, "~0");
-        pos += 2;
-    }
-    pos = 0;
-    while ((pos = result.find('/', pos)) != std::string::npos) {
-        result.replace(pos, 1, "~1");
-        pos += 2;
-    }
-    return result;
-}
 
 // Function to unescape JSON Pointer according to RFC 6901
 std::string UnescapeJsonPointer(const std::string& input) {
@@ -150,31 +148,6 @@ void ExportToMapping(const std::string& name, const sdf::MappingValue& value)
 {
     // reference_map[reference_tree.path()].insert({name, value});
 }
-
-/*
-std::map<std::string, std::map<std::string, sdf::MappingValue>> GenerateMapping(const pugi::xml_node& node)
-{
-    std::map<std::string, std::map<std::string, sdf::MappingValue>> map;
-    // If available, iterate through the attributes of a node
-    std::map<std::string, sdf::MappingValue> attribute_map;
-    for (auto attribute : node.attributes()) {
-        attribute_map.insert({attribute.name(), attribute.value()});
-    }
-
-    // If one or more attributes are found insert them into the map
-    if (!attribute_map.empty())
-        // Remove the first slash as it is not needed
-        // TODO: Cluster names can contain slashes (e.g. On/Off) which might render the function unusable
-        // TODO: A potential workaround might be to encase such names like sdf_object/[CLUSTER_NAME]/sdf_action
-        map.insert({node.path().substr(1), attribute_map});
-
-    // Recursive call to iterate to all nodes in the tree
-    for (auto child_node : node.children()) {
-        map = GenerateMapping(child_node);
-    }
-
-    return map;
-}*/
 
 matter::Access GenerateMatterAccess()
 {
