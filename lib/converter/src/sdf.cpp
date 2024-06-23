@@ -620,7 +620,7 @@ SdfMapping ParseSdfMapping(json& sdf_mapping_json)
     if (sdf_mapping_json.contains("map")) {
         for (const auto& reference : sdf_mapping_json.at("map").items()) {
             for (const auto& field : reference.value().items()) {
-                //sdf_mapping.map[reference.key()].insert({field.key(), field.value()});
+                sdf_mapping.map[reference.key()].insert({field.key(), field.value()});
             }
         }
     }

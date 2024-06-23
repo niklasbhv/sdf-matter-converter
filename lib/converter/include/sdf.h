@@ -39,6 +39,17 @@ using json = nlohmann::ordered_json;
  */
 NLOHMANN_JSON_NAMESPACE_BEGIN
 
+// Try to set the value of type T into the variant data
+// if it fails, do nothing
+template <typename T, typename... Types>
+void variant_from_json(const ordered_json& j, std::variant<Types...> &data)
+{
+    try {
+        data = j.get<T>();
+    } catch (...) {
+    }
+}
+
 /**
  * Template used to add to_json for the sdf::variant type.
  */
@@ -47,6 +58,11 @@ template <typename... Types> struct adl_serializer<std::variant<Types...>> {
         std::visit([&j](const auto &value) {
             j = value; // Serialize the current value to JSON
         }, v);
+    }
+    static void from_json(const ordered_json& j, std::variant<Types...> &data)
+    {
+        // Call variant_from_json for all types, only one will succeed
+        (variant_from_json<Types>(j, data), ...);
     }
 };
 
