@@ -541,6 +541,7 @@ Device ParseDevice(const pugi::xml_node& device_xml, bool client) {
     return device;
 }
 
+//! Serializes a other quality object into a xml node and appends it to the parent node
 void SerializeOtherQuality(const OtherQuality& other_quality, pugi::xml_node& parent_node) {
     pugi::xml_node quality_node = parent_node.append_child("quality");
     if (other_quality.nullable.has_value())
@@ -576,9 +577,7 @@ void SerializeOtherQuality(const OtherQuality& other_quality, pugi::xml_node& pa
         quality_node.append_attribute("quieterReporting").set_value(other_quality.quieter_reporting.value());
 }
 
-/*
-* Function used to create a xml attribute for default types
-*/
+//! Serializes the given default value into its actual contained datatype
 pugi::xml_attribute SerializeDefaultType(const DefaultType &value, const char *attribute_name) {
     pugi::xml_attribute attribute;
     attribute.set_name(attribute_name);
@@ -597,9 +596,7 @@ pugi::xml_attribute SerializeDefaultType(const DefaultType &value, const char *a
     return attribute;
 }
 
-/*
-* Function used to set the attribute value for the numeric Type
-*/
+//! Serializes the given numeric value into its actual contained datatype
 pugi::xml_attribute SerializeNumericType(const NumericType& value, const char* attribute_name) {
     pugi::xml_attribute attribute;
     attribute.set_name(attribute_name);
@@ -615,6 +612,7 @@ pugi::xml_attribute SerializeNumericType(const NumericType& value, const char* a
     return attribute;
 }
 
+//! Serializes a constraint object into a xml node and appends it to the given parent node
 void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_node) {
     auto constraint_node = parent_node.append_child("constraint");
     // Constraint is defined in the description section
@@ -691,6 +689,7 @@ void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_no
     // Character string constraints
 }
 
+//! Serializes a conformance object into a xml node and appends it to the given parent node
 void SerializeConformance(const Conformance& conformance, pugi::xml_node& parent_node) {
     if (conformance.mandatory.has_value()) {
         if (conformance.mandatory.value())
@@ -711,6 +710,7 @@ void SerializeConformance(const Conformance& conformance, pugi::xml_node& parent
     // expression
 }
 
+//! Serializes a access object into a xml node and appends it to the given parent node
 void SerializeAccess(const Access& access, pugi::xml_node& parent_node) {
     auto access_node = parent_node.append_child("access");
     if (access.read.has_value())
@@ -738,10 +738,7 @@ void SerializeAccess(const Access& access, pugi::xml_node& parent_node) {
         access_node.append_attribute("timed").set_value(access.timed.value());
 }
 
-void SerializeEvent(const Event& event, pugi::xml_node& events_node) {
-    auto event_node = events_node.append_child("event");
-}
-
+//! Serializes a data field object into a xml node and appends it to the given parent node
 void SerializeDataField(const DataField& data_field, pugi::xml_node& parent_node) {
     auto data_field_node = parent_node.append_child("field");
     data_field_node.append_attribute("id").set_value(data_field.id);
@@ -768,6 +765,27 @@ void SerializeDataField(const DataField& data_field, pugi::xml_node& parent_node
     // default
 }
 
+//! Serializes a event object into a xml node and appends it to the given parent node
+void SerializeEvent(const Event& event, pugi::xml_node& events_node) {
+    auto event_node = events_node.append_child("event");
+
+    event_node.append_attribute("id").set_value(DecToHexa(event.id).c_str());
+    event_node.append_attribute("name").set_value(event.name.c_str());
+    if (event.conformance.has_value())
+        SerializeConformance(event.conformance.value(), event_node);
+    if (event.access.has_value())
+        SerializeAccess(event.access.value(), event_node);
+    if (!event.summary.empty())
+        event_node.append_attribute("summary").set_value(event.summary.c_str());
+    event_node.append_attribute("priority").set_value(event.priority.c_str());
+    if (event.quality.has_value())
+        SerializeOtherQuality(event.quality.value(), event_node);
+    for (const auto& data_field : event.data) {
+        SerializeDataField(data_field, event_node);
+    }
+}
+
+//! Serializes a command object and into a xml node and appends it to the given parent node
 void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
     auto command_node = commands_node.append_child("command");
     command_node.append_attribute("id").set_value(DecToHexa(command.id).c_str());
@@ -794,6 +812,7 @@ void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
     }
 }
 
+//! Serialize a attribute object into a xml node and appends it to the given parent node
 void SerializeAttribute(const Attribute& attribute, pugi::xml_node& attributes_node) {
     auto attribute_node = attributes_node.append_child("attribute");
 
@@ -834,6 +853,7 @@ void SerializeBitfield(const Bitfield& bitfield, pugi::xml_node& bitmap_node) {
         SerializeConformance(bitfield.conformance.value(), bitfield_node);
 }
 
+//! Serializes the dataType section of the given cluster object into xml nodes and appends them to the given parent node
 void SerializeDataTypes(const Cluster& cluster, pugi::xml_node& cluster_xml) {
     auto data_type_node = cluster_xml.append_child("dataTypes");
 
@@ -858,7 +878,8 @@ void SerializeDataTypes(const Cluster& cluster, pugi::xml_node& cluster_xml) {
     }
 }
 
-void SerializeClusterClassification(const ClusterClassification& cluster_classification, pugi::xml_node cluster_node) {
+//! Serializes a cluster classification into a xml node and appends it to the given parent node
+void SerializeClusterClassification(const ClusterClassification& cluster_classification, pugi::xml_node& cluster_node) {
     auto classification_node = cluster_node.append_child("classification");
     if (!cluster_classification.hierarchy.empty())
         classification_node.append_attribute("hierarchy").set_value(cluster_classification.hierarchy.c_str());
@@ -880,6 +901,7 @@ void SerializeClusterClassification(const ClusterClassification& cluster_classif
                 cluster_classification.primary_transaction.c_str());
 }
 
+//! Serializes a cluster object into a xml document
 pugi::xml_document SerializeCluster(const Cluster &cluster) {
     pugi::xml_document cluster_xml;
     // Create the cluster node
@@ -911,30 +933,38 @@ pugi::xml_document SerializeCluster(const Cluster &cluster) {
 
     // Serialize the custom data types
     SerializeDataTypes(cluster, cluster_node);
-    // Iterate through all attributes and serialize them individually
-    auto attributes_node = cluster_node.append_child("attributes");
-    for (const auto &attribute: cluster.attributes) {
-        SerializeAttribute(attribute, attributes_node);
+
+    if (!cluster.attributes.empty()) {
+        // Iterate through all attributes and serialize them individually
+        auto attributes_node = cluster_node.append_child("attributes");
+        for (const auto &attribute: cluster.attributes) {
+            SerializeAttribute(attribute, attributes_node);
+        }
     }
 
-    // Iterate through all client and server commands and serialize them individually
-    auto commands_node = cluster_node.append_child("commands");
-    for (const auto& client_command : cluster.client_commands) {
-        SerializeCommand(client_command, commands_node);
-    }
-    for (const auto& server_command : cluster.server_commands) {
-        SerializeCommand(server_command.second, commands_node);
+    if (!cluster.client_commands.empty()) {
+        // Iterate through all client and server commands and serialize them individually
+        auto commands_node = cluster_node.append_child("commands");
+        for (const auto& client_command : cluster.client_commands) {
+            SerializeCommand(client_command, commands_node);
+        }
+        for (const auto& server_command : cluster.server_commands) {
+            SerializeCommand(server_command.second, commands_node);
+        }
     }
 
-    // Iterate through all events and serialize them individually
-    auto events_node = cluster_node.append_child("events");
-    for (const auto &event: cluster.events) {
-        SerializeEvent(event, events_node);
+    if (!cluster.events.empty()) {
+        // Iterate through all events and serialize them individually
+        auto events_node = cluster_node.append_child("events");
+        for (const auto &event: cluster.events) {
+            SerializeEvent(event, events_node);
+        }
     }
 
     return cluster_xml;
 }
 
+//! Serializes a device type classification object into a xml node and appends it to the given parent node
 void SerializeDeviceClassification(const DeviceClassification& device_classification, pugi::xml_node& device_node) {
     auto classification_node = device_node.append_child("classification");
     if (!device_classification.superset.empty())
@@ -947,6 +977,7 @@ void SerializeDeviceClassification(const DeviceClassification& device_classifica
         classification_node.append_attribute("scope").set_value(device_classification.scope.c_str());
 }
 
+//! Serializes a device object into a xml document
 pugi::xml_document SerializeDevice(const Device& device) {
     pugi::xml_document device_document_xml;
     pugi::xml_node device_xml = device_document_xml.document_element();
