@@ -473,7 +473,13 @@ Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
 
     // Iterate through all commands and parse them individually
     for (const auto &command_node: cluster_xml.child("commands").children()) {
-        cluster.commands.push_back(ParseCommand(command_node));
+        // Split the commands into client and server commands
+        if (command_node.attribute("direction").value() == "commandToServer") {
+            cluster.client_commands.push_back(ParseCommand(command_node));
+        } else {
+            Command server_command = ParseCommand(command_node);
+            cluster.server_commands[server_command.name] = server_command;
+        }
     }
 
     // Iterate through all events and parse them individually
@@ -954,10 +960,13 @@ pugi::xml_document SerializeCluster(const Cluster &cluster) {
         attribute_node = SerializeAttribute(attribute);
     }
 
-    // Iterate through all commands and serialize them individually
+    // Iterate through all client and server commands and serialize them individually
     auto command_node = cluster_node.append_child("commands");
-    for (const auto &command: cluster.commands) {
-        command_node = SerializeCommand(command);
+    for (const auto& client_command : cluster.client_commands) {
+        command_node = SerializeCommand(client_command);
+    }
+    for (const auto& server_command : cluster.server_commands) {
+        command_node = SerializeCommand(server_command.second);
     }
 
     // Iterate through all events and serialize them individually

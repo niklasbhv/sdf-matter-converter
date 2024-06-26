@@ -304,42 +304,67 @@ matter::DataField MapSdfInputData(const sdf::DataQuality& data_quality)
     return data_field;
 }
 
-matter::Command MapSdfAction(const std::pair<std::string, sdf::SdfAction>& sdf_action_pair)
+std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const std::pair<std::string, sdf::SdfAction>& sdf_action_pair)
 {
-    matter::Command command;
+    matter::Command client_command;
     auto* sdf_action_reference = new ReferenceTreeNode(sdf_action_pair.first);
     current_node->AddChild(sdf_action_reference);
 
     // TODO: As client and server commands are seperated, we have to create two new commands
     // TODO: Currently this only handles a single command
     // command.id
-    command.name = sdf_action_pair.second.label;
+    client_command.name = sdf_action_pair.second.label;
     // conformance
     // access
-    command.summary = sdf_action_pair.second.description;
+    client_command.summary = sdf_action_pair.second.description;
     // default
-    command.direction = "commandToServer";
-    command.response = "N";
+    client_command.direction = "commandToServer";
+    std::optional<matter::Command> optional_server_command;
+    // Check if the sdfAction has output data qualities
+    if (sdf_action_pair.second.sdf_output_data.has_value()) {
+        // Initially, we copy the contents of the client command
+        matter::Command server_command = client_command;
+        // If object is used as a type, the elements of the object have to be mapped individually
+        if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
+            for (const auto& quality_pair : sdf_action_pair.second.sdf_input_data.value().properties) {
+                matter::DataField field = MapSdfInputData(quality_pair.second);
+                // If no label is given, set the quality name
+                if (field.name.empty())
+                    field.name = quality_pair.first;
+                server_command.command_fields.push_back(field);
+            }
+        }
+        else {
+            matter::DataField field = MapSdfInputData(sdf_action_pair.second.sdf_output_data.value());
+            server_command.command_fields.push_back(field);
+        }
+        //required
+        optional_server_command = server_command;
+    } else {
+        client_command.response = "N";
+    }
+    // TODO: Consider the status code here
 
     // Map the sdf_input_data Qualities
     // If object is used as a type, the elements of the object have to be mapped individually
     if (sdf_action_pair.second.sdf_input_data.has_value()) {
+        // If object is used as a type, the elements of the object have to be mapped individually
         if (sdf_action_pair.second.sdf_input_data.value().type == "object") {
             for (const auto& quality_pair : sdf_action_pair.second.sdf_input_data.value().properties) {
                 matter::DataField field = MapSdfInputData(quality_pair.second);
                 // If no label is given, set the quality name
                 if (field.name.empty())
                     field.name = quality_pair.first;
-                command.command_fields.push_back(field);
+                client_command.command_fields.push_back(field);
             }
             //required
         } else {
             matter::DataField field = MapSdfInputData(sdf_action_pair.second.sdf_input_data.value());
-            command.command_fields.push_back(field);
+            client_command.command_fields.push_back(field);
         }
     }
 
-    return command;
+    return {client_command, optional_server_command};
 }
 
 matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>& sdf_property_pair)
@@ -395,7 +420,10 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     sdf_object_reference->AddChild(sdf_action_reference);
     current_node = sdf_action_reference;
     for (const auto& sdf_action_pair : sdf_object_pair.second.sdf_action) {
-        cluster.commands.push_back(MapSdfAction(sdf_action_pair));
+        std::pair<matter::Command, std::optional<matter::Command>> command_pair(MapSdfAction(sdf_action_pair));
+        cluster.client_commands.push_back(command_pair.first);
+        if (command_pair.second.has_value())
+            cluster.server_commands[command_pair.second.value().name] = command_pair.second.value();
     }
 
     // Iterate through all sdfEvents and parse them individually
@@ -687,18 +715,20 @@ sdf::SdfEvent MapMatterEvent(const matter::Event& event)
     return sdf_event;
 }
 
-sdf::SdfAction MapMatterCommand(const matter::Command& client_command, matter::Command& server_command)
+sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std::map<std::string, matter::Command>& server_commands)
 {
     sdf::SdfAction sdf_action;
-    return sdf_action;
-}
-
-sdf::SdfAction MapMatterCommand(const matter::Command& client_command)
-{
-    sdf::SdfAction sdf_action;
-    // Append the command node to the tree
+    // Append the client_command node to the tree
     auto* command_reference = new ReferenceTreeNode(client_command.name);
     current_node->AddChild(command_reference);
+    // If the command does not have a response
+    if (client_command.response == "N") {}
+    // If the client_command only returns a simple status
+    else if (client_command.response == "Y") {}
+    // Otherwise, the client client_command has a reference to a server client_command
+    else {}
+
+
     // Export the id to the mapping
     command_reference->AddAttribute("id", (uint64_t) client_command.id);
     sdf_action.label = client_command.name;
@@ -770,8 +800,8 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
     auto* sdf_action_node = new ReferenceTreeNode("sdfAction");
     cluster_reference->AddChild(sdf_action_node);
     current_node = sdf_action_node;
-    for (const auto& command : cluster.commands){
-        sdf::SdfAction sdf_action = MapMatterCommand(command);
+    for (const auto& command : cluster.client_commands){
+        sdf::SdfAction sdf_action = MapMatterCommand(command, cluster.server_commands);
         sdf_object.sdf_action.insert({command.name, sdf_action});
     }
 

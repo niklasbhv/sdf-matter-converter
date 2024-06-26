@@ -373,8 +373,11 @@ struct Cluster : CommonQuality {
     std::optional<ClusterClassification> classification;
     //! List of attributes
     std::list<Attribute> attributes;
-    //! List of commands
-    std::list<Command> commands;
+    //! List of client commands
+    std::list<Command> client_commands;
+    //! Map of command names to their respective commands
+    //! Improves the searching for server commands when matching them to their client commands
+    std::map<std::string, Command> server_commands;
     //! List of events
     std::list<Event> events;
     //! Map for globally defined enums
