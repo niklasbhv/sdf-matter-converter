@@ -26,7 +26,7 @@ using json = nlohmann::ordered_json;
 namespace sdf {
 
 /*
- * Reference to the SDF-Model used for resolving sdf_ref-Elements.
+ * Reference to the SDF-Model used for resolving sdfRef-Elements.
  */
 json global_sdf_model = {};
 
@@ -162,132 +162,36 @@ DataQuality ParseDataQualities(json& data_qualities_json)
     if (data_qualities_json.contains("enum"))
         data_qualities_json.at("enum").get_to(data_quality.enum_);
 
-    // Select a fitting datatype for the default quality based on the set json type
-    if (data_qualities_json.contains("const")) {
-        // TODO: Can the object type have a default value?
-        if (data_quality.type == "number") {
-            double number;
-            data_qualities_json.at("const").get_to(number);
-            data_quality.default_ = number;
-        } else if (data_quality.type == "string") {
-            std::string string;
-            data_qualities_json.at("const").get_to(string);
-            data_quality.default_ = string;
-        } else if (data_quality.type == "boolean") {
-            bool boolean;
-            data_qualities_json.at("const").get_to(boolean);
-            data_quality.default_ = boolean;
-        } else if (data_quality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            uint64_t integer;
-            data_qualities_json.at("const").get_to(integer);
-            data_quality.default_ = integer;
-        } else if (data_quality.type == "array") {
-            //data_qualities_json.at("const").get_to(data_quality.default_->array);
-        } else if (data_quality.type == "object") {
-            //data_qualities_json.at("default").get_to(data_quality.default_->array);
-        }
-    }
+    // Select a fitting datatype for the default quality
+    if (data_qualities_json.contains("const"))
+        data_qualities_json.at("const").get_to(data_quality.default_);
 
-    // Select a fitting datatype for the default quality based on the set json type
-    if (data_qualities_json.contains("default")) {
-        // TODO: Can the object type have a default value?
-        if (data_quality.type == "number") {
-            double number;
-            data_qualities_json.at("default").get_to(number);
-            data_quality.default_ = number;
-        } else if (data_quality.type == "string") {
-            std::string string;
-            data_qualities_json.at("default").get_to(string);
-            data_quality.default_ = string;
-        } else if (data_quality.type == "boolean") {
-            bool boolean;
-            data_qualities_json.at("default").get_to(boolean);
-            data_quality.default_ = boolean;
-        } else if (data_quality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            uint64_t integer;
-            data_qualities_json.at("default").get_to(integer);
-            data_quality.default_ = integer;
-        } else if (data_quality.type == "array") {
-            //data_qualities_json.at("default").get_to(data_quality.default_->array);
-        } else if (data_quality.type == "object") {
-            //data_qualities_json.at("default").get_to(data_quality.default_->array);
-        }
-    }
+    // Select a fitting datatype for the default quality
+    if (data_qualities_json.contains("default"))
+        data_qualities_json.at("default").get_to(data_quality.default_);
 
     // Parse number and integer qualities
-    if (data_qualities_json.contains("minimum")) {
-        if (data_quality.type == "number") {
-            double number;
-            data_qualities_json.at("minimum").get_to(number);
-            data_quality.minimum = number;
-        } else if (data_quality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            int integer;
-            data_qualities_json.at("minimum").get_to(integer);
-            data_quality.minimum = integer;
-        }
-    }
+    if (data_qualities_json.contains("minimum"))
+        data_qualities_json.at("minimum").get_to(data_quality.minimum);
 
-    if (data_qualities_json.contains("maximum")) {
-        if (data_quality.type == "number") {
-            double number;
-            data_qualities_json.at("maximum").get_to(number);
-            data_quality.maximum = number;
-        } else if (data_quality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            int integer;
-            data_qualities_json.at("maximum").get_to(integer);
-            data_quality.maximum = integer;
-        }
-    }
+    if (data_qualities_json.contains("maximum"))
+        data_qualities_json.at("maximum").get_to(data_quality.maximum);
 
-    if (data_qualities_json.contains("exclusive_minimum")) {
-        if (data_quality.type == "number") {
-            double number;
-            data_qualities_json.at("exclusive_minimum").get_to(number);
-            data_quality.exclusive_minimum = number;
-        } else if (data_quality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            int integer;
-            data_qualities_json.at("exclusive_minimum").get_to(integer);
-            data_quality.exclusive_minimum = integer;
-        }
-    }
+    if (data_qualities_json.contains("exclusiveMinimum"))
+        data_qualities_json.at("exclusiveMinimum").get_to(data_quality.exclusive_minimum);
 
-    if (data_qualities_json.contains("exclusive_maximum")) {
-        if (data_quality.type == "number") {
-            double number;
-            data_qualities_json.at("exclusive_maximum").get_to(number);
-            data_quality.exclusive_maximum = number;
-        } else if (data_quality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            int integer;
-            data_qualities_json.at("exclusive_maximum").get_to(integer);
-            data_quality.exclusive_maximum = integer;
-        }
-    }
+    if (data_qualities_json.contains("exclusiveMaximum"))
+        data_qualities_json.at("exclusiveMaximum").get_to(data_quality.exclusive_maximum);
 
-    if (data_qualities_json.contains("multiple_of")) {
-        if (data_quality.type == "number") {
-            double number;
-            data_qualities_json.at("multiple_of").get_to(number);
-            data_quality.multiple_of = number;
-        } else if (data_quality.type == "integer") {
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-            int integer;
-            data_qualities_json.at("multiple_of").get_to(integer);
-            data_quality.multiple_of = integer;
-        }
-    }
+    if (data_qualities_json.contains("multipleOf"))
+        data_qualities_json.at("multipleOf").get_to(data_quality.multiple_of);
 
     // Parse string qualities
-    if (data_qualities_json.contains("min_length"))
-        data_qualities_json.at("min_length").get_to(data_quality.min_length);
+    if (data_qualities_json.contains("minLength"))
+        data_qualities_json.at("minLength").get_to(data_quality.min_length);
 
-    if (data_qualities_json.contains("max_length"))
-        data_qualities_json.at("max_length").get_to(data_quality.max_length);
+    if (data_qualities_json.contains("maxLength"))
+        data_qualities_json.at("maxLength").get_to(data_quality.max_length);
 
     if (data_qualities_json.contains("pattern"))
         data_qualities_json.at("pattern").get_to(data_quality.pattern);
@@ -296,14 +200,14 @@ DataQuality ParseDataQualities(json& data_qualities_json)
         data_qualities_json.at("format").get_to(data_quality.format);
 
     // Parse array qualities
-    if (data_qualities_json.contains("min_items"))
-        data_qualities_json.at("min_items").get_to(data_quality.min_items);
+    if (data_qualities_json.contains("minItems"))
+        data_qualities_json.at("minItems").get_to(data_quality.min_items);
 
-    if (data_qualities_json.contains("max_items"))
-        data_qualities_json.at("max_items").get_to(data_quality.max_items);
+    if (data_qualities_json.contains("maxItems"))
+        data_qualities_json.at("maxItems").get_to(data_quality.max_items);
 
-    if (data_qualities_json.contains("unique_items"))
-        data_qualities_json.at("unique_items").get_to(data_quality.unique_items);
+    if (data_qualities_json.contains("uniqueItems"))
+        data_qualities_json.at("uniqueItems").get_to(data_quality.unique_items);
 
     if (data_qualities_json.contains("items"))
         data_quality.items = ParseJsoItem(data_qualities_json.at("items"));
@@ -325,11 +229,11 @@ DataQuality ParseDataQualities(json& data_qualities_json)
     if (data_qualities_json.contains("nullable"))
         data_qualities_json.at("nullable").get_to(data_quality.nullable);
 
-    if (data_qualities_json.contains("sdf_type"))
-        data_qualities_json.at("sdf_type").get_to(data_quality.sdf_type);
+    if (data_qualities_json.contains("sdfType"))
+        data_qualities_json.at("sdfType").get_to(data_quality.sdf_type);
 
-    if (data_qualities_json.contains("content_format"))
-        data_qualities_json.at("content_format").get_to(data_quality.content_format);
+    if (data_qualities_json.contains("contentFormat"))
+        data_qualities_json.at("contentFormat").get_to(data_quality.content_format);
 
     return data_quality;
 }
@@ -595,7 +499,7 @@ SdfModel ParseSdfModel(json& sdf_model_json)
     }
     // As described in Section 3.4 [https://datatracker.ietf.org/doc/draft-ietf-asdf-sdf/], SDF grants the possibility
     // to have sdf_property, sdf_action or sdf_event as a top level affordance. But as these are meant to be used as
-    // re-usable definitions for usage via sdf_ref, these are meaningless for the converter, hence they're ignored.
+    // re-usable definitions for usage via sdfRef, these are meaningless for the converter, hence they're ignored.
 
     return sdf_model;
 }
