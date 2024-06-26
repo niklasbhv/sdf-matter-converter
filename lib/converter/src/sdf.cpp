@@ -68,10 +68,13 @@ void ParseCommonQualities(json& common_quality_json, CommonQuality& common_quali
 
 }
 
-/*
- * Function prototype used for recursive calls.
- */
-DataQuality ParseDataQualities(json& data_qualities_json);
+void ParseDataQualities(json& data_qualities_json, DataQuality& data_qualities);
+
+DataQuality ParseDataQualities(json& data_qualities_json) {
+    DataQuality data_quality;
+    ParseDataQualities(data_qualities_json, data_quality);
+    return data_quality;
+}
 
 /*
  * Parse a sdf_choice from json into a DataQuality map.
@@ -146,9 +149,8 @@ JsoItem ParseJsoItem(json& jso_item_json)
 /*
  * Parse data qualities from json into a DataQuality object.
  */
-DataQuality ParseDataQualities(json& data_qualities_json)
+void ParseDataQualities(json& data_qualities_json, DataQuality& data_quality)
 {
-    DataQuality data_quality;
     // Parse the common qualities
     ParseCommonQualities(data_qualities_json, data_quality);
 
@@ -234,8 +236,6 @@ DataQuality ParseDataQualities(json& data_qualities_json)
 
     if (data_qualities_json.contains("contentFormat"))
         data_qualities_json.at("contentFormat").get_to(data_quality.content_format);
-
-    return data_quality;
 }
 
 /*
@@ -298,7 +298,7 @@ SdfProperty ParseSdfProperty(json& sdf_property_json)
 {
     SdfProperty sdf_property;
     // Parse the data qualities
-    //ParseDataQualities(sdf_property_json, sdf_property);
+    ParseDataQualities(sdf_property_json, sdf_property);
 
     // Parse the remaining fields
     if (sdf_property_json.contains("readable"))
