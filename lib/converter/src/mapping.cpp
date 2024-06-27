@@ -61,7 +61,7 @@ public:
         children.push_back(child);
     }
 
-    void AddAttribute(std::string key, sdf::MappingValue value) {
+    void AddAttribute(const std::string& key, sdf::MappingValue value) {
         attributes[key] = std::move(value);
     }
 
@@ -142,17 +142,6 @@ std::string UnescapeJsonPointer(const std::string& input) {
 //! Generically typed for now as the mapping will later contain different types
 //! @brief Imports given key value combination from the SDF Mapping file
 //! @param name Name of the target field.
-/*
-std::optional<sdf::MappingValue> ImportFromMapping(const std::string& json_pointer, const std::string& field)
-{
-    if (reference_map.count(json_pointer)) {
-        if (reference_map.at(json_pointer).count(field)) {
-            return reference_map.at(json_pointer).at(field);
-        }
-    }
-    return std::nullopt;
-}*/
-
 template <typename T> void ImportFromMapping(const std::string& json_pointer, const std::string& field, T& input)
 {
     if (!reference_map.at(json_pointer).is_null()) {
@@ -162,7 +151,8 @@ template <typename T> void ImportFromMapping(const std::string& json_pointer, co
     }
 }
 
-matter::Access GenerateMatterAccess()
+//! Generates a Matter access based on information of the provided sdfProperty
+matter::Access GenerateMatterAccess(sdf::SdfProperty)
 {
     matter::Access access;
     return access;
@@ -216,7 +206,14 @@ matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
     return constraint;
 }
 
-//! Generate a Matter type from the information's of the given data quality
+std::string MapIntegerType(const sdf::DataQuality& data_quality)
+{
+    if (data_quality.minimum.has_value()) {}
+    if (data_quality.maximum.has_value()) {}
+    return "";
+}
+
+//! Determine a Matter type from the information's of a given data quality
 std::string MapSdfDataType(const sdf::DataQuality& data_quality)
 {
     std::string result;
@@ -256,6 +253,7 @@ matter::DataField MapSdfData(sdf::DataQuality& data_quality)
     return data_field;
 }
 
+//! Maps a sdfEvent onto a Matter event
 matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event_pair)
 {
     matter::Event event;
@@ -273,10 +271,8 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
     return event;
 }
 
-/*
- * sdf_input_data -> Matter field
- */
-matter::DataField MapSdfInputData(const sdf::DataQuality& data_quality)
+//! Maps either a sdfInputData or sdfOutputData element onto a Matter data field
+matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality)
 {
     matter::DataField data_field;
     data_field.summary = data_quality.description;
@@ -304,15 +300,14 @@ matter::DataField MapSdfInputData(const sdf::DataQuality& data_quality)
     return data_field;
 }
 
+//! Maps a sdfAction onto a Matter client and optionally on a server command
 std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const std::pair<std::string, sdf::SdfAction>& sdf_action_pair)
 {
     matter::Command client_command;
     auto* sdf_action_reference = new ReferenceTreeNode(sdf_action_pair.first);
     current_node->AddChild(sdf_action_reference);
 
-    // TODO: As client and server commands are seperated, we have to create two new commands
-    // TODO: Currently this only handles a single command
-    // command.id
+    ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", client_command.id);
     client_command.name = sdf_action_pair.second.label;
     // conformance
     // access
@@ -322,12 +317,13 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     std::optional<matter::Command> optional_server_command;
     // Check if the sdfAction has output data qualities
     if (sdf_action_pair.second.sdf_output_data.has_value()) {
+        //TODO: According to spec, the id should be different
         // Initially, we copy the contents of the client command
         matter::Command server_command = client_command;
         // If object is used as a type, the elements of the object have to be mapped individually
         if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
             for (const auto& quality_pair : sdf_action_pair.second.sdf_input_data.value().properties) {
-                matter::DataField field = MapSdfInputData(quality_pair.second);
+                matter::DataField field = MapSdfInputOutputData(quality_pair.second);
                 // If no label is given, set the quality name
                 if (field.name.empty())
                     field.name = quality_pair.first;
@@ -335,7 +331,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
             }
         }
         else {
-            matter::DataField field = MapSdfInputData(sdf_action_pair.second.sdf_output_data.value());
+            matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_output_data.value());
             server_command.command_fields.push_back(field);
         }
         //required
@@ -351,7 +347,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
         // If object is used as a type, the elements of the object have to be mapped individually
         if (sdf_action_pair.second.sdf_input_data.value().type == "object") {
             for (const auto& quality_pair : sdf_action_pair.second.sdf_input_data.value().properties) {
-                matter::DataField field = MapSdfInputData(quality_pair.second);
+                matter::DataField field = MapSdfInputOutputData(quality_pair.second);
                 // If no label is given, set the quality name
                 if (field.name.empty())
                     field.name = quality_pair.first;
@@ -359,7 +355,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
             }
             //required
         } else {
-            matter::DataField field = MapSdfInputData(sdf_action_pair.second.sdf_input_data.value());
+            matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_input_data.value());
             client_command.command_fields.push_back(field);
         }
     }
@@ -367,6 +363,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     return {client_command, optional_server_command};
 }
 
+//! Maps a sdfProperty onto a Matter attribute
 matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>& sdf_property_pair)
 {
     matter::Attribute attribute;
@@ -376,7 +373,6 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     ImportFromMapping(sdf_property_reference->GeneratePointer(), "id", attribute.id);
     attribute.name = sdf_property_pair.second.label;
     // sdf_property.comment
-    // sdf_property.sdf_ref
     // sdf_property.sdf_required
     // conformance
     attribute.access->write = sdf_property_pair.second.writable;
@@ -392,6 +388,7 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     return attribute;
 }
 
+//! Maps a sdfObject onto a Matter cluster
 matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_object_pair)
 {
     matter::Cluster cluster;
@@ -420,7 +417,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     sdf_object_reference->AddChild(sdf_action_reference);
     current_node = sdf_action_reference;
     for (const auto& sdf_action_pair : sdf_object_pair.second.sdf_action) {
-        std::pair<matter::Command, std::optional<matter::Command>> command_pair(MapSdfAction(sdf_action_pair));
+        std::pair<matter::Command, std::optional<matter::Command>> command_pair = MapSdfAction(sdf_action_pair);
         cluster.client_commands.push_back(command_pair.first);
         if (command_pair.second.has_value())
             cluster.server_commands[command_pair.second.value().name] = command_pair.second.value();
@@ -437,6 +434,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     return cluster;
 }
 
+//! Maps a sdfThing onto a Matter device type
 matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thing_pair)
 {
     matter::Device device;
@@ -473,7 +471,6 @@ int MapSdfToMatter(const sdf::SdfModel& sdf_model,
         reference_map = sdf_mapping.map;
     }
 
-
     // Initialize a reference tree used to resolve json references
     ReferenceTree reference_tree;
 
@@ -498,20 +495,58 @@ int MapSdfToMatter(const sdf::SdfModel& sdf_model,
     return 0;
 }
 
+//! Maps information of the given other quality onto a sdfProperty object
 void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty& sdf_property)
 {
-    /*
+    auto* access_reference = new ReferenceTreeNode("quality");
+    current_node->AddChild(access_reference);
     if (other_quality.nullable.has_value())
+        sdf_property.nullable = other_quality.nullable.value();
     if (other_quality.non_volatile.has_value())
+        access_reference->AddAttribute("nonVolatile", other_quality.non_volatile.value());
     if (other_quality.fixed.has_value())
+        access_reference->AddAttribute("fixed", other_quality.fixed.value());
     if (other_quality.scene.has_value())
+        access_reference->AddAttribute("scene", other_quality.scene.value());
     if (other_quality.reportable.has_value())
+        sdf_property.observable = other_quality.reportable.value();
     if (other_quality.change_omitted.has_value())
+        access_reference->AddAttribute("changeOmitted", other_quality.change_omitted.value());
     if (other_quality.singleton.has_value())
+        access_reference->AddAttribute("singleton", other_quality.singleton.value());
     if (other_quality.diagnostics.has_value())
+        access_reference->AddAttribute("diagnostics", other_quality.diagnostics.value());
     if (other_quality.large_message.has_value())
+        access_reference->AddAttribute("largeMessage", other_quality.large_message.value());
     if (other_quality.quieter_reporting.has_value())
-     */
+        access_reference->AddAttribute("quieterReporting", other_quality.quieter_reporting.value());
+}
+
+//! Maps information of the given other quality onto a data quality object
+void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::DataQuality& data_quality)
+{
+    auto* access_reference = new ReferenceTreeNode("quality");
+    current_node->AddChild(access_reference);
+    if (other_quality.nullable.has_value())
+        data_quality.nullable = other_quality.nullable.value();
+    if (other_quality.non_volatile.has_value())
+        access_reference->AddAttribute("nonVolatile", other_quality.non_volatile.value());
+    if (other_quality.fixed.has_value())
+        access_reference->AddAttribute("fixed", other_quality.fixed.value());
+    if (other_quality.scene.has_value())
+        access_reference->AddAttribute("scene", other_quality.scene.value());
+    if (other_quality.reportable.has_value())
+        access_reference->AddAttribute("reportable", other_quality.reportable.value());
+    if (other_quality.change_omitted.has_value())
+        access_reference->AddAttribute("changeOmitted", other_quality.change_omitted.value());
+    if (other_quality.singleton.has_value())
+        access_reference->AddAttribute("singleton", other_quality.singleton.value());
+    if (other_quality.diagnostics.has_value())
+        access_reference->AddAttribute("diagnostics", other_quality.diagnostics.value());
+    if (other_quality.large_message.has_value())
+        access_reference->AddAttribute("largeMessage", other_quality.large_message.value());
+    if (other_quality.quieter_reporting.has_value())
+        access_reference->AddAttribute("quieterReporting", other_quality.quieter_reporting.value());
 }
 
 //! Generates data qualities based on the given matter type
@@ -597,27 +632,42 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
 }
 
 //! Matter Constraint -> Data Quality
-int MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality dataQuality)
+void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality& data_quality)
 {
-    //TODO: The constraint depends on the given data type
-    if (constraint.type == "desc") {
-        // TODO: What do we do here?
-    } else if (constraint.type == "between") {
-        //if (constraint.range.has_value()) {
-        //    dataQuality.minimum = std::get<0>(constraint.range.value());
-        //    dataQuality.maximum = std::get<1>(constraint.range.value());
-        //}
-    } else if (constraint.type == "min") {
-        if (constraint.min.has_value()) {
-            dataQuality.minimum = constraint.min.value();
-        }
-    } else if (constraint.type == "max") {
-        if (constraint.max.has_value()) {
-            dataQuality.maximum = constraint.max.value();
-        }
+    // We ignore the "desc" constraint type as its dependent on the implementation of the cluster
+    if (data_quality.type == "number" or data_quality.type == "integer") {
+        if (constraint.value.has_value()) {}
+            //data_quality.const_ = constraint.value;
+        if (constraint.from.has_value())
+            data_quality.minimum = constraint.from.value();
+        if (constraint.to.has_value())
+            data_quality.maximum = constraint.to.value();
+        if (constraint.min.has_value())
+            data_quality.minimum = constraint.min.value();
+        if (constraint.max.has_value())
+            data_quality.maximum = constraint.max.value();
     }
-    // TODO: This list is currently not exhaustive
-    return 0;
+    else if (data_quality.type == "string") {
+        if (constraint.value.has_value()) {}
+        //data_quality.const_ = constraint.value;
+        if (constraint.from.has_value()) {}
+        if (constraint.to.has_value()) {}
+        if (constraint.min.has_value()) {}
+            //data_quality.min_length = constraint.min.value();
+        if (constraint.max.has_value()) {}
+            //data_quality.max_length = constraint.max.value();
+    }
+    else if (data_quality.type == "array") {
+        if (constraint.value.has_value()) {}
+        //data_quality.const_ = constraint.value;
+        if (constraint.from.has_value()) {}
+        if (constraint.to.has_value()) {}
+        if (constraint.min.has_value()) {}
+            //data_quality.min_items = constraint.min.value();
+        if (constraint.max.has_value()) {}
+            //data_quality.max_items = constraint.max.value();
+    }
+    else if (data_quality.type == "object") {}
 }
 
 //! Matter Access Type -> SDF Mapping
@@ -641,7 +691,31 @@ void MapMatterAccess(const matter::Access& access)
     if (!access.invoke_privilege.empty())
         access_reference->AddAttribute("invokePrivilege", access.invoke_privilege);
     if (access.timed.has_value())
-        access_reference->AddAttribute("times", access.timed.value());
+        access_reference->AddAttribute("timed", access.timed.value());
+}
+
+//! Matter Access Type
+//! This function is used in combination with a sdfProperty
+void MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdf_property)
+{
+    auto* access_reference = new ReferenceTreeNode("access");
+    current_node->AddChild(access_reference);
+    if (access.read.has_value())
+        sdf_property.readable = access.read.value();
+    if (access.write.has_value())
+        sdf_property.writable = access.write.value();
+    if (access.fabric_scoped.has_value())
+        access_reference->AddAttribute("fabricScoped", access.fabric_scoped.value());
+    if (access.fabric_sensitive.has_value())
+        access_reference->AddAttribute("fabricSensitive", access.fabric_sensitive.value());
+    if (!access.read_privilege.empty())
+        access_reference->AddAttribute("readPrivilege", access.read_privilege);
+    if (!access.write_privilege.empty())
+        access_reference->AddAttribute("writePrivilege", access.write_privilege);
+    if (!access.invoke_privilege.empty())
+        access_reference->AddAttribute("invokePrivilege", access.invoke_privilege);
+    if (access.timed.has_value())
+        access_reference->AddAttribute("timed", access.timed.value());
 }
 
 // Function used to evaluate a string expression
@@ -694,6 +768,43 @@ int MapMatterConformance(const matter::Conformance& conformance) {
     return 0;
 }
 
+sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_field_list)
+{
+    sdf::DataQuality data_quality;
+    //id
+    //conformance
+    //default
+    if (data_field_list.empty()) {}
+    else if (data_field_list.size() <= 1) {
+        data_quality.label = data_field_list.front().name;
+        if (data_field_list.front().access.has_value())
+            MapMatterAccess(data_field_list.front().access.value());
+        data_quality.description = data_field_list.front().summary;
+        MapMatterType(data_field_list.front().type, data_quality);
+        if (data_field_list.front().quality.has_value())
+            MapOtherQuality(data_field_list.front().quality.value(), data_quality);
+        if (data_field_list.front().constraint.has_value())
+            MapMatterConstraint(data_field_list.front().constraint.value(), data_quality);
+    } else {
+        data_quality.type = "object";
+        for (const auto& field : data_field_list) {
+            sdf::DataQuality data_quality_properties;
+            data_quality_properties.label = field.name;
+            if (field.access.has_value())
+                MapMatterAccess(field.access.value());
+            data_quality_properties.description = field.summary;
+            MapMatterType(field.type, data_quality_properties);
+            if (field.quality.has_value())
+                MapOtherQuality(field.quality.value(), data_quality_properties);
+            if (field.constraint.has_value())
+                MapMatterConstraint(field.constraint.value(), data_quality);
+            data_quality.properties[field.name] = data_quality_properties;
+        }
+        //required
+    }
+    return data_quality;
+}
+
 sdf::SdfEvent MapMatterEvent(const matter::Event& event)
 {
     sdf::SdfEvent sdf_event;
@@ -702,15 +813,20 @@ sdf::SdfEvent MapMatterEvent(const matter::Event& event)
     current_node->AddChild(event_reference);
     // Export the id to the mapping
     event_reference->AddAttribute("id", (uint64_t) event.id);
+
     sdf_event.label = event.name;
     if (event.conformance.has_value())
         MapMatterConformance(event.conformance.value());
-    // event.access
+    if (event.access.has_value())
+        MapMatterAccess(event.access.value());
     sdf_event.description = event.summary;
-    // event.priority
-    // event.number
-    // event.timestamp
-    // event.data
+
+    // Export priority to the mapping
+    event_reference->AddAttribute("priority", event.priority);
+    sdf_event.sdf_output_data = MapMatterDataField(event.data);
+    // TODO: Event itself should probably not have these qualities
+    //if (event.quality.has_value())
+    //    MapOtherQuality(event.quality.value(), sdf_event.sdf_output_data.value());
 
     return sdf_event;
 }
@@ -726,19 +842,20 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
     // If the client_command only returns a simple status
     else if (client_command.response == "Y") {}
     // Otherwise, the client client_command has a reference to a server client_command
-    else {}
-
+    else {
+        sdf_action.sdf_output_data = MapMatterDataField(server_commands.at(client_command.response).command_fields);
+    }
 
     // Export the id to the mapping
     command_reference->AddAttribute("id", (uint64_t) client_command.id);
     sdf_action.label = client_command.name;
     if (client_command.conformance.has_value())
         MapMatterConformance(client_command.conformance.value());
-    // client_command.access
+    if (client_command.access.has_value())
+        MapMatterAccess(client_command.access.value());
     sdf_action.description = client_command.summary;
     // client_command.default_
-    // client_command.direction
-    // client_command.response
+    sdf_action.sdf_input_data = MapMatterDataField(client_command.command_fields);
 
     return sdf_action;
 }
@@ -758,12 +875,16 @@ sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute)
         MapMatterConformance(attribute.conformance.value());
 
     if (attribute.access.has_value())
-        MapMatterAccess(attribute.access.value());
+        MapMatterAccess(attribute.access.value(), sdf_property);
 
     sdf_property.description = attribute.summary;
 
     // Map the Matter type onto data qualities
     MapMatterType(attribute.type, sdf_property);
+
+    if (attribute.constraint.has_value())
+        MapMatterConstraint(attribute.constraint.value(), sdf_property);
+
     if (attribute.quality.has_value())
         MapOtherQuality(attribute.quality.value(), sdf_property);
 
