@@ -337,6 +337,8 @@ struct Command : CommonQuality {
 struct Attribute : CommonQuality {
     //! Data type
     std::string type;
+    //! Constraints
+    std::optional<Constraint> constraint;
     //! Other qualities
     std::optional<OtherQuality> quality;
     //! Default value

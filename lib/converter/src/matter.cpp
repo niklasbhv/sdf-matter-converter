@@ -22,8 +22,9 @@
 
 namespace matter {
 
-OtherQuality ParseOtherQuality(const pugi::xml_node& other_quality_node) {
+OtherQuality ParseOtherQuality(const pugi::xml_node& parent_node) {
     OtherQuality other_quality;
+    auto other_quality_node = parent_node.child("quality");
     if (!other_quality_node.attribute("nullable").empty())
         other_quality.nullable = other_quality_node.attribute("nullable").as_bool();
 
@@ -278,34 +279,30 @@ Bitfield ParseBitfield(const pugi::xml_node& bitmap_node) {
     return bitfield;
 }
 
-DataField ParseDataField(const pugi::xml_node& data_fields_node) {
+DataField ParseDataField(const pugi::xml_node& data_field_node) {
     DataField data_field;
     // Iterate through all struct fields and parse them individually
-    for (const auto &data_field_node: data_fields_node.children()) {
-        //DataField data_field;
-        data_field.id = data_field_node.attribute("id").as_int();
-        data_field.name = data_field_node.attribute("name").value();
+    data_field.id = data_field_node.attribute("id").as_int();
+    data_field.name = data_field_node.attribute("name").value();
 
-        if (!data_field_node.child("access").empty())
-            data_field.access = ParseAccess(data_field_node.child("access"));
+    if (!data_field_node.child("access").empty())
+        data_field.access = ParseAccess(data_field_node.child("access"));
 
-        data_field.conformance = ParseConformance(data_field_node);
+    data_field.conformance = ParseConformance(data_field_node);
 
-        if (!data_field_node.attribute("summary").empty())
-            data_field.summary = data_field_node.attribute("summary").value();
+    if (!data_field_node.attribute("summary").empty())
+        data_field.summary = data_field_node.attribute("summary").value();
 
-        if (!data_field_node.attribute("type").empty())
-            data_field.type = data_field_node.attribute("type").value();
+    if (!data_field_node.attribute("type").empty())
+        data_field.type = data_field_node.attribute("type").value();
 
-        if (!data_field_node.child("constraint").empty())
-            data_field.constraint = ParseConstraint(data_field_node.child("constraint"));
+    if (!data_field_node.child("constraint").empty())
+        data_field.constraint = ParseConstraint(data_field_node.child("constraint"));
 
-        if (!data_field_node.child("quality").empty())
-            data_field.quality = ParseOtherQuality(data_field_node);
+    if (!data_field_node.child("quality").empty())
+        data_field.quality = ParseOtherQuality(data_field_node);
 
-        //default
-        //data_fields.push_back(data_field);
-    }
+    //default
 
     return data_field;
 }
@@ -342,7 +339,9 @@ Event ParseEvent(const pugi::xml_node& event_node) {
     if (!quality_node.empty())
         event.quality = ParseOtherQuality(quality_node);
 
-    //event.data = ParseDataField(event_node);
+    for (const auto& field_node : event_node.children("field")) {
+        event.data.push_back(ParseDataField(field_node));
+    }
 
     return event;
 }
@@ -362,6 +361,10 @@ Command ParseCommand(const pugi::xml_node& command_node) {
     command.direction = command_node.attribute("direction").value();
     command.response = command_node.attribute("response").value();
 
+    for (const auto& field_node : command_node.children("field")) {
+        command.command_fields.push_back(ParseDataField(field_node));
+    }
+
     return command;
 }
 
@@ -377,6 +380,10 @@ Attribute ParseAttribute(const pugi::xml_node& attribute_node) {
 
     attribute.summary = attribute_node.attribute("summary").value();
     attribute.type = attribute_node.attribute("type").value();
+
+    if (!attribute_node.child("constraint").empty())
+        attribute.constraint = ParseConstraint(attribute_node.child("constraint"));
+
     auto quality_node = attribute_node.child("quality");
     if (!quality_node.empty())
         attribute.quality = ParseOtherQuality(quality_node);
@@ -474,7 +481,8 @@ Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
     // Iterate through all commands and parse them individually
     for (const auto &command_node: cluster_xml.child("commands").children()) {
         // Split the commands into client and server commands
-        if (command_node.attribute("direction").value() == "commandToServer") {
+        std::string direction = command_node.attribute("direction").value();
+        if (direction == "commandToServer") {
             cluster.client_commands.push_back(ParseCommand(command_node));
         } else {
             Command server_command = ParseCommand(command_node);
@@ -827,6 +835,9 @@ void SerializeAttribute(const Attribute& attribute, pugi::xml_node& attributes_n
 
     if (!attribute.summary.empty())
         attribute_node.append_attribute("summary").set_value(attribute.summary.c_str());
+
+    if (attribute.constraint.has_value())
+        SerializeConstraint(attribute.constraint.value(), attribute_node);
 
     if (attribute.quality.has_value())
         SerializeOtherQuality(attribute.quality.value(), attribute_node);
