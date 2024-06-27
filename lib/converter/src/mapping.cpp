@@ -576,52 +576,52 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     else if (matter_type.substr(0, 3) == "map") {
         data_quality.type = "string";
     }
-    else if (matter_type.substr(0, 3) == "int") {
+    else if (matter_type.substr(0, 4) == "uint") {
         // TODO: These boundaries change if the corresponding value is nullable
         data_quality.type = "integer";
         data_quality.minimum = 0;
-        if (matter_type.substr(3) == "8") {
+        if (matter_type.substr(4) == "8") {
             data_quality.maximum = MATTER_U_INT_8_MAX;
-        } else if (matter_type.substr(3) == "16") {
+        } else if (matter_type.substr(4) == "16") {
             data_quality.maximum = MATTER_U_INT_16_MAX;
-        } else if (matter_type.substr(3) == "24") {
+        } else if (matter_type.substr(4) == "24") {
             data_quality.maximum = MATTER_U_INT_24_MAX;
-        } else if (matter_type.substr(3) == "32") {
+        } else if (matter_type.substr(4) == "32") {
             data_quality.maximum = MATTER_U_INT_32_MAX;
-        } else if (matter_type.substr(3) == "40") {
+        } else if (matter_type.substr(4) == "40") {
             data_quality.maximum = MATTER_U_INT_40_MAX;
-        } else if (matter_type.substr(3) == "48") {
+        } else if (matter_type.substr(4) == "48") {
             data_quality.maximum = MATTER_U_INT_48_MAX;
-        } else if (matter_type.substr(3) == "56") {
+        } else if (matter_type.substr(4) == "56") {
             data_quality.maximum = MATTER_U_INT_56_MAX;
-        } else if (matter_type.substr(3) == "64") {
+        } else if (matter_type.substr(4) == "64") {
             data_quality.maximum = MATTER_U_INT_64_MAX;
         }
     }
-    else if (matter_type.substr(0, 4) == "uint") {
+    else if (matter_type.substr(0, 3) == "int") {
         data_quality.type = "integer";
-        if (matter_type.substr(4) == "8") {
+        if (matter_type.substr(3) == "8") {
             data_quality.minimum = MATTER_INT_8_MIN;
             data_quality.maximum = MATTER_INT_8_MAX;
-        } else if (matter_type.substr(4) == "16") {
+        } else if (matter_type.substr(3) == "16") {
             data_quality.minimum = MATTER_INT_16_MIN;
             data_quality.maximum = MATTER_INT_16_MAX;
-        } else if (matter_type.substr(4) == "24") {
+        } else if (matter_type.substr(3) == "24") {
             data_quality.minimum = MATTER_INT_24_MIN;
             data_quality.maximum = MATTER_INT_24_MAX;
-        } else if (matter_type.substr(4) == "32") {
+        } else if (matter_type.substr(3) == "32") {
             data_quality.minimum = MATTER_INT_32_MIN;
             data_quality.maximum = MATTER_INT_32_MAX;
-        } else if (matter_type.substr(4) == "40") {
+        } else if (matter_type.substr(3) == "40") {
             data_quality.minimum = MATTER_INT_40_MIN;
             data_quality.maximum = MATTER_INT_40_MAX;
-        } else if (matter_type.substr(4) == "48") {
+        } else if (matter_type.substr(3) == "48") {
             data_quality.minimum = MATTER_INT_48_MIN;
             data_quality.maximum = MATTER_INT_48_MAX;
-        } else if (matter_type.substr(4) == "56") {
+        } else if (matter_type.substr(3) == "56") {
             data_quality.minimum = MATTER_INT_56_MIN;
             data_quality.maximum = MATTER_INT_56_MAX;
-        } else if (matter_type.substr(4) == "64") {
+        } else if (matter_type.substr(3) == "64") {
             data_quality.minimum = MATTER_INT_64_MIN;
             data_quality.maximum = MATTER_INT_64_MAX;
         }
