@@ -644,101 +644,26 @@ void SerializeDataQualities(const DataQuality& data_quality, json& data_quality_
     if (!data_quality.enum_.empty())
         data_quality_json["enum"] = data_quality.enum_;
 
-    if (data_quality.const_.has_value()) {
-        // TODO: Can the object type have a default value?
-        if (data_quality.type == "number") {
-            data_quality_json["const"] = std::get<double>(data_quality.default_.value());
-        } else if (data_quality.type == "string") {
-            data_quality_json["const"] = std::get<std::string>(data_quality.default_.value());
-        } else if (data_quality.type == "boolean") {
-            data_quality_json["const"] = std::get<bool>(data_quality.default_.value());
-        } else if (data_quality.type == "integer") {
-            data_quality_json["const"] = std::get<uint64_t>(data_quality.default_.value());
-            // TODO: Maybe set this to either int64 or uint64, check json documentation
-        } else if (data_quality.type == "array") {
-            //data_qualities_json.at("default").get_to(data_quality.default_->array);
-        } else if (data_quality.type == "object") {
-        //data_qualities_json.at("default").get_to(data_quality.default_->array);
-        }
-    }
-    //    data_quality_json["const"] = data_quality.const_;
+    if (data_quality.const_.has_value())
+        data_quality_json["const"] = data_quality.const_;
 
-    // Depending on the type, use a different function read the type
-    //TODO: Maybe write a generic helper to cast this
-    if (data_quality.default_.has_value()) {
-        // TODO: Can the object type have a default value?
-        if (data_quality.type == "number") {
-            data_quality_json["default"] = std::get<double>(data_quality.default_.value());
-        } else if (data_quality.type == "string") {
-            data_quality_json["default"] = std::get<std::string>(data_quality.default_.value());
-        } else if (data_quality.type == "boolean") {
-            data_quality_json["default"] = std::get<bool>(data_quality.default_.value());
-        } else if (data_quality.type == "integer") {
-            if (std::holds_alternative<int64_t>(data_quality.default_.value()))
-                data_quality_json["default"] = std::get<int64_t>(data_quality.default_.value());
-            else if (std::holds_alternative<uint64_t>(data_quality.default_.value()))
-                data_quality_json["default"] = std::get<uint64_t>(data_quality.default_.value());
-        } else if (data_quality.type == "array") {
-            //data_quality_json["default"] = std::get<double>(data_quality.default_.value());
-        } else if (data_quality.type == "object") {
-            //data_qualities_json.at("default").get_to(data_quality.default_->array);
-        }
-    }
+    if (data_quality.default_.has_value())
+        data_quality_json["default"] = data_quality.default_.value();
 
-    if (data_quality.minimum.has_value()) {
-        if (data_quality.type == "number") {
-            data_quality_json["minimum"] = std::get<double>(data_quality.minimum.value());
-        } else if (data_quality.type == "integer") {
-            if (std::holds_alternative<int64_t>(data_quality.minimum.value()))
-                data_quality_json["minimum"] = std::get<int64_t>(data_quality.minimum.value());
-            if (std::holds_alternative<uint64_t>(data_quality.minimum.value()))
-                data_quality_json["minimum"] = std::get<uint64_t>(data_quality.minimum.value());
-        }
-    }
+    if (data_quality.minimum.has_value())
+        data_quality_json["minimum"] = data_quality.minimum.value();
 
-    if (data_quality.maximum.has_value()) {
-        if (data_quality.type == "number") {
-            data_quality_json["maximum"] = std::get<double>(data_quality.maximum.value());
-        } else if (data_quality.type == "integer") {
-            if (std::holds_alternative<int64_t>(data_quality.maximum.value()))
-                data_quality_json["maximum"] = std::get<int64_t >(data_quality.maximum.value());
-            if (std::holds_alternative<uint64_t>(data_quality.maximum.value()))
-                data_quality_json["maximum"] = std::get<uint64_t >(data_quality.maximum.value());
-        }
-    }
+    if (data_quality.maximum.has_value())
+        data_quality_json["maximum"] = data_quality.maximum.value();
 
-    if (data_quality.exclusive_minimum.has_value()) {
-        if (data_quality.type == "number") {
-            data_quality_json["exclusiveMinimum"] = std::get<double>(data_quality.exclusive_minimum.value());
-        } else if (data_quality.type == "integer") {
-            if (std::holds_alternative<int64_t>(data_quality.exclusive_minimum.value()))
-                data_quality_json["exclusiveMinimum"] = std::get<int64_t >(data_quality.exclusive_minimum.value());
-            if (std::holds_alternative<uint64_t>(data_quality.exclusive_minimum.value()))
-                data_quality_json["exclusiveMinimum"] = std::get<uint64_t >(data_quality.exclusive_minimum.value());
-        }
-    }
+    if (data_quality.exclusive_minimum.has_value())
+        data_quality_json["exclusiveMinimum"] = data_quality.exclusive_minimum.value();
 
-    if (data_quality.exclusive_maximum.has_value()) {
-        if (data_quality.type == "number") {
-            data_quality_json["exclusiveMaximum"] = std::get<double>(data_quality.exclusive_maximum.value());
-        } else if (data_quality.type == "integer") {
-            if (std::holds_alternative<int64_t>(data_quality.exclusive_maximum.value()))
-                data_quality_json["exclusiveMaximum"] = std::get<int64_t >(data_quality.exclusive_maximum.value());
-            if (std::holds_alternative<uint64_t>(data_quality.exclusive_maximum.value()))
-                data_quality_json["exclusiveMaximum"] = std::get<uint64_t >(data_quality.exclusive_maximum.value());
-        }
-    }
+    if (data_quality.exclusive_maximum.has_value())
+        data_quality_json["exclusiveMaximum"] = data_quality.exclusive_maximum.value();
 
-    if (data_quality.multiple_of.has_value()) {
-        if (data_quality.type == "number") {
-            data_quality_json["multipleOf"] = std::get<double>(data_quality.multiple_of.value());
-        } else if (data_quality.type == "integer") {
-            if (std::holds_alternative<int64_t>(data_quality.multiple_of.value()))
-                data_quality_json["multipleOf"] = std::get<int64_t >(data_quality.multiple_of.value());
-            if (std::holds_alternative<uint64_t>(data_quality.multiple_of.value()))
-                data_quality_json["multipleOf"] = std::get<uint64_t >(data_quality.multiple_of.value());
-        }
-    }
+    if (data_quality.multiple_of.has_value())
+        data_quality_json["multipleOf"] = data_quality.multiple_of.value();
 
     if (data_quality.min_length.has_value())
         data_quality_json["minLength"] = data_quality.min_length.value();
