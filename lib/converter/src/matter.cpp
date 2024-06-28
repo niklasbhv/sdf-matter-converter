@@ -432,7 +432,7 @@ ClusterClassification ParseClusterClassification(const pugi::xml_node& classific
 */
 Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
     Cluster cluster;
-    //cluster.id
+    cluster.id = cluster_xml.attribute("id").as_int();
     cluster.name = cluster_xml.attribute("name").value();
     cluster.summary = cluster_xml.attribute("summary").value();
     cluster.revision = cluster_xml.attribute("revision").as_int();
@@ -762,7 +762,7 @@ void SerializeDataField(const DataField& data_field, pugi::xml_node& parent_node
 void SerializeEvent(const Event& event, pugi::xml_node& events_node) {
     auto event_node = events_node.append_child("event");
 
-    event_node.append_attribute("id").set_value(DecToHexa(event.id).c_str());
+    event_node.append_attribute("id").set_value(intToHex(event.id).c_str());
     event_node.append_attribute("name").set_value(event.name.c_str());
     if (event.conformance.has_value())
         SerializeConformance(event.conformance.value(), event_node);
@@ -781,7 +781,7 @@ void SerializeEvent(const Event& event, pugi::xml_node& events_node) {
 //! Serializes a command object and into a xml node and appends it to the given parent node
 void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
     auto command_node = commands_node.append_child("command");
-    command_node.append_attribute("id").set_value(DecToHexa(command.id).c_str());
+    command_node.append_attribute("id").set_value(intToHex(command.id).c_str());
     command_node.append_attribute("name").set_value(command.name.c_str());
 
     if (command.conformance.has_value())
@@ -809,7 +809,7 @@ void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
 void SerializeAttribute(const Attribute& attribute, pugi::xml_node& attributes_node) {
     auto attribute_node = attributes_node.append_child("attribute");
 
-    attribute_node.append_attribute("id").set_value(DecToHexa(attribute.id).c_str());
+    attribute_node.append_attribute("id").set_value(intToHex(attribute.id).c_str());
     attribute_node.append_attribute("name").set_value(attribute.name.c_str());
 
     if (attribute.conformance.has_value())
@@ -903,7 +903,7 @@ pugi::xml_document SerializeCluster(const Cluster &cluster) {
     // Create the cluster node
     auto cluster_node = cluster_xml.append_child("cluster");
 
-    cluster_node.append_attribute("id").set_value(DecToHexa(cluster.id).c_str());
+    cluster_node.append_attribute("id").set_value(intToHex(cluster.id).c_str());
     cluster_node.append_attribute("name").set_value(cluster.name.c_str());
 
     if (cluster.conformance.has_value())
@@ -979,7 +979,7 @@ pugi::xml_document SerializeDevice(const Device& device) {
     pugi::xml_node device_xml = device_document_xml.document_element();
     auto device_node = device_xml.append_child("Device");
 
-    device_node.append_attribute("id").set_value(DecToHexa(device.id).c_str());
+    device_node.append_attribute("id").set_value(intToHex(device.id).c_str());
     device_node.append_attribute("name").set_value(device.name.c_str());
     device_node.append_attribute("revision").set_value(device.revision);
     if (!device.summary.empty())
