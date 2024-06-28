@@ -564,28 +564,20 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
 {
     // TODO: Custom types should be handled here
     // TODO: Maybe also set the default value here?
+    // Base Matter data types
+    // Boolean data type
     if (matter_type == "bool") {
         data_quality.type = "boolean";
     }
-    else if (matter_type == "single") {
-        data_quality.type = "number";
-    }
-    else if (matter_type == "double") {
-        data_quality.type = "number";
-    }
-    else if (matter_type == "octstr") {
-        data_quality.type = "string";
-        data_quality.sdf_type = "byte-string";
-    }
-    else if (matter_type == "list") {
-        data_quality.type = "array";
-    }
-    else if (matter_type == "struct") {
-        data_quality.type = "object";
-    }
+    // Bitmap data type
     else if (matter_type.substr(0, 3) == "map") {
+        if (matter_type.substr(4) == "8") {}
+        else if (matter_type.substr(4) == "16") {}
+        else if (matter_type.substr(4) == "32") {}
+        else if (matter_type.substr(4) == "64") {}
         data_quality.type = "string";
     }
+    // Unsigned integer data type
     else if (matter_type.substr(0, 4) == "uint") {
         // TODO: These boundaries change if the corresponding value is nullable
         data_quality.type = "integer";
@@ -608,6 +600,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
             data_quality.maximum = MATTER_U_INT_64_MAX;
         }
     }
+    // Signed integer data type
     else if (matter_type.substr(0, 3) == "int") {
         data_quality.type = "integer";
         if (matter_type.substr(3) == "8") {
@@ -636,9 +629,225 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
             data_quality.maximum = MATTER_INT_64_MAX;
         }
     }
-
-    // If the type is not a known standard type
-    std::cout << "Found: " << matter_type << std::endl;
+    // Single precision floating point data type
+    else if (matter_type == "single") {
+        data_quality.type = "number";
+    }
+    // Double precision floating point data type
+    else if (matter_type == "double") {
+        data_quality.type = "number";
+    }
+    // Octet string data type
+    else if (matter_type == "octstr") {
+        data_quality.type = "string";
+        data_quality.sdf_type = "byte-string";
+    }
+    // List data type
+    else if (matter_type == "list") {
+        data_quality.type = "array";
+    }
+    // Struct data type
+    else if (matter_type == "struct") {
+        data_quality.type = "object";
+    }
+    // Derived Matter data types
+    // Percent data type
+    // Base: uint8
+    else if (matter_type == "percent") {
+        data_quality.type = "integer";
+        data_quality.unit = "%";
+        data_quality.minimum = 0;
+        data_quality.maximum = 100;
+    }
+    // Percent 100th data type
+    // Base: uint16
+    else if (matter_type == "percent100ths") {
+        data_quality.type = "integer";
+        data_quality.unit = "%";
+        data_quality.minimum = 0;
+        data_quality.maximum = 10000;
+    }
+    // Time of day data type
+    // Base: struct
+    else if (matter_type == "tod") {
+        data_quality.type = "object";
+    }
+    // Data data type
+    // Base: struct
+    else if (matter_type == "date") {
+        data_quality.type = "object";
+    }
+    // Epoch time in microseconds data type
+    // Base: uint64
+    else if (matter_type == "epoch-us") {}
+    // Epoch time in seconds data type
+    // Base: uint32
+    else if (matter_type == "epoch-s") {}
+    // UTC time data type
+    // Base: uint32
+    // DEPRECATED
+    else if (matter_type == "utc") {}
+    // POSIX time in milliseconds
+    // Base: uint64
+    else if (matter_type == "posix-ms") {}
+    // System time in microseconds
+    // Base: uint64
+    else if (matter_type == "systime-us") {}
+    // System time in milliseconds
+    // Base: uint64
+    else if (matter_type == "systime-ms") {}
+    // Elapsed time in seconds data type
+    // Base: uint32
+    else if (matter_type == "elapsed-s") {}
+    // Temperature data type
+    // Base: int16
+    else if (matter_type == "temperature") {
+        data_quality.label = matter_type;
+        data_quality.type = "integer";
+        data_quality.minimum = -27315;
+        data_quality.maximum = 32767;
+    }
+    // Power data type
+    // Base: int64
+    else if (matter_type == "power-mW") {
+        data_quality.label = matter_type;
+        data_quality.type = "integer";
+        data_quality.unit = "mW";
+        data_quality.minimum = MATTER_INT_64_MIN;
+        data_quality.maximum = MATTER_INT_64_MAX;
+    }
+    // Amperage data type
+    // Base: int64
+    else if (matter_type == "amperage-mA") {
+        data_quality.label = matter_type;
+        data_quality.type = "integer";
+        data_quality.unit = "mA";
+        data_quality.minimum = MATTER_INT_64_MIN;
+        data_quality.maximum = MATTER_INT_64_MAX;
+    }
+    // Voltage data type
+    // Base: int64
+    else if (matter_type == "voltage-mW") {
+        data_quality.label = matter_type;
+        data_quality.type = "integer";
+        data_quality.unit = "mV";
+        data_quality.minimum = MATTER_INT_64_MIN;
+        data_quality.maximum = MATTER_INT_64_MAX;
+    }
+    // Energy data type
+    // Base: int64
+    else if (matter_type == "energy-mWh") {
+        data_quality.label = matter_type;
+        data_quality.type = "integer";
+        data_quality.unit = "mWh";
+        data_quality.minimum = MATTER_INT_64_MIN;
+        data_quality.maximum = MATTER_INT_64_MAX;
+    }
+    // 8-bit enumeration data type
+    // Base: uint8
+    else if (matter_type == "enum8") {}
+    // 16-bit enumeration data type
+    // Base: uint16
+    else if (matter_type == "enum16") {}
+    // Priority data type
+    // Base: enum8
+    else if (matter_type == "priority") {
+        data_quality.label = matter_type;
+    }
+    // Status code data type
+    // Base: enum8
+    else if (matter_type == "status") {
+        data_quality.label = matter_type;
+    }
+    // Group id data type
+    // Base: uint16
+    else if (matter_type == "group-id") {}
+    // Endpoint number data type
+    // Base: uint16
+    else if (matter_type == "endpoint-no") {}
+    // Vendor id data type
+    // Base: uint16
+    else if (matter_type == "vendor-id") {}
+    // Device type id data type
+    // Base: uint32
+    else if (matter_type == "devtype-id") {}
+    // Fabric id data type
+    // Base: uint64
+    else if (matter_type == "fabric-id") {}
+    // Fabric index data type
+    // Base: uint8
+    else if (matter_type == "fabric-idx") {}
+    // Cluster id data type
+    // Base: uint32
+    else if (matter_type == "cluster-id") {}
+    // Attribute id data type
+    // Base: uint32
+    else if (matter_type == "attrib-id") {}
+    // Field id data type
+    // Base: uint32
+    else if (matter_type == "field-id") {}
+    // Event id data type
+    // Base: uint32
+    else if (matter_type == "event-id") {}
+    // Command id data type
+    // Base: uint32
+    else if (matter_type == "command-id") {}
+    // Action id data type
+    // Base: uint8
+    else if (matter_type == "action-id") {}
+    // Transaction id data type
+    // Base: uint32
+    else if (matter_type == "trans-id") {}
+    // Node id data type
+    // Base: uint64
+    else if (matter_type == "node-id") {}
+    // IEEE address data type
+    // Base: uint64
+    // DEPRECATED
+    else if (matter_type == "EUI64") {}
+    // Entry index data type
+    // Base: uint16
+    else if (matter_type == "entry-idx") {}
+    // Data version data type
+    // Base: uint32
+    else if (matter_type == "data-ver") {}
+    // Event number data type
+    // Base: uint64
+    else if (matter_type == "event-no") {}
+    // Character string data type
+    // Base: octstr
+    else if (matter_type == "string") {}
+    // IP address data type
+    // Base: ocstr
+    else if (matter_type == "ipadr") {}
+    // IPv4 address data type
+    // Base: octstr
+    else if (matter_type == "ipv4adr") {}
+    // IPv6 address data type
+    // Base: octstr
+    else if (matter_type == "ipv6adr") {}
+    // IPv6 prefix data type
+    // Base: octstr
+    else if (matter_type == "ipv6pre") {}
+    // Hardware address data type
+    // Base: octstr
+    else if (matter_type == "hwadr") {}
+    // Semantic tag data type
+    // Base: struct
+    else if (matter_type == "semtag") {
+        data_quality.type = "object";
+    }
+    // Namespace data type
+    // Base: enum8
+    else if (matter_type == "namespace") {}
+    // Tag data type
+    // Base: enum8
+    else if (matter_type == "tag") {}
+    // Otherwise, the type is a custom type defined in the data type section
+    else {
+        data_quality.label = matter_type;
+        std::cout << "Found: " << matter_type << std::endl;
+    }
 }
 
 //! Matter Constraint -> Data Quality
@@ -865,7 +1074,8 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
         MapMatterAccess(client_command.access.value());
     sdf_action.description = client_command.summary;
     // client_command.default_
-    sdf_action.sdf_input_data = MapMatterDataField(client_command.command_fields);
+    if (!client_command.command_fields.empty())
+        sdf_action.sdf_input_data = MapMatterDataField(client_command.command_fields);
 
     return sdf_action;
 }
@@ -1025,7 +1235,6 @@ int MapMatterToSdf(const std::optional<matter::Device>& device,
     }
 
     sdf_mapping.map = reference_tree.GenerateMapping(reference_tree.root);
-    std::cout << sdf_mapping.map.size() << std::endl;
     // Print the resulting tree
     //simple_walker walker;
     //referenceTree.traverse(walker);
