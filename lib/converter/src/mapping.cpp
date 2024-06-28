@@ -559,11 +559,39 @@ void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::DataQuality
         access_reference->AddAttribute("quieterReporting", other_quality.quieter_reporting.value());
 }
 
+std::pair<std::string, sdf::DataQuality> MapMatterBitfield(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair)
+{
+    sdf::DataQuality data_quality;
+    data_quality.type = "object";
+    for (const auto& bitfield : bitmap_pair.second) {
+        sdf::DataQuality sdf_choice_data_quality;
+        sdf_choice_data_quality.const_ = bitfield.bit;
+        sdf_choice_data_quality.description = bitfield.summary;
+        // conformance
+        data_quality.sdf_choice[bitfield.name] = sdf_choice_data_quality;
+    }
+    //required
+    return {bitmap_pair.first, data_quality};
+}
+
+std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::string, std::list<matter::Item>>& enum_pair)
+{
+    sdf::DataQuality data_quality;
+    data_quality.type = "object";
+    for (const auto& item : enum_pair.second) {
+        sdf::DataQuality sdf_choice_data_quality;
+        sdf_choice_data_quality.const_ = item.value;
+        sdf_choice_data_quality.description = item.summary;
+        // conformance
+        data_quality.sdf_choice[item.name] = sdf_choice_data_quality;
+    }
+    //required
+    return {enum_pair.first, data_quality};
+}
+
 //! Generates data qualities based on the given matter type
 void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_quality)
 {
-    // TODO: Custom types should be handled here
-    // TODO: Maybe also set the default value here?
     // Base Matter data types
     // Boolean data type
     if (matter_type == "bool") {
@@ -571,11 +599,20 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     }
     // Bitmap data type
     else if (matter_type.substr(0, 3) == "map") {
-        if (matter_type.substr(4) == "8") {}
-        else if (matter_type.substr(4) == "16") {}
-        else if (matter_type.substr(4) == "32") {}
-        else if (matter_type.substr(4) == "64") {}
-        data_quality.type = "string";
+        data_quality.type = "array";
+        data_quality.unique_items = true;
+        if (matter_type.substr(4) == "8") {
+            data_quality.max_items = 8;
+        }
+        else if (matter_type.substr(4) == "16") {
+            data_quality.max_items = 16;
+        }
+        else if (matter_type.substr(4) == "32") {
+            data_quality.max_items = 32;
+        }
+        else if (matter_type.substr(4) == "64") {
+            data_quality.max_items = 64;
+        }
     }
     // Unsigned integer data type
     else if (matter_type.substr(0, 4) == "uint") {
@@ -753,6 +790,24 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Base: enum8
     else if (matter_type == "priority") {
         data_quality.label = matter_type;
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_8_MAX;
+        sdf::DataQuality debug_priority;
+        //debug_priority.label = "DEBUG";
+        debug_priority.const_ = 0;
+        debug_priority.description = "Information for engineering debugging/troubleshooting";
+        sdf::DataQuality info_priority;
+        //info_priority.label = "INFO";
+        info_priority.const_ = 1;
+        info_priority.description = "Information that either drives customer facing features or provides insights into device functions that are used to drive analytics use cases";
+        sdf::DataQuality critical_priority;
+        //critical_priority.label = "CRITICAL";
+        critical_priority.const_ = 2;
+        critical_priority.description = "Information or notification that impacts safety, a critical function, or ongoing reliable operation of the node or application supported on an endpoint";
+        data_quality.sdf_choice["DEBUG"] = debug_priority;
+        data_quality.sdf_choice["INFO"] = info_priority;
+        data_quality.sdf_choice["CRITICAL"] = critical_priority;
     }
     // Status code data type
     // Base: enum8
@@ -761,88 +816,207 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     }
     // Group id data type
     // Base: uint16
-    else if (matter_type == "group-id") {}
+    else if (matter_type == "group-id") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_16_MAX;
+    }
     // Endpoint number data type
     // Base: uint16
-    else if (matter_type == "endpoint-no") {}
+    else if (matter_type == "endpoint-no") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_16_MAX;
+    }
     // Vendor id data type
     // Base: uint16
-    else if (matter_type == "vendor-id") {}
+    else if (matter_type == "vendor-id") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_16_MAX;
+    }
     // Device type id data type
     // Base: uint32
-    else if (matter_type == "devtype-id") {}
+    else if (matter_type == "devtype-id") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_32_MAX;
+    }
     // Fabric id data type
     // Base: uint64
-    else if (matter_type == "fabric-id") {}
+    else if (matter_type == "fabric-id") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_64_MAX;
+    }
     // Fabric index data type
     // Base: uint8
-    else if (matter_type == "fabric-idx") {}
+    else if (matter_type == "fabric-idx") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_8_MAX;
+    }
     // Cluster id data type
     // Base: uint32
-    else if (matter_type == "cluster-id") {}
+    else if (matter_type == "cluster-id") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_32_MAX;
+    }
     // Attribute id data type
     // Base: uint32
-    else if (matter_type == "attrib-id") {}
+    else if (matter_type == "attrib-id") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_32_MAX;
+    }
     // Field id data type
     // Base: uint32
-    else if (matter_type == "field-id") {}
+    else if (matter_type == "field-id") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_32_MAX;
+    }
     // Event id data type
     // Base: uint32
-    else if (matter_type == "event-id") {}
+    else if (matter_type == "event-id") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_32_MAX;
+    }
     // Command id data type
     // Base: uint32
-    else if (matter_type == "command-id") {}
+    else if (matter_type == "command-id") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_32_MAX;
+    }
     // Action id data type
     // Base: uint8
-    else if (matter_type == "action-id") {}
+    else if (matter_type == "action-id") {data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_8_MAX;}
     // Transaction id data type
     // Base: uint32
-    else if (matter_type == "trans-id") {}
+    else if (matter_type == "trans-id") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_32_MAX;
+    }
     // Node id data type
     // Base: uint64
-    else if (matter_type == "node-id") {}
+    else if (matter_type == "node-id") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_64_MAX;
+    }
     // IEEE address data type
     // Base: uint64
     // DEPRECATED
-    else if (matter_type == "EUI64") {}
+    else if (matter_type == "EUI64") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_64_MAX;}
     // Entry index data type
     // Base: uint16
-    else if (matter_type == "entry-idx") {}
+    else if (matter_type == "entry-idx") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_16_MAX;
+    }
     // Data version data type
     // Base: uint32
-    else if (matter_type == "data-ver") {}
+    else if (matter_type == "data-ver") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_32_MAX;
+    }
     // Event number data type
     // Base: uint64
-    else if (matter_type == "event-no") {}
+    else if (matter_type == "event-no") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_64_MAX;
+    }
     // Character string data type
     // Base: octstr
-    else if (matter_type == "string") {}
+    else if (matter_type == "string") {
+        data_quality.type = "string";
+    }
     // IP address data type
     // Base: ocstr
-    else if (matter_type == "ipadr") {}
+    else if (matter_type == "ipadr") {
+        data_quality.type = "string";
+        data_quality.sdf_type = "byte-string";
+    }
     // IPv4 address data type
     // Base: octstr
-    else if (matter_type == "ipv4adr") {}
+    else if (matter_type == "ipv4adr") {
+        data_quality.type = "string";
+        data_quality.sdf_type = "byte-string";
+        data_quality.min_length = 8;
+        data_quality.max_length = 8;
+    }
     // IPv6 address data type
     // Base: octstr
-    else if (matter_type == "ipv6adr") {}
+    else if (matter_type == "ipv6adr") {
+        data_quality.type = "string";
+        data_quality.sdf_type = "byte-string";
+        data_quality.min_length = 32;
+        data_quality.max_length = 32;
+    }
     // IPv6 prefix data type
     // Base: octstr
-    else if (matter_type == "ipv6pre") {}
+    else if (matter_type == "ipv6pre") {
+        data_quality.type = "string";
+        data_quality.sdf_type = "byte-string";
+    }
     // Hardware address data type
     // Base: octstr
-    else if (matter_type == "hwadr") {}
+    else if (matter_type == "hwadr") {
+        data_quality.type = "string";
+        data_quality.min_length = 12;
+        data_quality.max_length = 16;
+    }
     // Semantic tag data type
     // Base: struct
     else if (matter_type == "semtag") {
         data_quality.type = "object";
+        sdf::DataQuality mfg_code;
+        mfg_code.type = "integer";
+        mfg_code.minimum = 0;
+        mfg_code.maximum = MATTER_U_INT_16_MAX;
+        mfg_code.nullable = true;
+        // mfg_code.default_ = null;
+        sdf::DataQuality namespace_id;
+        namespace_id.type = "integer";
+        namespace_id.minimum = 0;
+        namespace_id.maximum = MATTER_U_INT_16_MAX;
+        sdf::DataQuality tag;
+        tag.type = "integer";
+        tag.minimum = 0;
+        tag.maximum = MATTER_U_INT_16_MAX;
+        sdf::DataQuality label;
+        label.type = "string";
+        label.max_length = 64;
+        label.nullable = true;
+        //label.default_ = null;
+        //data_quality.required = ["MfgCode", "NamespaceID", "Tag", "Label"];
     }
     // Namespace data type
     // Base: enum8
-    else if (matter_type == "namespace") {}
+    else if (matter_type == "namespace") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_16_MAX;
+    }
     // Tag data type
     // Base: enum8
-    else if (matter_type == "tag") {}
+    else if (matter_type == "tag") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_16_MAX;
+    }
     // Otherwise, the type is a custom type defined in the data type section
     else {
         data_quality.label = matter_type;
@@ -1153,6 +1327,14 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
     for (const auto& event : cluster.events){
         sdf::SdfEvent sdf_event =  MapMatterEvent(event);
         sdf_object.sdf_event.insert({event.name, sdf_event});
+    }
+
+    for (const auto& enum_pair : cluster.enums) {
+        sdf_object.sdf_data.insert(MapMatterEnum(enum_pair));
+    }
+
+    for (const auto& bitmap_pair : cluster.bitmaps) {
+        sdf_object.sdf_data.insert(MapMatterBitfield(bitmap_pair));
     }
 
     return sdf_object;
