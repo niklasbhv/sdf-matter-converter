@@ -295,20 +295,16 @@ DataField ParseDataField(const pugi::xml_node& data_field_node) {
     return data_field;
 }
 
-FeatureMap ParseFeatureMap(const pugi::xml_node& feature_map_node) {
-    FeatureMap feature_map;
-    // Iterate through all features and parse them individually
-    for (const auto &feature: feature_map_node.children()) {
-        //FeatureMap featureMap;
-        feature_map.bit = feature.attribute("bit").as_int();
-        feature_map.conformance = ParseConformance(feature);
-        feature_map.code = feature.attribute("code").value();
-        feature_map.name = feature.attribute("name").value();
-        feature_map.summary = feature.attribute("summary").value();
-        //featureMapList.push_back(featureMap);
-    }
+Feature ParseFeature(const pugi::xml_node& feature_node) {
+    Feature feature;
 
-    return feature_map;
+    feature.bit = feature_node.attribute("bit").as_int();
+    feature.conformance = ParseConformance(feature_node);
+    feature.code = feature_node.attribute("code").value();
+    feature.name = feature_node.attribute("name").value();
+    feature.summary = feature_node.attribute("summary").value();
+
+    return feature;
 }
 
 Event ParseEvent(const pugi::xml_node& event_node) {
@@ -451,6 +447,13 @@ Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
     if (!cluster_xml.child("classification").empty())
         cluster.classification = ParseClusterClassification(cluster_xml.child("classification"));
 
+    // Parse the feature map
+    if (!cluster_xml.child("features").empty()) {
+        for (const auto& feature : cluster_xml.child("features").children()) {
+            cluster.feature_map.push_back(ParseFeature(feature));
+        }
+    }
+
     // Parse the globally defined custom data types
     if (!cluster_xml.child("dataTypes").empty())
         ParseDataTypes(cluster_xml.child("dataTypes"), cluster);
@@ -503,7 +506,6 @@ Device ParseDevice(const pugi::xml_node& device_xml, bool client) {
     device.id = device_xml.attribute("id").as_int();
     device.name = device_xml.attribute("name").value();
     device.revision = device_xml.attribute("revision").as_int();
-    std::cout << device.name << std::endl;
 
     // Iterate through all revisions and parse them individually
     for (const auto &revision_node: device_xml.child("revisionHistory").children()) {
@@ -519,11 +521,12 @@ Device ParseDevice(const pugi::xml_node& device_xml, bool client) {
 
     // Iterate through all clusters needed by the device and parse them individually
     for (const auto &cluster_node: device_xml.child("clusters").children("cluster")) {
+        std::string side = cluster_node.attribute("side").value();
         if (client) {
-            if (cluster_node.attribute("side").value() == "client")
+            if (side == "client")
                 device.clusters.push_back(ParseCluster(cluster_node));
         } else {
-            if (cluster_node.attribute("side").value() == "server")
+            if (side == "server")
                 device.clusters.push_back(ParseCluster(cluster_node));
         }
     }
