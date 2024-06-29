@@ -41,7 +41,7 @@
  */
 int MapSdfToMatter(const sdf::SdfModel& sdf_model,
                    const sdf::SdfMapping& sdf_mapping,
-                   std::optional<matter::Device>& device, std::list<matter::Cluster>& cluster_list);
+                   std::optional<matter::Device>& optional_device, std::list<matter::Cluster>& cluster_list);
 
 /**
  * @brief Map a device type definition to a sdf-object.
@@ -53,7 +53,7 @@ int MapSdfToMatter(const sdf::SdfModel& sdf_model,
  * @param sdf_mapping The resulting sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int MapMatterToSdf(const std::optional<matter::Device>& device,
+int MapMatterToSdf(const std::optional<matter::Device>& optional_device,
                    const std::list<matter::Cluster>& cluster,
                    sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping);
 

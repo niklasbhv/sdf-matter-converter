@@ -70,6 +70,44 @@
 #define MATTER_INT_64_MIN ((int64_t)-9223372036854775808)
 #define MATTER_INT_64_MAX ((int64_t)9223372036854775807)
 
+// TODO: Check if this is neccessary for ids
+inline int hexToInt(const std::string& hexStr) {
+    int result = 0;
+    for (char ch : hexStr) {
+        result *= 16;
+        if (ch >= '0' && ch <= '9') {
+            result += ch - '0';
+        } else if (ch >= 'a' && ch <= 'f') {
+            result += ch - 'a' + 10;
+        } else if (ch >= 'A' && ch <= 'F') {
+            result += ch - 'A' + 10;
+        } else {
+            throw std::invalid_argument("Invalid hex character");
+        }
+    }
+    return result;
+}
+
+// TODO: Fix this for the 0x prefix
+inline std::string intToHex(int num) {
+    if (num == 0) return "0";
+
+    std::string hexStr;
+    unsigned int n = num;  // Work with unsigned to handle negative numbers correctly in 2's complement form
+
+    while (n > 0) {
+        int remainder = n % 16;
+        if (remainder < 10) {
+            hexStr = static_cast<char>('0' + remainder) + hexStr;
+        } else {
+            hexStr = static_cast<char>('A' + (remainder - 10)) + hexStr;
+        }
+        n /= 16;
+    }
+
+    return hexStr;
+}
+
 /**
  * Function used to convert decimal uint32 numbers to hexadecimal.
  */
@@ -297,7 +335,7 @@ typedef std::list<DataField> Struct;
  * Struct which represents FeatureMap Attribute.
  * Used to define optional features.
  */
-struct FeatureMap {
+struct Feature {
     u_int8_t bit;
     std::optional<Conformance> conformance;
     //! Capitalized, short code
@@ -373,6 +411,8 @@ struct Cluster : CommonQuality {
     Revision revision_history;
     //! Cluster classification
     std::optional<ClusterClassification> classification;
+    //! Feature map
+    std::list<Feature> feature_map;
     //! List of attributes
     std::list<Attribute> attributes;
     //! List of client commands

@@ -28,6 +28,8 @@
 
 #include <nlohmann/json.hpp>
 #include <pugixml.hpp>
+#include <list>
+#include <optional>
 
 /**
  * @brief Convert sdf to matter.
