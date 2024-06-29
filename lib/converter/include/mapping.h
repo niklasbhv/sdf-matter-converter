@@ -51,18 +51,5 @@ int map_sdf_to_matter(sdfModelType& sdfModel, sdfMappingType& sdfMappingType, de
  * @param sdfMapping The resulting sdf-mapping.
  * @return 0 on success, negative on failure.
  */
-int map_matter_to_sdf(deviceType& device, sdfModelType& sdfModel, sdfMappingType& sdfMapping);
-
-int map_matter_attribute(attributeType& attribute, sdfPropertyType& sdfProperty, pugi::xml_node& sdf_property_node);
-
-int map_matter_command(commandType& client_command, sdfActionType& sdfAction, pugi::xml_node& sdf_action_node);
-
-int map_matter_event(eventType& event, sdfEventType& sdfEvent, pugi::xml_node& sdf_event_node);
-
-int map_sdf_property(sdfPropertyType& sdfProperty, attributeType& attribute, pugi::xml_node& sdf_property_node);
-
-int map_sdf_action(sdfActionType& sdfAction, commandType& command);
-
-int map_sdf_event(sdfEventType& sdfEvent, eventType& event);
 
 #endif //MAPPING_H
