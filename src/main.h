@@ -39,7 +39,7 @@
  * @param json_file The resulting json object.
  * @return 0 on success, negative on failure,
  */
-static inline int loadJsonFile(const char* path, nlohmann::ordered_json& json_file)
+static inline int LoadJsonFile(const char* path, nlohmann::ordered_json& json_file)
 {
     try {
         std::ifstream f(path);
@@ -62,11 +62,11 @@ static inline int loadJsonFile(const char* path, nlohmann::ordered_json& json_fi
  * @param json_file The input json file.
  * @return 0 on success, negative on failure.
  */
-static inline int saveJsonFile(const char* path, nlohmann::ordered_json& json_file)
+static inline int SaveJsonFile(const char* path, const nlohmann::ordered_json& json_file)
 {
     try {
         std::ofstream f(path);
-        f << json_file;
+        f << json_file.dump(4);
     }
     catch (const std::exception& err) {
         std::cerr << "Failed to save JSON file: " << path << std::endl;
@@ -85,7 +85,7 @@ static inline int saveJsonFile(const char* path, nlohmann::ordered_json& json_fi
  * @param xml_file The resulting xml file.
  * @return 0 on success, negative on failure.
  */
-static inline int loadXmlFile(const char* path, pugi::xml_document& xml_file)
+static inline int LoadXmlFile(const char* path, pugi::xml_document& xml_file)
 {
     pugi::xml_parse_result result = xml_file.load_file(path);
     if (!result){
@@ -104,7 +104,7 @@ static inline int loadXmlFile(const char* path, pugi::xml_document& xml_file)
  * @param xml_file The input xml file.
  * @return 0 on success, negative on failure.
  */
-static inline int saveXmlFile(const char* path, pugi::xml_document& xml_file)
+static inline int SaveXmlFile(const char* path, const pugi::xml_document& xml_file)
 {
     return xml_file.save_file(path);
 }

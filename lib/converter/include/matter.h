@@ -30,277 +30,436 @@
 #include <list>
 #include <pugixml.hpp>
 #include <optional>
+#include <variant>
 
-struct argType;
+//! Max and Min Type boundaries if value is not nullable
+//! For nullable values, max has to be decreased by one
+#define MATTER_U_INT_8_MIN 0
+#define MATTER_U_INT_8_MAX 255
+#define MATTER_U_INT_16_MIN 0
+#define MATTER_U_INT_16_MAX 65535
+#define MATTER_U_INT_24_MIN 0
+#define MATTER_U_INT_24_MAX 16777215
+#define MATTER_U_INT_32_MIN 0
+#define MATTER_U_INT_32_MAX 4294967295
+#define MATTER_U_INT_40_MIN 0
+#define MATTER_U_INT_40_MAX 1099511627775
+#define MATTER_U_INT_48_MIN 0
+#define MATTER_U_INT_48_MAX 281474976710655
+#define MATTER_U_INT_56_MIN 0
+#define MATTER_U_INT_56_MAX 72057594037927935
+#define MATTER_U_INT_64_MIN 0
+#define MATTER_U_INT_64_MAX ((uint64_t)18446744073709551615)
 
-struct groupType{
-    std::list<argType> description;
-    std::string id;
-    std::string name;
-};
-
-struct commandType;
-
-struct cliType{
-    std::list<groupType> group;
-    std::list<commandType> command;
-};
-
-struct typeType{
-    std::string id; // required
-    std::string name; // required
-    std::string description; // required
-    int size;
-    bool discrete;
-    bool signed_;
-    bool string;
-    bool chr;
-    bool lng;
-    bool analog;
-    bool composite;
-};
-
-struct olderType{
-    std::string dependsOn; // optional
-    std::string spec; // optional
-    bool certifiable;
-};
-
-struct channelType{
-    std::list<int> channels; // min = 11; max = 26; whitespace => collapse
-    bool editable; // required
-};
-
-struct domainType{
-    std::list<olderType> older;
-    std::string dependsOn; // zclSpecVersion -> Mapping file
-    std::string name;
-    std::string spec; // zclSpecVersion -> Mapping file
-    bool certifiable;
-};
-
-struct argType{
-    bool arrayLength;
-    bool array;
-    std::string default_;
-    std::string description;
-    std::string introducedIn; // zclSpecVersion -> Mapping file
-    std::string removedIn; // zclSpecVersion -> Mapping file
-    std::string name;
-    typeType type;
-    int length;
-    std::string presentIf;
-    int optional;
-    int fieldId;
-    std::string countArg; // optional
-    bool isNullable;
-};
-
-struct tagType{
-    std::string name; // required
-    std::string description; // required
-};
-
-struct featureBitType{
-    std::string tag; //required
-    int bit; //required
-};
-
-struct globalAttributeType{
-    std::list<featureBitType> featureBit;
-    std::string side; // required; zclSideWithEither -> Mapping file
-    std::string code; // required
-    std::string value; // required
-};
-
-struct clientType{
-    bool client;
-    bool init; // required
-    bool tick; // required
-};
-
-struct serverType{
-    bool server;
-    bool init; // required
-    bool tick; // required
-    std::string tickFrequency;
-};
-
-struct accessType{
-    std::string op;
-    std::string role;
-    std::string privilege;
-    std::string modifier;
-};
-
-struct fieldType{
-    std::string mask; // required
-    std::string name; // required
-    std::string introducedIn; //zclSpecVersion -> Mapping file
-    int fieldId;
-};
-
-struct bitmapType{
-    std::string name; // required
-    std::string type; // required
-    //TODO: This gets matched to the cluster code attribute
-    std::string cluster; // min = 0; max = inf; name = cluster
-    std::list<fieldType> fields; // min = 1; max = inf; ref=field
-};
-
-struct enumType{
-    std::string name;
-    std::string type;
-    std::string cluster;
-    std::map<std::string, std::string> items;
-};
-
-struct eventFieldType{
-    std::string id; // required
-    std::string name; // required
-    std::string type; // required
-    bool array; //optional
-    bool isNullable; //optional
-};
+//! Max and Min Type boundaries if value is not nullable
+//! For nullable values, min has to be increased by one
+#define MATTER_INT_8_MIN (-128)
+#define MATTER_INT_8_MAX 127
+#define MATTER_INT_16_MIN (-32768)
+#define MATTER_INT_16_MAX 32767
+#define MATTER_INT_24_MIN (-8388608)
+#define MATTER_INT_24_MAX 8388607
+#define MATTER_INT_32_MIN (-2147483648)
+#define MATTER_INT_32_MAX 2147483647
+#define MATTER_INT_40_MIN (-549755813888)
+#define MATTER_INT_40_MAX 549755813887
+#define MATTER_INT_48_MIN (-140737488355328)
+#define MATTER_INT_48_MAX 140737488355327
+#define MATTER_INT_56_MIN (-36028797018963968)
+#define MATTER_INT_56_MAX 36028797018963967
+#define MATTER_INT_64_MIN ((int64_t)-9223372036854775808)
+#define MATTER_INT_64_MAX ((int64_t)9223372036854775807)
 
 /**
- * @brief Struct which contains Matter event information
+ * Function used to convert decimal uint32 numbers to hexadecimal.
  */
-struct eventType {
-    //! Originally std::list<argType>, for now simplified to just the description
-    //TODO: You can technically define args inside the description, check if and if yes how this should be handled
-    std::string description;
-    std::list<accessType> access; // min = 0; max = inf
-    std::list<eventFieldType> field; // min = 0; max = inf
-    std::string code;
-    std::string name;
-    std::string side; // required; zclSide
-    std::string priority;
-};
+inline std::string DecToHexa(uint32_t n)
+{
+    // TODO: Has to be reworked in order to account für uint32 size numbers
+    // ans string to store hexadecimal number
+    std::string ans = "";
+
+    while (n != 0) {
+        // remainder variable to store remainder
+        int rem = 0;
+
+        // ch variable to store each character
+        char ch;
+        // storing remainder in rem variable.
+        rem = n % 16;
+
+        // check if temp < 10
+        if (rem < 10) {
+            ch = rem + 48;
+        }
+        else {
+            ch = rem + 55;
+        }
+
+        // updating the ans string with the character variable
+        ans += ch;
+        n = n / 16;
+    }
+
+    // reversing the ans string to get the final result
+    while (ans.length() < 4) {
+        ans.append("0");
+    }
+    ans.append("x0"); // This will get reversed
+    int i = 0, j = ans.size() - 1;
+    while(i <= j)
+    {
+        std::swap(ans[i], ans[j]);
+        i++;
+        j--;
+    }
+
+    return ans;
+}
+
+namespace matter {
+
+//!Type definition for the default type.
+typedef std::variant<double, int64_t, uint64_t, std::string> DefaultType;
+
+//! Type definition for the numeric type.
+typedef std::variant<double, int64_t, uint64_t> NumericType;
+
+//!Type used to store revision information.
+//!Maps a revision id onto a summary of changes.
+typedef std::map<u_int8_t, std::string> Revision;
 
 /**
- * @brief Struct which contains Matter command information
+ * Struct which represents the quality column.
  */
-struct commandType {
-    //! Originally std::list<argType>, for now simplified to just the description
-    //TODO: You can technically define args inside the description, check if and if yes how this should be handled
-    std::string description;
-    std::list<accessType> access; // min = 0; max = inf
-    std::list<argType> arg; // min = 0; max = inf
-    cliType cli;
-    std::string cliFunctionName;
-    std::string code;
-    bool disableDefaultResponse;
-    std::string functionName;
-    std::string group;
-    std::string introducedIn; // zclSpecVersion -> Mapping file
-    bool noDefaultImplementation;
-    std::string manufacturerCode; // zclCode -> Mapping file
-    std::string name;
-    bool optional;
-    std::string source;
-    std::string restriction;
-    std::string response;
-};
-
-/**
- * @brief Struct which contains Matter attribute information
- */
-struct attributeType {
-    std::string name; //The value of the Attribute XML Element
-    //! Originally std::list<argType>, for now simplified to just the description
-    //TODO: You can technically define args inside the description, check if and if yes how this should be handled
-    std::string description; // min = 0; max = inf
-    std::list<accessType> access; // min = 0; max = inf
-    std::string code; // zclCode -> Mapping file
-    std::string default_;
-    std::string define; // required; zclAttributeDefine -> Mapping file
-    std::string introducedIn; // zclSpecVersion -> Mapping file
-    std::optional<int> length;
-    std::string  manufacturerCode; // zclCode -> Mapping file
-    std::optional<int> max; //TODO: Check anySimpleType
-    std::optional<int> min; //TODO: Check anySimpleType
-    // reportMaxInterval //TODO: Check anySimpleType
-    // reportMinInterval
-    // reportableChange //TODO: Check anySimpleType
-    bool optional; // required
-    std::string side; // required
-    std::string type; // required
-    std::optional<bool> readable;
-    std::optional<bool> writable;
+struct OtherQuality {
+    //! X -> Nullable.
+    std::optional<bool> nullable;
+    //! N -> Non-Volatile.
+    std::optional<bool> non_volatile;
+    //! F -> Fixed.
+    std::optional<bool> fixed;
+    //! S -> Scene.
+    std::optional<bool> scene;
+    //! P -> Reportable.
     std::optional<bool> reportable;
-    std::optional<bool> array;
-    std::optional<bool> isNullable;
+    //! C -> Change Omitted.
+    std::optional<bool> change_omitted;
+    //! I -> Singleton.
+    std::optional<bool> singleton;
+    //! K -> Diagnostics.
+    std::optional<bool> diagnostics;
+    //! L -> Large Message
+    std::optional<bool> large_message;
+    //! Q -> Quieter Reporting
+    std::optional<bool> quieter_reporting;
+    //! Any of the above can be negated by using !.
 };
 
 /**
- * @brief Struct which contains Matter cluster information.
+ * Struct definition for constraint type.
  */
-struct clusterType {
-    std::string name;
-    //! Originally domainType, for now simplified to just the name
-    std::string domain;
-    //! Originally std::list<argType>, for now simplified to just the description
-    //TODO: You can technically define args inside the description, check if and if yes how this should be handled
-    std::string description;
-    std::string code; //zclCode -> Mapping file
-    std::string define;
-    //! Originally serverType, simplified to bool for now
-    bool server;
-    //! Originally clientType, simplified to bool for now
-    bool client;
-    bool generateCmdHandlers; // min = 0;
-    std::list<tagType> tag;
-    std::list<globalAttributeType> globalAttribute;
-    std::list<attributeType> attributes; //min = 0; max = inf
-    std::list<commandType> commands; //min = 0; max = inf
-    std::list<eventType> events; //min = 0; max = inf
-    std::string introducedIn; // -> Mapping file
-    std::string manufacturerCode; // zclCode -> Mapping file
-    bool singleton;
+struct Constraint;
+
+/**
+ * Struct which represents constraints.
+ */
+struct Constraint {
+    std::string type;
+    //! The interpretation for each of these values depends on the data type its applied to
+    //! Exact value.
+    std::optional<DefaultType> value;
+    //! For range constraints -> x to y.
+    std::optional<NumericType> from;
+    std::optional<NumericType> to;
+    //! Minimum value.
+    std::optional<NumericType> min;
+    //! Maximum value.
+    std::optional<NumericType> max;
+    //! No constraints.
+    //! Same as min to max.
+    std::optional<bool> all;
+    //! In case of a Union of multiple constraints, these get "chained" to each other
+    struct contraintType *constraint;
+    //! Used for list_constraint[entry_constraint].
+    //! List constraint is mapped to the above qualities, entry constraint is mapped to the below quality.
+    std::optional<bool> entry_constraint;
+    //! char_constraint[z].
+    //! char_constraint is the string constraint in bytes.
+    //! z is the maximum number of unicode codepoints.
+    //! char_constraint gets mapped with the above qualities, z is mapped to the below quality.
+    std::optional<int> max_unicode_endpoints;
 };
 
 /**
- *  @brief Struct which contains Matter device information.
+ * Struct which represents feature conformance.
  */
-struct deviceType {
-    std::string name;
-    //! Originally domainType, for now simplified to just the name
-    std::string domain;
-    std::string typeName;
-    //! Originally consists of an additional editable field, for now simplified to just the name
-    std::string profileId;
-    //! Originally consists of an additional editable field, for now simplified to just the name
-    std::string deviceId;
-    //! Originally channelType, for now simplified to just the channels
-    std::list<int> channels; // Each element is between 11 and 26
-    std::list<clusterType> clusters;
+struct Conformance {
+    //! M -> Mandatory conformance
+    std::optional<bool> mandatory;
+    //! O -> Optional conformance
+    std::optional<bool> optional;
+    //! P -> Provisional conformance
+    std::optional<bool> provisional;
+    //! D -> Deprecated conformance
+    std::optional<bool> deprecated;
+    //! X -> Disallowed conformance
+    std::optional<bool> disallowed;
+    //! List representing the otherwise conformance
+    //! Note that the first true conformance in this list will be chosen
+    std::list<Conformance> otherwise;
+    //! List representing the choice element
+    std::list<Conformance> choice;
+    //! Represents the entire logical term
+    //! Note that this will be in a C++ fashion format
+    std::string condition;
 };
 
+/**
+ * Struct which represents access qualities.
+ */
+struct Access {
+    //! Each access is a combination of [RW FS VOMA T] seperated by spaces
+    //! R -> Read
+    //! W -> Write
+    //! RW -> Read + Write
+    std::optional<bool> read;
+    std::optional<bool> write;
+    //! Fabric
+    //! F -> Fabric Scoped Quality
+    //! S -> Fabric Sensitive Quality
+    std::optional<bool> fabric_scoped;
+    std::optional<bool> fabric_sensitive;
+    //! Privileges
+    //! V -> Read or Invoke access requires view privilege
+    //! O -> Read, Write or Invoke access requires operate privilege
+    //! M -> Read, Write or Invoke access requires manage privilege
+    //! A -> Read, Write or Invoke access requires administer privilege
+    std::string read_privilege; // view | operate | manage | administer
+    std::string write_privilege; // operate | manage | administer
+    std::string invoke_privilege; // view | operate | manage | administer
+    //! Timed
+    //! T -> Write or Invoke Access with timed interaction only
+    std::optional<bool> timed;
+};
+
+/**
+ * Struct which represents the common data.
+ */
+struct CommonQuality {
+    //! Unique identifier.
+    u_int32_t id;
+    //! CamelCase name of the element.
+    std::string name;
+    //! Field is being stripped as it is deprecated, use name instead.
+    //! Defines dependencies.
+    std::optional<Conformance> conformance;
+    //! Defines how an element is accessed.
+    std::optional<Access> access;
+    //! Short summary of the element.
+    std::string summary;
+};
+
+// TODO: Temporary, derived from the xml definitions
+struct Item {
+    int value;
+    std::string name;
+    std::string summary;
+    std::optional<Conformance> conformance;
+};
+
+// TODO: Temporary, derived from the xml definitions
+struct Bitfield {
+    int bit;
+    std::string name;
+    std::string summary;
+    std::optional<Conformance> conformance;
+};
+
+/**
+ * Struct which contains data field information.
+ */
+struct DataField : CommonQuality {
+    //! Data type
+    std::string type;
+    //! Constraints
+    std::optional<Constraint> constraint;
+    //! Other qualities
+    std::optional<OtherQuality> quality;
+    //! Default value
+    DefaultType default_;
+};
+
+//! Type definition for the struct.
+typedef std::list<DataField> Struct;
+
+/**
+ * Struct which represents FeatureMap Attribute.
+ * Used to define optional features.
+ */
+struct FeatureMap {
+    u_int8_t bit;
+    std::optional<Conformance> conformance;
+    //! Capitalized, short code
+    std::string code;
+    std::string name;
+    std::string summary;
+};
+
+/**
+ * Struct which contains Matter event information.
+ */
+struct Event : CommonQuality {
+    //! Currently either debug, info or critical
+    std::string priority;
+    //! Other qualities
+    std::optional<OtherQuality> quality;
+    //! Data used for the event record
+    Struct data;
+};
+
+/**
+ * Struct which contains Matter command information.
+ */
+struct Command : CommonQuality {
+    DefaultType default_;
+    //! Either commandToServer or responseFromServer
+    std::string direction;
+    //! Either Y, N or the name of the response command
+    std::string response;
+    //! Command fields
+    Struct command_fields;
+};
+
+/**
+ * Struct which contains Matter attribute information.
+ */
+struct Attribute : CommonQuality {
+    //! Data type
+    std::string type;
+    //! Constraints
+    std::optional<Constraint> constraint;
+    //! Other qualities
+    std::optional<OtherQuality> quality;
+    //! Default value
+    DefaultType default_;
+};
+
+/**
+ * Struct which contains cluster classification information.
+ */
+struct ClusterClassification {
+    //! Either base or derived
+    std::string hierarchy;
+    //! Either utility or application
+    std::string role;
+    //! Upper case identification code
+    std::string picsCode;
+    //! Either Endpoint or Node
+    std::string scope;
+    //! Cluster name of the base cluster
+    std::string base_cluster;
+    //! Number of the primary transaction
+    std::string primary_transaction;
+};
+
+/**
+ * Struct which contains Matter cluster information.
+ */
+struct Cluster : CommonQuality {
+    //! Current revision
+    int revision;
+    //! History of revisions
+    Revision revision_history;
+    //! Cluster classification
+    std::optional<ClusterClassification> classification;
+    //! List of attributes
+    std::list<Attribute> attributes;
+    //! List of client commands
+    std::list<Command> client_commands;
+    //! Map of command names to their respective commands
+    //! Improves the searching for server commands when matching them to their client commands
+    std::map<std::string, Command> server_commands;
+    //! List of events
+    std::list<Event> events;
+    //! Map for globally defined enums
+    std::map<std::string, std::list<Item>> enums;
+    //! Map for globally defined bitmaps
+    std::map<std::string, std::list<Bitfield>> bitmaps;
+};
+
+/**
+ * Struct which contains device classification information.
+ */
+struct DeviceClassification {
+    //! Name of the superset device type
+    std::string superset;
+    //! Either simple, utility or node
+    std::string class_;
+    //! Either node or endpoint
+    std::string scope;
+};
+
+/**
+ *  Struct which contains Matter device type information.
+ */
+struct Device : CommonQuality {
+    //! Current revision
+    int revision;
+    //! History of revisions
+    Revision revision_history;
+    //! Device classification
+    std::optional<DeviceClassification> classification;
+    //! Device conditions
+    std::map<std::string, std::string> conditions;
+    //! List of used clusters
+    std::list<Cluster> clusters;
+};
 
 /**
  * @brief Parses xml-file into a device.
  *
- * This function takes a device definition and the cluster definitions in xml format and converts it into a device.
+ * This function takes a device type definition and the cluster definitions in XML format and converts it into a device.
  *
  * @param device_xml Device definitions in xml format.
- * @param cluster_xml Cluster definitions in xml format.
- * @param device The resulting device.
- * @return 0 on success, negative on failure.
+ * @param client If the resulting SDF-Model should be a client.
+ * @return The resulting device.
  */
-int parseDevice(const pugi::xml_node& device_xml, const pugi::xml_node& cluster_xml, deviceType& device);
+Device ParseDevice(const pugi::xml_node& device_xml, bool client);
+
+
+/**
+ * @brief Parses xml-file into a cluster.
+ *
+ * This functions takes a cluster definition in XML format and converts it into a cluster.
+ *
+ * @param cluster_xml Cluster definition in XML format.
+ * @return The resulting cluster.
+ */
+Cluster ParseCluster(const pugi::xml_node& cluster_xml);
 
 
 /**
  * @brief Serializes device into xml-file.
  *
- * This functions takes a device object and serializes it into a device and a cluster xml.
+ * This functions takes a device object and serializes it into a device xml.
  *
  * @param device The input device object.
- * @param device_xml The resulting device xml.
- * @param cluster_xml The resulting cluster xml.
- * @return 0 on success, negative on failure.
+ * @return The resulting device xml.
  */
-int serializeDevice(const deviceType& device, pugi::xml_node& device_xml, pugi::xml_node& cluster_xml);
+pugi::xml_document SerializeDevice(const Device& device);
+
+
+/**
+ * @brief Serializes cluster into xml-file.
+ *
+ * This functions takes a cluster object and serializes it into a cluster xml.
+ *
+ * @param device The input cluster object.
+ * @return The resulting cluster xml.
+ */
+pugi::xml_document SerializeCluster(const Cluster& cluster);
+
+} // namespace matter
 
 #endif //MATTER_H

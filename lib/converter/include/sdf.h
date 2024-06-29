@@ -28,157 +28,228 @@
 #include <string>
 #include <map>
 #include <list>
+#include <variant>
 #include <optional>
 #include <nlohmann/json.hpp>
-
-//TODO: How do we check if uint or bool are empty?
 
 using json = nlohmann::ordered_json;
 
 /**
+ * Template used to add to_json and from_json for the std::optional type.
+ */
+NLOHMANN_JSON_NAMESPACE_BEGIN
+
+// Try to set the value of type T into the variant data
+// if it fails, do nothing
+template <typename T, typename... Types>
+void variant_from_json(const ordered_json& j, std::variant<Types...> &data)
+{
+    try {
+        data = j.get<T>();
+    } catch (...) {
+    }
+}
+
+/**
+ * Template used to add to_json for the sdf::variant type.
+ */
+template <typename... Types> struct adl_serializer<std::variant<Types...>> {
+    static void to_json(ordered_json& j, const std::variant<Types...> &v) {
+        std::visit([&j](const auto &value) {
+            j = value; // Serialize the current value to JSON
+        }, v);
+    }
+    static void from_json(const ordered_json& j, std::variant<Types...> &data)
+    {
+        // Call variant_from_json for all types, only one will succeed
+        (variant_from_json<Types>(j, data), ...);
+    }
+};
+
+template <typename T> struct adl_serializer<std::optional<T>> {
+    static void to_json(ordered_json& j, const std::optional<T>& opt) {
+        if (opt == std::nullopt) {
+            j = nullptr;
+        } else {
+            // this will call adl_serializer<T>::to_json which will
+            // find the free function to_json in T's namespace!
+            j = *opt;
+        }
+    }
+
+    static void from_json(const ordered_json& j, std::optional<T>& opt) {
+        if (j.is_null()) {
+            opt = std::nullopt;
+        } else {
+            // same as above, but with  adl_serializer<T>::from_json
+            opt = j.template get<T>();
+        }
+    }
+};
+
+NLOHMANN_JSON_NAMESPACE_END
+
+namespace sdf {
+
+typedef std::variant<uint64_t, int64_t, double, std::string, bool> MappingValue;
+
+/**
  * Struct which contains common quality information.
  */
-struct commonQualityType {
+struct CommonQuality {
     std::string description;
     std::string label;
-    std::string $comment;
-    std::string sdfRef;
-    std::list<std::string> sdfRequired;
+    std::string comment;
+    std::string sdf_ref;
+    std::list<std::string> sdf_required;
 };
 
 /**
  * Data quality struct definition.
  */
-struct dataQualityType;
+struct DataQuality;
 
 /**
- * Type definition for sdfChoice.
+ * Type definition for sdf_choice.
  */
-typedef std::map<std::string, dataQualityType> sdfChoiceType;
+typedef std::map<std::string, DataQuality> SdfChoice;
 
 /**
- * Struct which contains jso information.
+ * Type definition for sdf_data.
  */
-struct jsoItemType {
-    std::string sdfRef;
+typedef std::map<std::string, DataQuality> SdfData;
+
+/**
+ * JSO-Item Type definition.
+ */
+struct JsoItem {
+    std::string sdf_ref;
     std::string description;
-    sdfChoiceType sdfChoice;
+    std::string comment;
+    std::string type; // number / string / boolean / integer / object
+    SdfChoice sdf_choice;
     std::list<std::string> enum_;
-    std::string type;
-    int minimum = -1; // number
-    int maximum = -1; // number
+    std::optional<int> minimum;
+    std::optional<int> maximum;
     std::string format;
-    uint minLength;
-    uint maxLength;
+    std::optional<uint> min_length;
+    std::optional<uint> max_length;
+    std::list<std::string> required;
+    SdfData properties;
 };
+
+/**
+ * Type definition for array items.
+ */
+typedef std::variant<uint64_t, int64_t , double, std::string, bool> ArrayItem;
+
+/**
+ * Type definition for const and default fields.
+ */
+typedef std::variant<uint64_t, int64_t , double, std::string, bool, std::list<ArrayItem>> VariableType;
 
 /**
  * Struct which contains data quality information.
  */
-struct dataQualityType : commonQualityType {
-    //! JSON schema qualities
-    std::string type; // number / string / boolean / integer / array
-    sdfChoiceType sdfChoice;
+struct DataQuality : CommonQuality {
+    // General qualities
+    std::string type; // number / string / boolean / integer / array / object
+    SdfChoice sdf_choice;
     std::list<std::string> enum_;
-    std::string const_;
-    std::string default_;
-    std::optional<int> minimum; // number
-    std::optional<int> maximum; // number
-    std::optional<int> exclusiveMinimum; // number
-    std::optional<int> exclusiveMaximum; // number
-    std::optional<int> multipleOf; // number
-    //! Text string constraints
-    std::optional<uint> minLength;
-    std::optional<uint> maxLength;
+    std::optional<VariableType> const_;
+    std::optional<VariableType> default_;
+    // Number and Integer qualities
+    std::optional<std::variant<double, int64_t, uint64_t>> minimum;
+    std::optional<std::variant<double, int64_t, uint64_t>> maximum;
+    std::optional<std::variant<double, int64_t, uint64_t>> exclusive_minimum;
+    std::optional<std::variant<double, int64_t, uint64_t>> exclusive_maximum;
+    std::optional<std::variant<double, int64_t, uint64_t>> multiple_of;
+    // String qualities
+    std::optional<uint64_t> min_length;
+    std::optional<uint64_t> max_length;
     std::string pattern;
     std::string format; // date-time / date / time / uri / uri-reference / uuid
-    //! Array constraints
-    std::optional<uint> minItems;
-    std::optional<uint> maxItems;
-    bool uniqueItems;
-    jsoItemType items;
-    //! Additional qualities
+    // Array qualities
+    std::optional<uint64_t> min_items;
+    std::optional<uint64_t> max_items;
+    std::optional<bool> unique_items;
+    std::optional<JsoItem> items;
+    // Object qualities
+    SdfData properties;
+    std::list<std::string> required;
+    // Additional qualities
     std::string unit;
-    bool nullable;
-    std::string sdfType; // byte-string / unix-time
-    std::string contentFormat;
-    //! Defined in the specification
+    std::optional<bool> nullable;
+    std::string sdf_type; // byte-string / unix-time
+    std::string content_format;
 };
 
 /**
- * Type definition for sdfData.
+ * Struct which contains sdf_event information.
  */
-typedef std::map<std::string, dataQualityType> sdfDataType;
-
-/**
- * Struct which contains sdfEvent information.
- */
-struct sdfEventType : commonQualityType {
-    dataQualityType sdfOutputData;
-    sdfDataType sdfData;
+struct SdfEvent : CommonQuality {
+    std::optional<DataQuality> sdf_output_data;
+    SdfData sdf_data;
 };
 
 /**
- * Struct which contains sdfAction information.
+ * Struct which contains sdf_action information.
  */
-struct sdfActionType : commonQualityType {
-    dataQualityType sdfInputData;
-    dataQualityType sdfOutputData;
-    sdfDataType sdfData;
+struct SdfAction : CommonQuality {
+    std::optional<DataQuality> sdf_input_data;
+    std::optional<DataQuality> sdf_output_data;
+    SdfData sdf_data;
 };
 
 /**
- * Struct which contains sdfProperty information.
+ * Struct which contains sdf_property information.
  */
-struct sdfPropertyType : dataQualityType {
+struct SdfProperty : DataQuality {
     std::optional<bool> readable;
     std::optional<bool> writable;
     std::optional<bool> observable;
 };
 
 /**
- * Struct which contains sdfObject information.
+ * Struct which contains sdf_object information.
  */
-struct sdfObjectType : commonQualityType {
-    //! Paedata qualities
-    std::map<std::string, sdfPropertyType> sdfProperty;
-    std::map<std::string, sdfActionType> sdfAction;
-    std::map<std::string, sdfEventType> sdfEvent;
-    sdfDataType sdfData;
-    //! Array definition qualities
-    uint minItems;
-    uint maxItems;
+struct SdfObject : CommonQuality {
+    std::map<std::string, SdfProperty> sdf_property;
+    std::map<std::string, SdfAction> sdf_action;
+    std::map<std::string, SdfEvent> sdf_event;
+    SdfData sdf_data;
+    // Array definition qualities
+    std::optional<uint> min_items;
+    std::optional<uint> max_items;
 };
 
 /**
- * Struct which contains sdfThing information.
+ * Struct which contains sdf_thing information.
  */
-struct sdfThingType : commonQualityType{
-    //! It's currently not planed to allow for nested sdfThings as they
-    //! wouldn't really be able to be translated into Matter
-    std::map<std::string, sdfObjectType> sdfObject;
-    //! Paedata qualities
-    std::map<std::string, sdfPropertyType> sdfProperty;
-    std::map<std::string, sdfActionType> sdfAction;
-    std::map<std::string, sdfEventType> sdfEvent;
-    sdfDataType sdfData;
-    //! Array definition qualities
-    uint minItems;
-    uint maxItems;
+struct SdfThing : CommonQuality{
+    std::map<std::string, SdfThing> sdf_thing;
+    std::map<std::string, SdfObject> sdf_object;
+    std::map<std::string, SdfProperty> sdf_property;
+    std::map<std::string, SdfAction> sdf_action;
+    std::map<std::string, SdfEvent> sdf_event;
+    SdfData sdf_data;
+    // Array definition qualities
+    std::optional<uint> min_items;
+    std::optional<uint> max_items;
 };
 
 /**
  * Struct which contains namespace block information.
  */
-struct namespaceType {
+struct NamespaceBlock {
     std::map<std::string, std::string> namespaces;
-    std::string defaultNamespace;
+    std::string default_namespace;
 };
 
 /**
  * Struct which contains information block information.
  */
-struct infoBlockType {
+struct InformationBlock {
     std::string title;
     std::string description;
     std::string version;
@@ -186,27 +257,26 @@ struct infoBlockType {
     std::string copyright;
     std::string license;
     std::string features;
-    std::string $comment;
+    std::string comment;
 };
 
 /**
  * Struct which contains sdf-model information.
  */
-struct sdfModelType {
-    infoBlockType infoBlock;
-    namespaceType namespaceBlock;
-    //! Either a single sdfThing or a single sdfObject are allowed per model
-    std::optional<sdfThingType>sdfThing;
-    std::optional<sdfObjectType> sdfObject;
+struct SdfModel {
+    std::optional<InformationBlock> information_block;
+    std::optional<NamespaceBlock> namespace_block;
+    std::map<std::string, SdfThing> sdf_thing;
+    std::map<std::string, SdfObject> sdf_object;
 };
 
 /**
  * Struct which contains sdf-mapping information.
  */
-struct sdfMappingType {
-    infoBlockType infoBlock;
-    namespaceType namespaceBlock;
-    std::map<std::string, std::map<std::string, std::string>> map;
+struct SdfMapping {
+    std::optional<InformationBlock> information_block;
+    std::optional<NamespaceBlock> namespace_block;
+    std::map<std::string, std::map<std::string, MappingValue>> map;
 };
 
 /**
@@ -215,10 +285,10 @@ struct sdfMappingType {
  * This functions parses a sdf-model into an object.
  *
  * @param sdf_model_json The input sdf-model.
- * @param sdfModel The resulting object.
+ * @param sdf_model The resulting object.
  * @return 0 on success, negative on failure.
  */
-int parseSdfModel(const json& sdf_model_json, sdfModelType& sdfModel);
+SdfModel ParseSdfModel(json& sdf_model_json);
 
 /**
  * @brief Parse a sdf-mapping.
@@ -226,10 +296,10 @@ int parseSdfModel(const json& sdf_model_json, sdfModelType& sdfModel);
  * This function parses a sdf-mapping into an object.
  *
  * @param sdf_mapping_json The input sdf-mapping.
- * @param sdfMapping The resulting object.
+ * @param sdf_mapping The resulting object.
  * @return 0 on success, negative on failure.
  */
-int parseSdfMapping(const json& sdf_mapping_json, sdfMappingType& sdfMapping);
+SdfMapping ParseSdfMapping(json& sdf_mapping_json);
 
 
 /**
@@ -237,21 +307,23 @@ int parseSdfMapping(const json& sdf_mapping_json, sdfMappingType& sdfMapping);
  *
  * This function serializes a sdf-model into json.
  *
- * @param sdfModel The input sdf-model.
+ * @param sdf_model The input sdf-model.
  * @param sdf_model_json The resulting json.
  * @return 0 on success, negative on failure.
  */
-int serializeSdfModel(const sdfModelType& sdfModel, json& sdf_model_json);
+json SerializeSdfModel(const SdfModel& sdf_model);
 
 /**
  * @bried Serialize a sdf-mapping.
  *
  * This function serializes a sdf-mapping into json.
  *
- * @param sdfMapping The input sdf-mapping.
+ * @param sdf_mapping The input sdf-mapping.
  * @param sdf_mapping_json The resulting json.
  * @return 0 on success, negative on failure.
  */
-int serializeSdfMapping(const sdfMappingType& sdfMapping, json& sdf_mapping_json);
+json SerializeSdfMapping(const SdfMapping& sdf_mapping);
+
+} // namespace sdf
 
 #endif //SDF_H

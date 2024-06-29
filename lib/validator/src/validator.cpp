@@ -21,7 +21,7 @@
 using nlohmann::ordered_json;
 using nlohmann::json_schema::json_validator;
 
-int loadJsonFile(const char* path, nlohmann::ordered_json& json_file)
+int LoadJsonFile(const char* path, nlohmann::ordered_json& json_file)
 {
     try {
         std::ifstream f(path);
@@ -39,9 +39,9 @@ int validateSdf(const char* path, const char* schema)
 {
     //Load the json file as well as the schema
     nlohmann::ordered_json json_file;
-    loadJsonFile(path, json_file);
+    LoadJsonFile(path, json_file);
     nlohmann::ordered_json json_schema;
-    loadJsonFile(schema, json_schema);
+    LoadJsonFile(schema, json_schema);
 
     // Create a new validator and set its schema
     json_validator validator;

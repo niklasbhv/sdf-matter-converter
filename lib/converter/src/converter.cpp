@@ -20,30 +20,82 @@
 #include "sdf.h"
 #include "mapping.h"
 
-int convertSdfToMatter(const nlohmann::ordered_json& sdf_model, const nlohmann::ordered_json& sdf_mapping, pugi::xml_document& device_xml, pugi::xml_document& cluster_xml)
+using json = nlohmann::ordered_json;
+
+int ConvertSdfToMatter(json& sdf_model_json, json& sdf_mapping_json,
+                       std::optional<pugi::xml_document>& device_xml,
+                       std::list<pugi::xml_document>& cluster_xml_list)
 {
-    sdfModelType sdfModel;
-    parseSdfModel(sdf_model, sdfModel);
-    sdfMappingType sdfMapping;
-    parseSdfMapping(sdf_mapping, sdfMapping);
+    sdf::SdfModel sdf_model = sdf::ParseSdfModel(sdf_model_json);
+    sdf::SdfMapping sdf_mapping = sdf::ParseSdfMapping(sdf_mapping_json);
+    std::optional<matter::Device> device;
+    std::list<matter::Cluster> clusters;
+    MapSdfToMatter(sdf_model, sdf_mapping, device, clusters);
 
-    deviceType device;
-    map_sdf_to_matter(sdfModel, sdfMapping, device);
+    if (device.has_value()) {
+        device_xml = SerializeDevice(device.value());
+    } else {
+        device_xml.reset();
+    }
 
-    serializeDevice(device, device_xml, cluster_xml);
+    for (const auto& cluster : clusters) {
+        pugi::xml_document cluster_xml = SerializeCluster(cluster);
+        cluster_xml_list.push_back(std::move(cluster_xml));
+    }
+
     return 0;
 }
 
-int convertMatterToSdf(const pugi::xml_document& device_xml, const pugi::xml_document& cluster_xml, nlohmann::ordered_json& sdf_model, nlohmann::ordered_json& sdf_mapping)
+int ConvertMatterToSdf(const std::optional<pugi::xml_document>& device_xml,
+                       const std::list<pugi::xml_document>& cluster_xml_list,
+                       json& sdf_model_json, json& sdf_mapping_json)
 {
-    deviceType device;
-    parseDevice(device_xml.document_element(), cluster_xml.document_element(), device);
+    std::list<matter::Cluster> cluster_list;
+    for (auto const& cluster_xml : cluster_xml_list) {
+        matter::Cluster cluster =  matter::ParseCluster(cluster_xml.document_element());
+        cluster_list.push_back(cluster);
+    }
 
-    sdfModelType sdfModel;
-    sdfMappingType sdfMapping;
-    map_matter_to_sdf(device, sdfModel, sdfMapping);
+    sdf::SdfModel sdf_model;
+    sdf::SdfMapping sdf_mapping;
 
-    serializeSdfModel(sdfModel, sdf_model);
-    serializeSdfMapping(sdfMapping, sdf_mapping);
+    if (device_xml.has_value()) {
+        matter::Device device = matter::ParseDevice(device_xml.value().document_element(), false);
+        MapMatterToSdf(device, cluster_list, sdf_model, sdf_mapping);
+    } else {
+        MapMatterToSdf(std::nullopt, cluster_list, sdf_model, sdf_mapping);
+    }
+
+    sdf_model_json = sdf::SerializeSdfModel(sdf_model);
+    sdf_mapping_json = sdf::SerializeSdfMapping(sdf_mapping);
+
+    return 0;
+}
+
+int TestJsonParseSerialize(nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json)
+{
+    sdf::SdfModel sdf_model = sdf::ParseSdfModel(sdf_model_json);
+    sdf::SdfMapping sdf_mapping = sdf::ParseSdfMapping(sdf_mapping_json);
+
+    sdf_model_json.clear();
+    sdf_mapping_json.clear();
+    sdf_model_json = sdf::SerializeSdfModel(sdf_model);
+    sdf_mapping_json = sdf::SerializeSdfMapping(sdf_mapping);
+
+    return 0;
+}
+
+int TestXmlParseSerialize(pugi::xml_document& device_xml, pugi::xml_document& cluster_xml)
+{
+    matter::Device device;
+    matter::Cluster cluster;
+    device = matter::ParseDevice(device_xml.document_element(), false);
+    cluster = matter::ParseCluster(cluster_xml.document_element());
+
+    device_xml.reset();
+    cluster_xml.reset();
+    device_xml = matter::SerializeDevice(device);
+    cluster_xml = matter::SerializeCluster(cluster);
+
     return 0;
 }
