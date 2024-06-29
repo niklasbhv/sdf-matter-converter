@@ -269,7 +269,7 @@ Bitfield ParseBitfield(const pugi::xml_node& bitfield_node) {
 
 DataField ParseDataField(const pugi::xml_node& data_field_node) {
     DataField data_field;
-    // Iterate through all struct fields and parse them individually
+
     data_field.id = data_field_node.attribute("id").as_int();
     data_field.name = data_field_node.attribute("name").value();
 
