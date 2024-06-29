@@ -117,17 +117,6 @@ public:
 //! for example the `sdfThing` node, not a specific sdfThing
 ReferenceTreeNode* current_node = nullptr;
 
-//! For debug purposes, prints a visual representation of the tree
-struct simple_walker : pugi::xml_tree_walker
-{
-    bool for_each(pugi::xml_node& node) override
-    {
-        for (int i = 0; i < depth(); ++i) std::cout << "--> "; // indentation
-        std::cout << node.name() << std::endl;
-        return true; // continue traversal
-    }
-};
-
 // Function to unescape JSON Pointer according to RFC 6901
 std::string UnescapeJsonPointer(const std::string& input) {
     std::string result = input;
@@ -470,10 +459,10 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     return device;
 }
 
-//! Creates Matter device as well as cluster definitions from a given SDF Model and SDF Mapping
+//! Creates Matter optional_device as well as cluster definitions from a given SDF Model and SDF Mapping
 int MapSdfToMatter(const sdf::SdfModel& sdf_model,
                    const sdf::SdfMapping& sdf_mapping,
-                   std::optional<matter::Device>& device,
+                   std::optional<matter::Device>& optional_device,
                    std::list<matter::Cluster>& cluster_list)
 {
     // Make the mapping a global variable
@@ -489,11 +478,11 @@ int MapSdfToMatter(const sdf::SdfModel& sdf_model,
         reference_tree.root->AddChild(current_node);
         for (const auto& sdf_thing_pair : sdf_model.sdf_thing) {
             // TODO: Should we consider multiple sdfThing definitions?
-            device = MapSdfThing(sdf_thing_pair);
+            optional_device = MapSdfThing(sdf_thing_pair);
         }
     } else if (!sdf_model.sdf_object.empty()){
-        // Make sure, that device is empty, as there is no sdfThing present
-        device.reset();
+        // Make sure, that optional_device is empty, as there is no sdfThing present
+        optional_device.reset();
         current_node = new ReferenceTreeNode("sdfObject");
         reference_tree.root->AddChild(current_node);
         for (const auto& sdf_object_pair : sdf_model.sdf_object) {
@@ -1001,7 +990,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         label.max_length = 64;
         label.nullable = true;
         //label.default_ = null;
-        //data_quality.required = ["MfgCode", "NamespaceID", "Tag", "Label"];
+        data_quality.required = {"MfgCode", "NamespaceID", "Tag", "Label"};
     }
     // Namespace data type
     // Base: enum8
@@ -1396,7 +1385,35 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
     return sdf_thing;
 }
 
-int MapMatterToSdf(const std::optional<matter::Device>& device,
+void MergeDeviceTypeWithClusters(matter::Device& device, const std::list<matter::Cluster>& cluster_list)
+{
+    for (auto& device_cluster : device.clusters) {
+        for (const auto& cluster : cluster_list) {
+            // Match the clusters with their id
+            if (cluster.id == device_cluster.id) {
+                for (const auto& feature : device_cluster.feature_map) {
+
+                }
+                for (const auto& attribute : device_cluster.attributes) {
+
+                }
+                for (const auto& client_command : device_cluster.client_commands) {
+
+                }
+                for (const auto& server_command : device_cluster.server_commands) {
+
+                }
+                for (const auto& event : device_cluster.events) {
+
+                }
+                std::cout << "Cluster " << cluster.name << " Matched" << std::endl;
+                break;
+            }
+        }
+    }
+}
+
+int MapMatterToSdf(const std::optional<matter::Device>& optional_device,
                    const std::list<matter::Cluster>& cluster_list,
                    sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping)
 {
@@ -1404,9 +1421,13 @@ int MapMatterToSdf(const std::optional<matter::Device>& device,
     current_node = new ReferenceTreeNode("sdfObject");
     reference_tree.root->AddChild(current_node);
 
-    if (device.has_value()) {
-        sdf_model.information_block = GenerateInformationBlock(device.value());
-        sdf_mapping.information_block = GenerateInformationBlock(device.value());
+    if (optional_device.has_value()) {
+        matter::Device device = optional_device.value();
+        sdf_model.information_block = GenerateInformationBlock(device);
+        sdf_mapping.information_block = GenerateInformationBlock(device);
+        MergeDeviceTypeWithClusters(device, cluster_list);
+        sdf::SdfThing sdf_thing = MapMatterDevice(device);
+        sdf_model.sdf_thing.insert({sdf_thing.label, sdf_thing});
     } else {
         for (const auto& cluster : cluster_list) {
             sdf_model.information_block = GenerateInformationBlock(cluster);
@@ -1417,9 +1438,6 @@ int MapMatterToSdf(const std::optional<matter::Device>& device,
     }
 
     sdf_mapping.map = reference_tree.GenerateMapping(reference_tree.root);
-    // Print the resulting tree
-    //simple_walker walker;
-    //referenceTree.traverse(walker);
 
     return 0;
 }
