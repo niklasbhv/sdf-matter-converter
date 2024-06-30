@@ -1142,7 +1142,7 @@ std::function<bool()> buildEvaluator(const std::string& expr) {
 int MapMatterConformance(const matter::Conformance& conformance) {
     if (conformance.mandatory.has_value()) {
         if (conformance.mandatory.value()) {
-            //sdf_required_list.push_back(current_quality_name_node.path().substr(1));
+            sdf_required_list.push_back(current_given_name_node->GeneratePointer());
         }
     }
     // TODO: Currently there seems to be no way to handle conformance based on the selected feature
@@ -1227,7 +1227,12 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
     // If the command does not have a response
     if (client_command.response == "N") {}
     // If the client_command only returns a simple status
-    else if (client_command.response == "Y") {}
+    else if (client_command.response == "Y") {
+        sdf::DataQuality sdf_output_data;
+        sdf_output_data.type = "integer";
+        sdf_output_data.minimum = MATTER_INT_16_MIN;
+        sdf_output_data.maximum = MATTER_U_INT_16_MAX;
+    }
     // Otherwise, the client client_command has a reference to a server client_command
     else {
         sdf_action.sdf_output_data = MapMatterDataField(server_commands.at(client_command.response).command_fields);
@@ -1339,6 +1344,8 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
     for (const auto& bitmap_pair : cluster.bitmaps) {
         sdf_object.sdf_data.insert(MapMatterBitfield(bitmap_pair));
     }
+
+    sdf_object.sdf_required = sdf_required_list;
 
     return sdf_object;
 }
