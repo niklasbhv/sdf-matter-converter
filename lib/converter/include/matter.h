@@ -71,7 +71,7 @@
 #define MATTER_INT_64_MAX ((int64_t)9223372036854775807)
 
 // TODO: Check if this is neccessary for ids
-inline int hexToInt(const std::string& hexStr) {
+inline u_int32_t HexToInt(const std::string& hexStr) {
     int result = 0;
     for (char ch : hexStr) {
         result *= 16;
@@ -89,7 +89,7 @@ inline int hexToInt(const std::string& hexStr) {
 }
 
 // TODO: Fix this for the 0x prefix
-inline std::string intToHex(int num) {
+inline std::string IntToHex(u_int32_t num) {
     if (num == 0) return "0";
 
     std::string hexStr;
