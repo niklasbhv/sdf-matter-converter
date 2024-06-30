@@ -91,7 +91,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 namespace sdf {
 
-typedef std::variant<uint64_t, int64_t, double, std::string, bool> MappingValue;
+typedef std::variant<uint64_t, int64_t, double, std::string, bool, json> MappingValue;
 
 /**
  * Struct which contains common quality information.
