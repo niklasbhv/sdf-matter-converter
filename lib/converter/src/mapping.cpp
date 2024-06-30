@@ -498,55 +498,58 @@ int MapSdfToMatter(const sdf::SdfModel& sdf_model,
 //! Maps information of the given other quality onto a sdfProperty object
 void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty& sdf_property)
 {
-    auto* access_reference = new ReferenceTreeNode("quality");
-    current_quality_name_node->AddChild(access_reference);
+    json quality_json;
     if (other_quality.nullable.has_value())
         sdf_property.nullable = other_quality.nullable.value();
     if (other_quality.non_volatile.has_value())
-        access_reference->AddAttribute("nonVolatile", other_quality.non_volatile.value());
+        quality_json["nonVolatile"] = other_quality.non_volatile.value();
     if (other_quality.fixed.has_value())
-        access_reference->AddAttribute("fixed", other_quality.fixed.value());
+        quality_json["fixed"] = other_quality.fixed.value();
     if (other_quality.scene.has_value())
-        access_reference->AddAttribute("scene", other_quality.scene.value());
+        quality_json["scene"] = other_quality.scene.value();
     if (other_quality.reportable.has_value())
         sdf_property.observable = other_quality.reportable.value();
     if (other_quality.change_omitted.has_value())
-        access_reference->AddAttribute("changeOmitted", other_quality.change_omitted.value());
+        quality_json["changeOmitted"] = other_quality.change_omitted.value();
     if (other_quality.singleton.has_value())
-        access_reference->AddAttribute("singleton", other_quality.singleton.value());
+        quality_json["singleton"] = other_quality.singleton.value();
     if (other_quality.diagnostics.has_value())
-        access_reference->AddAttribute("diagnostics", other_quality.diagnostics.value());
+        quality_json["diagnostics"] = other_quality.diagnostics.value();
     if (other_quality.large_message.has_value())
-        access_reference->AddAttribute("largeMessage", other_quality.large_message.value());
+        quality_json["largeMessage"] = other_quality.large_message.value();
     if (other_quality.quieter_reporting.has_value())
-        access_reference->AddAttribute("quieterReporting", other_quality.quieter_reporting.value());
+        quality_json["quieterReporting"] = other_quality.quieter_reporting.value();
+    if (!quality_json.is_null())
+        current_given_name_node->AddAttribute("quality", quality_json);
 }
 
 //! Maps information of the given other quality onto a data quality object
 void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::DataQuality& data_quality)
 {
-    auto* access_reference = new ReferenceTreeNode("quality");
-    current_quality_name_node->AddChild(access_reference);
+    // TODO: Change nonVolatile to its actual value from the xml
+    json quality_json;
     if (other_quality.nullable.has_value())
         data_quality.nullable = other_quality.nullable.value();
     if (other_quality.non_volatile.has_value())
-        access_reference->AddAttribute("nonVolatile", other_quality.non_volatile.value());
+        quality_json["nonVolatile"] = other_quality.non_volatile.value();
     if (other_quality.fixed.has_value())
-        access_reference->AddAttribute("fixed", other_quality.fixed.value());
+        quality_json["fixed"] = other_quality.fixed.value();
     if (other_quality.scene.has_value())
-        access_reference->AddAttribute("scene", other_quality.scene.value());
+        quality_json["scene"] = other_quality.scene.value();
     if (other_quality.reportable.has_value())
-        access_reference->AddAttribute("reportable", other_quality.reportable.value());
+        quality_json["reportable"] = other_quality.reportable.value();
     if (other_quality.change_omitted.has_value())
-        access_reference->AddAttribute("changeOmitted", other_quality.change_omitted.value());
+        quality_json["changeOmitted"] = other_quality.change_omitted.value();
     if (other_quality.singleton.has_value())
-        access_reference->AddAttribute("singleton", other_quality.singleton.value());
+        quality_json["singleton"] = other_quality.singleton.value();
     if (other_quality.diagnostics.has_value())
-        access_reference->AddAttribute("diagnostics", other_quality.diagnostics.value());
+        quality_json["diagnostics"] = other_quality.diagnostics.value();
     if (other_quality.large_message.has_value())
-        access_reference->AddAttribute("largeMessage", other_quality.large_message.value());
+        quality_json["largeMessage"] = other_quality.large_message.value();
     if (other_quality.quieter_reporting.has_value())
-        access_reference->AddAttribute("quieterReporting", other_quality.quieter_reporting.value());
+        quality_json["quieterReporting"] = other_quality.quieter_reporting.value();
+    if (!quality_json.is_null())
+        current_given_name_node->AddAttribute("quality", quality_json);
 }
 
 std::pair<std::string, sdf::DataQuality> MapMatterBitfield(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair)
@@ -1010,6 +1013,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Otherwise, the type is a custom type defined in the data type section
     else {
         data_quality.label = matter_type;
+        //data_quality.sdf_ref
         std::cout << "Found: " << matter_type << std::endl;
     }
 }
@@ -1035,20 +1039,29 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
         //data_quality.const_ = constraint.value;
         if (constraint.from.has_value()) {}
         if (constraint.to.has_value()) {}
-        if (constraint.min.has_value()) {}
-            //data_quality.min_length = constraint.min.value();
-        if (constraint.max.has_value()) {}
-            //data_quality.max_length = constraint.max.value();
+        if (constraint.min.has_value()) {
+            if (std::holds_alternative<uint64_t>(constraint.min.value()))
+                data_quality.min_length = std::get<uint64_t>(constraint.min.value());
+        }
+
+        if (constraint.max.has_value()) {
+            if (std::holds_alternative<uint64_t>(constraint.max.value()))
+                data_quality.max_length = std::get<uint64_t>(constraint.max.value());
+        }
     }
     else if (data_quality.type == "array") {
         if (constraint.value.has_value()) {}
         //data_quality.const_ = constraint.value;
         if (constraint.from.has_value()) {}
         if (constraint.to.has_value()) {}
-        if (constraint.min.has_value()) {}
-            //data_quality.min_items = constraint.min.value();
-        if (constraint.max.has_value()) {}
-            //data_quality.max_items = constraint.max.value();
+        if (constraint.min.has_value()) {
+            if (std::holds_alternative<uint64_t>(constraint.min.value()))
+                data_quality.min_items = std::get<uint64_t>(constraint.min.value());
+        }
+        if (constraint.max.has_value()) {
+            if (std::holds_alternative<uint64_t>(constraint.min.value()))
+                data_quality.max_items = std::get<uint64_t>(constraint.min.value());
+        }
     }
     else if (data_quality.type == "object") {}
 }
@@ -1310,6 +1323,8 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
     }
     cluster_reference->AddAttribute("revisionHistory", revision_history_json);
 
+    //cluster_reference->AddAttribute("classification", cluster.classification);
+
     // Iterate through the attributes and map them
     auto* sdf_property_node = new ReferenceTreeNode("sdfProperty");
     cluster_reference->AddChild(sdf_property_node);
@@ -1382,8 +1397,15 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
     if (device.conformance.has_value())
         MapMatterConformance(device.conformance.value());
     // device.access
-    // TODO: We need to be able to create a JSON object for more complex structures like revisionHistory
-    // device.revisionHistory -> sdf_data
+    device_reference->AddAttribute("revision", device.revision);
+    json revision_history_json;
+    for (const auto& revision : device.revision_history) {
+        json revision_json;
+        revision_json["revision"] = revision.first;
+        revision_json["summary"] = revision.second;
+        revision_history_json.push_back(revision_json);
+    }
+    device_reference->AddAttribute("revisionHistory", revision_history_json);
 
     sdf_thing.label = device.name;
     sdf_thing.description = device.summary;
