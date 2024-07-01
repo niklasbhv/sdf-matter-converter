@@ -18,6 +18,7 @@
 #include <regex>
 #include <functional>
 #include <utility>
+#include <limits>
 #include "mapping.h"
 #include "matter.h"
 #include "sdf.h"
@@ -139,17 +140,83 @@ std::string UnescapeJsonPointer(const std::string& input) {
     return result;
 }
 
+bool CheckForRequired(const std::string& json_pointer)
+{
+
+    //if (sdf_required_list.)
+    return true;
+}
+
 //! Generically typed for now as the mapping will later contain different types
 //! @brief Imports given key value combination from the SDF Mapping file
 //! @param name Name of the target field.
 template <typename T> void ImportFromMapping(const std::string& json_pointer, const std::string& field, T& input)
 {
-    if (!reference_map.at(json_pointer).is_null()) {
-        if (!reference_map.at(json_pointer).at(field).is_null()) {
+    if (reference_map.contains(json_pointer)) {
+        if (reference_map.at(json_pointer).contains(field)) {
             reference_map.at(json_pointer).at(field).get_to(input);
         }
     }
 }
+
+std::optional<matter::Access> ImportAccessFromMapping(const std::string& json_pointer)
+{
+    json access_json;
+    ImportFromMapping(json_pointer, "access", access_json);
+    if (access_json.is_null())
+        return std::nullopt;
+    matter::Access access;
+    if (access_json.contains("read"))
+        access_json.at("read").get_to(access.read);
+    if (access_json.contains("write"))
+        access_json.at("write").get_to(access.write);
+    if (access_json.contains("fabricScoped"))
+        access_json.at("fabricScoped").get_to(access.fabric_scoped);
+    if (access_json.contains("fabricSensitive"))
+        access_json.at("fabricSensitive").get_to(access.fabric_sensitive);
+    if (access_json.contains("readPrivilege"))
+        access_json.at("readPrivilege").get_to(access.read_privilege);
+    if (access_json.contains("writePrivilege"))
+        access_json.at("writePrivilege").get_to(access.write_privilege);
+    if (access_json.contains("invokePrivilege"))
+        access_json.at("invokePrivilege").get_to(access.invoke_privilege);
+    if (access_json.contains("timed"))
+        access_json.at("timed").get_to(access.timed);
+    return access;
+}
+
+std::optional<matter::OtherQuality> ImportOtherQualityFromMapping(const std::string& json_pointer)
+{
+    //TODO: Fix non_volatile to its actual field
+    json other_quality_json;
+    ImportFromMapping(json_pointer, "quality", other_quality_json);
+    if (other_quality_json.is_null())
+        return std::nullopt;
+    matter::OtherQuality other_quality;
+    if (other_quality_json.contains("nullable"))
+        other_quality_json.at("nullable").get_to(other_quality.nullable);
+    if (other_quality_json.contains("nonVolatile"))
+        other_quality_json.at("nonVolatile").get_to(other_quality.non_volatile);
+    if (other_quality_json.contains("fixed"))
+        other_quality_json.at("fixed").get_to(other_quality.fixed);
+    if (other_quality_json.contains("scene"))
+        other_quality_json.at("scene").get_to(other_quality.scene);
+    if (other_quality_json.contains("reportable"))
+        other_quality_json.at("reportable").get_to(other_quality.reportable);
+    if (other_quality_json.contains("changeOmitted"))
+        other_quality_json.at("changeOmitted").get_to(other_quality.change_omitted);
+    if (other_quality_json.contains("singleton"))
+        other_quality_json.at("singleton").get_to(other_quality.singleton);
+    if (other_quality_json.contains("diagnostics"))
+        other_quality_json.at("diagnostics").get_to(other_quality.diagnostics);
+    if (other_quality_json.contains("largeMessage"))
+        other_quality_json.at("largeMessage").get_to(other_quality.large_message);
+    if (other_quality_json.contains("quieterReporting"))
+        other_quality_json.at("quieterReporting").get_to(other_quality.quieter_reporting);
+    return other_quality;
+}
+
+matter::Conformance ImportConformanceFromMapping();
 
 //! Generates a Matter access based on information of the provided sdfProperty
 matter::Access GenerateMatterAccess(sdf::SdfProperty)
@@ -165,9 +232,16 @@ matter::Access GenerateMatterAccess(sdf::SdfProperty)
 //! If the referred element mentioned in either of these factors,
 //! a mandatory conformance will be created.
 //! Otherwise a optional conformance will be created.
-matter::Conformance GenerateMatterConformance()
+matter::Conformance GenerateMatterConformance(std::string& json_pointer)
 {
     matter::Conformance conformance;
+    /*
+    if (ImportFromMapping(json_pointer, "conformance"))
+    else if (CheckForRequired(""))
+        conformance.mandatory = true;
+    else
+        conformance.optional = true;
+    */
     return conformance;
 }
 
@@ -243,7 +317,7 @@ matter::DataField MapSdfData(sdf::DataQuality& data_quality)
     matter::DataField data_field;
     // data_field.id
     data_field.name = data_quality.label;
-    data_field.conformance = GenerateMatterConformance();
+    //data_field.conformance = GenerateMatterConformance();
     // data_field.access
     data_field.summary = data_quality.description;
     // data_field.type =
@@ -310,7 +384,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", client_command.id);
     client_command.name = sdf_action_pair.second.label;
     // conformance
-    // access
+    client_command.access = ImportAccessFromMapping(sdf_action_reference->GeneratePointer());
     client_command.summary = sdf_action_pair.second.description;
     // default
     client_command.direction = "commandToServer";
@@ -375,12 +449,14 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     // sdf_property.comment
     // sdf_property.sdf_required
     // conformance
+    attribute.access = ImportAccessFromMapping(sdf_property_reference->GeneratePointer());
     attribute.access->write = sdf_property_pair.second.writable;
     attribute.access->read = sdf_property_pair.second.readable;
     // sdf_property.observable
     attribute.summary = sdf_property_pair.second.description;
     attribute.type = MapSdfDataType(sdf_property_pair.second);
     //attribute.default_ = sdf_property.default_;
+    attribute.quality = ImportOtherQualityFromMapping(sdf_property_reference->GeneratePointer());
     //attribute.quality.nullable = sdf_property.nullable;
     // TODO: Check if this should in this case be set or ignored
     //attribute.quality.fixed = !sdf_property.const_.empty();
@@ -400,8 +476,16 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     // conformance
     // access
     cluster.summary = sdf_object_pair.second.description;
-    // revision
-    // revision_history
+    ImportFromMapping(sdf_object_reference->GeneratePointer(), "revision", cluster.revision);
+    json revision_history_json;
+    ImportFromMapping(sdf_object_reference->GeneratePointer(), "revisionHistory", revision_history_json);
+    for (const auto& item : revision_history_json) {
+        u_int8_t revision;
+        item.at("revision").get_to(revision);
+        std::string summary;
+        item.at("summary").get_to(summary);
+        cluster.revision_history[revision] = summary;
+    }
     // classification
 
     // Iterate through all sdfProperties and parse them individually
@@ -627,7 +711,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         } else if (matter_type.substr(4) == "56") {
             data_quality.maximum = MATTER_U_INT_56_MAX;
         } else if (matter_type.substr(4) == "64") {
-            data_quality.maximum = MATTER_U_INT_64_MAX;
+            data_quality.maximum = std::numeric_limits<uint64_t>::min();
         }
     }
     // Signed integer data type
@@ -655,8 +739,8 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
             data_quality.minimum = MATTER_INT_56_MIN;
             data_quality.maximum = MATTER_INT_56_MAX;
         } else if (matter_type.substr(3) == "64") {
-            data_quality.minimum = MATTER_INT_64_MIN;
-            data_quality.maximum = MATTER_INT_64_MAX;
+            data_quality.minimum = std::numeric_limits<int64_t>::min();
+            data_quality.maximum = std::numeric_limits<int64_t>::max();
         }
     }
     // Single precision floating point data type
@@ -743,8 +827,8 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.unit = "mW";
-        data_quality.minimum = MATTER_INT_64_MIN;
-        data_quality.maximum = MATTER_INT_64_MAX;
+        data_quality.minimum = std::numeric_limits<int64_t>::min();
+        data_quality.maximum = std::numeric_limits<int64_t>::max();
     }
     // Amperage data type
     // Base: int64
@@ -752,8 +836,8 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.unit = "mA";
-        data_quality.minimum = MATTER_INT_64_MIN;
-        data_quality.maximum = MATTER_INT_64_MAX;
+        data_quality.minimum = std::numeric_limits<int64_t>::min();
+        data_quality.maximum = std::numeric_limits<int64_t>::max();
     }
     // Voltage data type
     // Base: int64
@@ -761,8 +845,8 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.unit = "mV";
-        data_quality.minimum = MATTER_INT_64_MIN;
-        data_quality.maximum = MATTER_INT_64_MAX;
+        data_quality.minimum = std::numeric_limits<int64_t>::min();
+        data_quality.maximum = std::numeric_limits<int64_t>::max();
     }
     // Energy data type
     // Base: int64
@@ -770,8 +854,8 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.unit = "mWh";
-        data_quality.minimum = MATTER_INT_64_MIN;
-        data_quality.maximum = MATTER_INT_64_MAX;
+        data_quality.minimum = std::numeric_limits<int64_t>::min();
+        data_quality.maximum = std::numeric_limits<int64_t>::max();
     }
     // 8-bit enumeration data type
     // Base: uint8
@@ -840,7 +924,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     else if (matter_type == "fabric-id") {
         data_quality.type = "integer";
         data_quality.minimum = 0;
-        data_quality.maximum = MATTER_U_INT_64_MAX;
+        data_quality.maximum = std::numeric_limits<uint64_t>::min();
     }
     // Fabric index data type
     // Base: uint8
@@ -901,7 +985,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     else if (matter_type == "node-id") {
         data_quality.type = "integer";
         data_quality.minimum = 0;
-        data_quality.maximum = MATTER_U_INT_64_MAX;
+        data_quality.maximum = std::numeric_limits<uint64_t>::min();
     }
     // IEEE address data type
     // Base: uint64
@@ -909,7 +993,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     else if (matter_type == "EUI64") {
         data_quality.type = "integer";
         data_quality.minimum = 0;
-        data_quality.maximum = MATTER_U_INT_64_MAX;}
+        data_quality.maximum = std::numeric_limits<uint64_t>::min();}
     // Entry index data type
     // Base: uint16
     else if (matter_type == "entry-idx") {
@@ -929,7 +1013,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     else if (matter_type == "event-no") {
         data_quality.type = "integer";
         data_quality.minimum = 0;
-        data_quality.maximum = MATTER_U_INT_64_MAX;
+        data_quality.maximum = std::numeric_limits<uint64_t>::min();
     }
     // Character string data type
     // Base: octstr
