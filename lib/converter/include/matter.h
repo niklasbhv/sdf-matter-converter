@@ -34,22 +34,13 @@
 
 //! Max and Min Type boundaries if value is not nullable
 //! For nullable values, max has to be decreased by one
-#define MATTER_U_INT_8_MIN 0
 #define MATTER_U_INT_8_MAX 255
-#define MATTER_U_INT_16_MIN 0
 #define MATTER_U_INT_16_MAX 65535
-#define MATTER_U_INT_24_MIN 0
 #define MATTER_U_INT_24_MAX 16777215
-#define MATTER_U_INT_32_MIN 0
 #define MATTER_U_INT_32_MAX 4294967295
-#define MATTER_U_INT_40_MIN 0
 #define MATTER_U_INT_40_MAX 1099511627775
-#define MATTER_U_INT_48_MIN 0
 #define MATTER_U_INT_48_MAX 281474976710655
-#define MATTER_U_INT_56_MIN 0
 #define MATTER_U_INT_56_MAX 72057594037927935
-#define MATTER_U_INT_64_MIN 0
-#define MATTER_U_INT_64_MAX ((uint64_t)18446744073709551615)
 
 //! Max and Min Type boundaries if value is not nullable
 //! For nullable values, min has to be increased by one
@@ -67,8 +58,6 @@
 #define MATTER_INT_48_MAX 140737488355327
 #define MATTER_INT_56_MIN (-36028797018963968)
 #define MATTER_INT_56_MAX 36028797018963967
-#define MATTER_INT_64_MIN ((int64_t)-9223372036854775808)
-#define MATTER_INT_64_MAX ((int64_t)9223372036854775807)
 
 // TODO: Check if this is neccessary for ids
 inline u_int32_t HexToInt(const std::string& hexStr) {
@@ -88,71 +77,23 @@ inline u_int32_t HexToInt(const std::string& hexStr) {
     return result;
 }
 
-// TODO: Fix this for the 0x prefix
 inline std::string IntToHex(u_int32_t num) {
-    if (num == 0) return "0";
-
-    std::string hexStr;
-    unsigned int n = num;  // Work with unsigned to handle negative numbers correctly in 2's complement form
-
-    while (n > 0) {
-        int remainder = n % 16;
+    std::string hex_str;
+    while (num > 0) {
+        int remainder = num % 16;
         if (remainder < 10) {
-            hexStr = static_cast<char>('0' + remainder) + hexStr;
+            hex_str = static_cast<char>('0' + remainder) + hex_str;
         } else {
-            hexStr = static_cast<char>('A' + (remainder - 10)) + hexStr;
+            hex_str = static_cast<char>('A' + (remainder - 10)) + hex_str;
         }
-        n /= 16;
+        num /= 16;
     }
-
-    return hexStr;
-}
-
-/**
- * Function used to convert decimal uint32 numbers to hexadecimal.
- */
-inline std::string DecToHexa(uint32_t n)
-{
-    // TODO: Has to be reworked in order to account für uint32 size numbers
-    // ans string to store hexadecimal number
-    std::string ans = "";
-
-    while (n != 0) {
-        // remainder variable to store remainder
-        int rem = 0;
-
-        // ch variable to store each character
-        char ch;
-        // storing remainder in rem variable.
-        rem = n % 16;
-
-        // check if temp < 10
-        if (rem < 10) {
-            ch = rem + 48;
-        }
-        else {
-            ch = rem + 55;
-        }
-
-        // updating the ans string with the character variable
-        ans += ch;
-        n = n / 16;
+    while (hex_str.length() < 4) {
+        hex_str.insert(0, 1, '0');
     }
+    hex_str.insert(0, "0x");
 
-    // reversing the ans string to get the final result
-    while (ans.length() < 4) {
-        ans.append("0");
-    }
-    ans.append("x0"); // This will get reversed
-    int i = 0, j = ans.size() - 1;
-    while(i <= j)
-    {
-        std::swap(ans[i], ans[j]);
-        i++;
-        j--;
-    }
-
-    return ans;
+    return hex_str;
 }
 
 namespace matter {
