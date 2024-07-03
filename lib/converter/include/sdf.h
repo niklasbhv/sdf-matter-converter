@@ -253,49 +253,37 @@ struct SdfMapping {
     std::map<std::string, std::map<std::string, MappingValue>> map;
 };
 
-/**
- * @brief Parse a sdf-model.
- *
- * This functions parses a sdf-model into an object.
- *
- * @param sdf_model_json The input sdf-model.
- * @param sdf_model The resulting object.
- * @return 0 on success, negative on failure.
- */
+//! @brief Parse a sdf-model.
+//!
+//! This functions parses a sdf-model into an object.
+//!
+//! @param sdf_model_json The input sdf-model.
+//! @return The parsed sdf-model.
 SdfModel ParseSdfModel(json& sdf_model_json);
 
-/**
- * @brief Parse a sdf-mapping.
- *
- * This function parses a sdf-mapping into an object.
- *
- * @param sdf_mapping_json The input sdf-mapping.
- * @param sdf_mapping The resulting object.
- * @return 0 on success, negative on failure.
- */
+//! @brief Parse a sdf-mapping.
+//!
+//! This function parses a sdf-mapping into an object.
+//!
+//! @param sdf_mapping_json The input sdf-mapping.
+//! @return The parsed sdf-mapping.
 SdfMapping ParseSdfMapping(json& sdf_mapping_json);
 
 
-/**
- * @brief Serialize a sdf-model.
- *
- * This function serializes a sdf-model into json.
- *
- * @param sdf_model The input sdf-model.
- * @param sdf_model_json The resulting json.
- * @return 0 on success, negative on failure.
- */
+//! @brief Serialize a sdf-model.
+//!
+//! This function serializes a sdf-model into json.
+//!
+//! @param sdf_model The input sdf-model.
+//! @return The serialized sdf-model.
 json SerializeSdfModel(const SdfModel& sdf_model);
 
-/**
- * @bried Serialize a sdf-mapping.
- *
- * This function serializes a sdf-mapping into json.
- *
- * @param sdf_mapping The input sdf-mapping.
- * @param sdf_mapping_json The resulting json.
- * @return 0 on success, negative on failure.
- */
+//! @bried Serialize a sdf-mapping.
+//!
+//! This function serializes a sdf-mapping into json.
+//!
+//! @param sdf_mapping The input sdf-mapping.
+//! @return The serialized sdf-mapping.
 json SerializeSdfMapping(const SdfMapping& sdf_mapping);
 
 } // namespace sdf
