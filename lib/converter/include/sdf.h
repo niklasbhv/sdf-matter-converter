@@ -20,8 +20,9 @@
  *
  * @section Description
  *
- * Structs to contain parsed information for sdf and functions to parse from json files.
+ * Structs which contain parsed information for sdf and functions to parse from json files.
  */
+
 #ifndef SDF_H
 #define SDF_H
 
@@ -34,11 +35,9 @@
 
 using json = nlohmann::ordered_json;
 
-/**
- * Template used to add to_json and from_json for the std::optional type.
- */
 NLOHMANN_JSON_NAMESPACE_BEGIN
 
+//! Template used to add to_json and from_json for the std::variant type.
 // Try to set the value of type T into the variant data
 // if it fails, do nothing
 template <typename T, typename... Types>
@@ -50,9 +49,6 @@ void variant_from_json(const ordered_json& j, std::variant<Types...> &data)
     }
 }
 
-/**
- * Template used to add to_json for the sdf::variant type.
- */
 template <typename... Types> struct adl_serializer<std::variant<Types...>> {
     static void to_json(ordered_json& j, const std::variant<Types...> &v) {
         std::visit([&j](const auto &value) {
@@ -66,6 +62,7 @@ template <typename... Types> struct adl_serializer<std::variant<Types...>> {
     }
 };
 
+//! Template used to add to_json and from_json for the std::optional type.
 template <typename T> struct adl_serializer<std::optional<T>> {
     static void to_json(ordered_json& j, const std::optional<T>& opt) {
         if (opt == std::nullopt) {
@@ -91,11 +88,11 @@ NLOHMANN_JSON_NAMESPACE_END
 
 namespace sdf {
 
+//! Type definition for the possible types contained in the sdf-mapping
 typedef std::variant<uint64_t, int64_t, double, std::string, bool, json> MappingValue;
 
-/**
- * Struct which contains common quality information.
- */
+
+//! Struct which contains common quality information.
 struct CommonQuality {
     std::string description;
     std::string label;
@@ -104,128 +101,113 @@ struct CommonQuality {
     std::list<std::string> sdf_required;
 };
 
-/**
- * Data quality struct definition.
- */
+//! Data quality struct definition.
 struct DataQuality;
 
-/**
- * Type definition for sdf_choice.
- */
+//! Type definition for sdfChoice.
 typedef std::map<std::string, DataQuality> SdfChoice;
 
-/**
- * Type definition for sdf_data.
- */
+//! Type definition for sdfData.
 typedef std::map<std::string, DataQuality> SdfData;
 
-/**
- * JSO-Item Type definition.
- */
+//! JSO-Item Type definition.
 struct JsoItem {
+    //! General qualities
     std::string sdf_ref;
     std::string description;
     std::string comment;
-    std::string type; // number / string / boolean / integer / object
+    //! Either number, string, boolean, integer or object
+    std::string type;
     SdfChoice sdf_choice;
     std::list<std::string> enum_;
-    std::optional<int> minimum;
-    std::optional<int> maximum;
+    //! Number and Integer qualities
+    std::optional<std::variant<double, int64_t, uint64_t>> minimum;
+    std::optional<std::variant<double, int64_t, uint64_t>> maximum;
+    //! String qualities
+    std::optional<uint64_t> min_length;
+    std::optional<uint64_t> max_length;
+    //! Either date-time, date, time, uri, uri-reference or uuid
     std::string format;
-    std::optional<uint> min_length;
-    std::optional<uint> max_length;
-    std::list<std::string> required;
+    //! Object qualities
     SdfData properties;
+    std::list<std::string> required;
 };
 
-/**
- * Type definition for array items.
- */
+//! Type definition for array items.
 typedef std::variant<uint64_t, int64_t , double, std::string, bool> ArrayItem;
 
-/**
- * Type definition for const and default fields.
- */
+//! Type definition for const and default fields.
 typedef std::variant<uint64_t, int64_t , double, std::string, bool, std::list<ArrayItem>> VariableType;
 
-/**
- * Struct which contains data quality information.
- */
+//! Struct which contains data quality information.
 struct DataQuality : CommonQuality {
-    // General qualities
-    std::string type; // number / string / boolean / integer / array / object
+    //! General qualities
+    //! Either number, string, boolean, integer, array or object
+    std::string type;
     SdfChoice sdf_choice;
     std::list<std::string> enum_;
     std::optional<VariableType> const_;
     std::optional<VariableType> default_;
-    // Number and Integer qualities
+    //! Number and Integer qualities
     std::optional<std::variant<double, int64_t, uint64_t>> minimum;
     std::optional<std::variant<double, int64_t, uint64_t>> maximum;
     std::optional<std::variant<double, int64_t, uint64_t>> exclusive_minimum;
     std::optional<std::variant<double, int64_t, uint64_t>> exclusive_maximum;
     std::optional<std::variant<double, int64_t, uint64_t>> multiple_of;
-    // String qualities
+    //! String qualities
     std::optional<uint64_t> min_length;
     std::optional<uint64_t> max_length;
     std::string pattern;
-    std::string format; // date-time / date / time / uri / uri-reference / uuid
-    // Array qualities
+    //! Either date-time, date, time, uri, uri-reference or uuid
+    std::string format;
+    //! Array qualities
     std::optional<uint64_t> min_items;
     std::optional<uint64_t> max_items;
     std::optional<bool> unique_items;
     std::optional<JsoItem> items;
-    // Object qualities
+    //! Object qualities
     SdfData properties;
     std::list<std::string> required;
-    // Additional qualities
+    //! Additional qualities
     std::string unit;
     std::optional<bool> nullable;
-    std::string sdf_type; // byte-string / unix-time
+    //! Either byte-string or unix-time
+    std::string sdf_type;
     std::string content_format;
 };
 
-/**
- * Struct which contains sdf_event information.
- */
+//! Struct which contains sdfEvent information.
 struct SdfEvent : CommonQuality {
     std::optional<DataQuality> sdf_output_data;
     SdfData sdf_data;
 };
 
-/**
- * Struct which contains sdf_action information.
- */
+//! Struct which contains sdfAction information.
 struct SdfAction : CommonQuality {
     std::optional<DataQuality> sdf_input_data;
     std::optional<DataQuality> sdf_output_data;
     SdfData sdf_data;
 };
 
-/**
- * Struct which contains sdf_property information.
- */
+//! Struct which contains sdfProperty information.
 struct SdfProperty : DataQuality {
     std::optional<bool> readable;
     std::optional<bool> writable;
     std::optional<bool> observable;
 };
 
-/**
- * Struct which contains sdf_object information.
- */
+//! Struct which contains sdfObject information.
 struct SdfObject : CommonQuality {
     std::map<std::string, SdfProperty> sdf_property;
     std::map<std::string, SdfAction> sdf_action;
     std::map<std::string, SdfEvent> sdf_event;
     SdfData sdf_data;
-    // Array definition qualities
+    //! Array definition qualities
     std::optional<uint> min_items;
     std::optional<uint> max_items;
 };
 
-/**
- * Struct which contains sdf_thing information.
- */
+//! Struct which contains sdfThing information.
 struct SdfThing : CommonQuality{
     std::map<std::string, SdfThing> sdf_thing;
     std::map<std::string, SdfObject> sdf_object;
@@ -233,22 +215,18 @@ struct SdfThing : CommonQuality{
     std::map<std::string, SdfAction> sdf_action;
     std::map<std::string, SdfEvent> sdf_event;
     SdfData sdf_data;
-    // Array definition qualities
+    //! Array definition qualities
     std::optional<uint> min_items;
     std::optional<uint> max_items;
 };
 
-/**
- * Struct which contains namespace block information.
- */
+//! Struct which contains namespace block information.
 struct NamespaceBlock {
     std::map<std::string, std::string> namespaces;
     std::string default_namespace;
 };
 
-/**
- * Struct which contains information block information.
- */
+//! Struct which contains information block information.
 struct InformationBlock {
     std::string title;
     std::string description;
@@ -260,9 +238,7 @@ struct InformationBlock {
     std::string comment;
 };
 
-/**
- * Struct which contains sdf-model information.
- */
+//! Struct which contains sdf-model information.
 struct SdfModel {
     std::optional<InformationBlock> information_block;
     std::optional<NamespaceBlock> namespace_block;
@@ -270,9 +246,7 @@ struct SdfModel {
     std::map<std::string, SdfObject> sdf_object;
 };
 
-/**
- * Struct which contains sdf-mapping information.
- */
+//! Struct which contains sdf-mapping information.
 struct SdfMapping {
     std::optional<InformationBlock> information_block;
     std::optional<NamespaceBlock> namespace_block;
