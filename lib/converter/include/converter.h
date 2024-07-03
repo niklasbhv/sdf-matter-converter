@@ -31,36 +31,30 @@
 #include <list>
 #include <optional>
 
-/**
- * @brief Convert sdf to matter.
- *
- * This function converts a given sdf-model and sdf-mapping into the matter format.
- *
- * @param sdf_model The input sdf-model.
- * @param sdf_mapping The input sdf-mapping.
- * @param device_xml The output device definition.
- * @param cluster_xml The output cluster definition.
- * @return 0 on success, negative on failure.
- */
+
+//! @brief Convert sdf to matter.
+//!
+//! This function converts a given sdf-model and sdf-mapping into the matter format.
+//!
+//! @param sdf_model The input sdf-model.
+//! @param sdf_mapping The input sdf-mapping.
+//! @param device_xml The output device definition.
+//! @param cluster_xml The output cluster definition.
+//! @return 0 on success, negative on failure.
 int ConvertSdfToMatter(nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json,
                        std::optional<pugi::xml_document>& device_xml, std::list<pugi::xml_document>& cluster_xml_list);
 
-/**
- * @brief Convert sdf to matter.
- *
- * This function converts a given sdf-model and sdf-mapping into the matter format.
- *
- * @param sdf_model The input sdf-model.
- * @param sdf_mapping The input sdf-mapping.
- * @param cluster_xml The output cluster definition.
- * @return 0 on success, negative on failure.
- */
+//! @brief Convert sdf to matter.
+//!
+//! This function converts a given sdf-model and sdf-mapping into the matter format.
+//!
+//! @param device_xml The input sdf-model.
+//! @param cluster_xml_list The input sdf-mapping.
+//! @param sdf_model_json The output sdf-model.
+//! @param sdf_mapping_json The output sdf-mapping.
+//! @return 0 on success, negative on failure.
 int ConvertMatterToSdf(const std::optional<pugi::xml_document>& device_xml,
                        const std::list<pugi::xml_document>& cluster_xml_list,
                        nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json);
-
-int TestJsonParseSerialize(nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json);
-
-int TestXmlParseSerialize(pugi::xml_document& device_xml, pugi::xml_document& cluster_xml);
 
 #endif //CONVERTER_H

@@ -71,31 +71,3 @@ int ConvertMatterToSdf(const std::optional<pugi::xml_document>& device_xml,
 
     return 0;
 }
-
-int TestJsonParseSerialize(nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json)
-{
-    sdf::SdfModel sdf_model = sdf::ParseSdfModel(sdf_model_json);
-    sdf::SdfMapping sdf_mapping = sdf::ParseSdfMapping(sdf_mapping_json);
-
-    sdf_model_json.clear();
-    sdf_mapping_json.clear();
-    sdf_model_json = sdf::SerializeSdfModel(sdf_model);
-    sdf_mapping_json = sdf::SerializeSdfMapping(sdf_mapping);
-
-    return 0;
-}
-
-int TestXmlParseSerialize(pugi::xml_document& device_xml, pugi::xml_document& cluster_xml)
-{
-    matter::Device device;
-    matter::Cluster cluster;
-    device = matter::ParseDevice(device_xml.document_element(), false);
-    cluster = matter::ParseCluster(cluster_xml.document_element());
-
-    device_xml.reset();
-    cluster_xml.reset();
-    device_xml = matter::SerializeDevice(device);
-    cluster_xml = matter::SerializeCluster(cluster);
-
-    return 0;
-}
