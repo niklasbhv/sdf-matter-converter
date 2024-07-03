@@ -19,14 +19,15 @@
 #include <functional>
 #include <utility>
 #include <limits>
+#include <set>
 #include "mapping.h"
 #include "matter.h"
 #include "sdf.h"
 
 //! Map containing the elements of the sdf mapping
 //! This map is used to resolve the elements outsourced into the map
-//std::map<std::string, std::map<std::string, sdf::MappingValue>> reference_map;
 json reference_map;
+std::set<std::string> supported_features;
 
 //! List containing required sdf elements
 //! This list gets filled while mapping and afterward appended to the corresponding sdfModel
@@ -457,7 +458,6 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     //attribute.default_ = sdf_property.default_;
     attribute.quality = ImportOtherQualityFromMapping(sdf_property_reference->GeneratePointer());
     //attribute.quality.nullable = sdf_property.nullable;
-    // TODO: Check if this should in this case be set or ignored
     //attribute.quality.fixed = !sdf_property.const_.empty();
 
     return attribute;
@@ -473,7 +473,6 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "id", cluster.id);
     cluster.name = sdf_object_pair.second.label;
     // conformance
-    // access
     cluster.summary = sdf_object_pair.second.description;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "revision", cluster.revision);
     json revision_history_json;
@@ -527,8 +526,6 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     // Import the ID from the mapping
     ImportFromMapping(sdf_thing_reference->GeneratePointer(), "id", device.id);
     device.name = sdf_thing_pair.second.label;
-    // conformance
-    // access
     device.summary = sdf_thing_pair.second.description;
     // revision
     // revision_history
@@ -561,7 +558,6 @@ int MapSdfToMatter(const sdf::SdfModel& sdf_model,
         current_quality_name_node = new ReferenceTreeNode("sdfThing");
         reference_tree.root->AddChild(current_quality_name_node);
         for (const auto& sdf_thing_pair : sdf_model.sdf_thing) {
-            // TODO: Should we consider multiple sdfThing definitions?
             optional_device = MapSdfThing(sdf_thing_pair);
         }
     } else if (!sdf_model.sdf_object.empty()){
@@ -1202,7 +1198,7 @@ void MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdf_propert
 bool EvaluateConformanceCondition(const json& condition)
 {
     if (condition.contains("andTerm")) {
-        // Return true, if all of the contained expressions evaluate to true
+        // Return true, if all the contained expressions evaluate to true
         // Returns false otherwise
         for (auto& item : condition.at("andTerm")) {
             if (!EvaluateConformanceCondition(item))
@@ -1220,17 +1216,17 @@ bool EvaluateConformanceCondition(const json& condition)
         return false;
     }
     else if (condition.contains("xorTerm")) {
-        // Returns true, if just one of the contained expressions evalutes to true
+        // Returns true, if just one of the contained expressions evaluates to true
         // Returns false otherwise
-        bool evalutated_one = false;
+        bool evaluated_one = false;
         for (auto& item : condition.at("xorTerm")) {
             if (EvaluateConformanceCondition(item)) {
-                if (!evalutated_one)
-                    evalutated_one = true;
+                if (!evaluated_one)
+                    evaluated_one = true;
                 else
                     return true;
             }
-            return evalutated_one;
+            return evaluated_one;
         }
     }
     else if (condition.contains("notTerm")) {
@@ -1238,7 +1234,9 @@ bool EvaluateConformanceCondition(const json& condition)
     }
     else if (condition.contains("feature")) {
         std::cout << "Reached" << condition.at("feature") << std::endl;
-        // TODO: Check if the feature is supported
+        if (supported_features.find(condition.at("feature").at("name")) != supported_features.end()) {
+            std::cout << "Feature" << condition.at("feature") << "supported" << std::endl;
+        }
         return true;
     }
     else if (condition.contains("condition")) {
@@ -1263,14 +1261,14 @@ bool EvaluateConformanceCondition(const json& condition)
  * @param current_node The reference tree node of the current element.
  * @return 0 on success, negative on failure.
  */
-void MapMatterConformance(const matter::Conformance& conformance) {
+bool MapMatterConformance(const matter::Conformance& conformance) {
     if (conformance.mandatory.has_value()) {
         if (conformance.mandatory.value()) {
             sdf_required_list.push_back(current_given_name_node->GeneratePointer());
         }
     }
+
     if (!conformance.condition.is_null()) {
-        EvaluateConformanceCondition(conformance.condition);
         if (conformance.mandatory.has_value())
             current_given_name_node->AddAttribute("mandatoryConform", conformance.condition);
         else if (conformance.optional.has_value())
@@ -1281,13 +1279,11 @@ void MapMatterConformance(const matter::Conformance& conformance) {
             current_given_name_node->AddAttribute("deprecatedConform", conformance.condition);
         else if (conformance.disallowed.has_value())
             current_given_name_node->AddAttribute("disallowConform", conformance.condition);
+    } else {
+        return true;
     }
 
-    // TODO: Currently there seems to be no way to handle conformance based on the selected feature
-    // That's why the boolean expression is outsourced to the mapping file
-    //if (conformance.condition.has_value()) {
-    //    sdf_node.append_attribute("condition").set_value(conformance.condition.value().c_str());
-    //}
+    return EvaluateConformanceCondition(conformance.condition);
 }
 
 sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_field_list)
@@ -1424,6 +1420,29 @@ sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute)
     return sdf_property;
 }
 
+void MapFeatureMap(const std::list<matter::Feature>& feature_map)
+{
+    // Evaluate the features while also exporting them to the mapping
+    json feature_map_json;
+    for (const auto& feature : feature_map) {
+        json feature_json;
+        bool condition;
+        feature_json["bit"] = feature.bit;
+        feature_json["code"] = feature.code;
+        feature_json["name"] = feature.name;
+        feature_json["summary"] = feature.summary;
+        if (feature.conformance.has_value()) {
+            condition = MapMatterConformance(feature.conformance.value());
+            if (feature.conformance.value().mandatory.has_value() and condition) {
+                supported_features.insert(feature.code);
+                std::cout << "Supported Feature: " << feature.code << std::endl;
+            }
+        }
+        feature_map_json.push_back(feature_json);
+    }
+    current_quality_name_node->AddAttribute("features", feature_map_json);
+}
+
 sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
 {
     sdf::SdfObject sdf_object;
@@ -1435,9 +1454,10 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
     sdf_object.label = cluster.name;
     if (cluster.conformance.has_value())
         MapMatterConformance(cluster.conformance.value());
-    // cluster.access
+
     sdf_object.description = cluster.summary;
     cluster_reference->AddAttribute("revision", cluster.revision);
+    // Export the revision history to the mapping
     json revision_history_json;
     for (const auto& revision : cluster.revision_history) {
         json revision_json;
@@ -1448,6 +1468,8 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
     cluster_reference->AddAttribute("revisionHistory", revision_history_json);
 
     //cluster_reference->AddAttribute("classification", cluster.classification);
+
+    MapFeatureMap(cluster.feature_map);
 
     // Iterate through the attributes and map them
     auto* sdf_property_node = new ReferenceTreeNode("sdfProperty");
@@ -1514,13 +1536,9 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
 
     device_reference->AddAttribute("id", (uint64_t) device.id);
     // device.classification -> sdfMapping
-    // device.features -> sdf_data
-    // device.enums -> sdf_data
-    // device.bitmaps -> sdf_data
-    // device.structs -> sdf_data
     if (device.conformance.has_value())
         MapMatterConformance(device.conformance.value());
-    // device.access
+    // Export the revision history to the mapping
     device_reference->AddAttribute("revision", device.revision);
     json revision_history_json;
     for (const auto& revision : device.revision_history) {
@@ -1533,49 +1551,60 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
 
     sdf_thing.label = device.name;
     sdf_thing.description = device.summary;
-    // sdf_thing.comment
-    // sdf_thing.sdf_ref
-    // sdf_thing.sdf_required
-    // sdf_thing.sdf_property
-    // sdf_thing.sdf_action
-    // sdf_thing.sdf_event
-    // sdf_thing.min_items
-    // sdf_thing.max_items
+
     // Iterate through cluster definitions for the device
-    //auto sdf_object_node = device_node.child("sdfObject");
     for (const auto& cluster : device.clusters){
         sdf::SdfObject sdf_object = MapMatterCluster(cluster);;
         sdf_thing.sdf_object.insert({cluster.name, sdf_object});
     }
     sdf_thing.sdf_required = sdf_required_list;
-    //sdfModel.sdf_thing = sdf_thing;
 
     return sdf_thing;
 }
 
-void MergeDeviceTypeWithClusters(matter::Device& device, const std::list<matter::Cluster>& cluster_list)
+//! Function used to merge device and cluster specifications together
+void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>& cluster_list)
 {
     for (auto& device_cluster : device.clusters) {
-        for (const auto& cluster : cluster_list) {
-            // Match the clusters with their id
-            if (cluster.id == device_cluster.id) {
-                for (const auto& feature : device_cluster.feature_map) {
+        for (const auto& cluster: cluster_list) {
+            if (device_cluster.id == cluster.id) {
+                matter::Cluster temp_cluster = cluster;
+                // Overwrite the conformance for the cluster
+                temp_cluster.conformance = device_cluster.conformance;
+                // Overwrite the feature conformance's
+                for (auto &device_feature: device_cluster.feature_map) {
+                    for (auto &cluster_feature: temp_cluster.feature_map) {
+                        if (device_feature.name == cluster_feature.name) {
+                            cluster_feature.conformance = device_feature.conformance;
+                        }
+                    }
+                }
+
+                // Overwrite certain attributes
+                for (auto &device_attribute: device_cluster.attributes) {
+                    for (auto &cluster_attribute: temp_cluster.attributes) {
+                        if (device_attribute.name == cluster_attribute.name) {
+
+                        }
+                    }
+                }
+                // Overwrite certain commands
+                for (auto &client_command: device_cluster.client_commands) {
 
                 }
-                for (const auto& attribute : device_cluster.attributes) {
+                // Overwrite certain commands
+                for (auto &server_command: device_cluster.server_commands) {
 
                 }
-                for (const auto& client_command : device_cluster.client_commands) {
+                // Overwrite certain events
+                for (auto &device_event: device_cluster.events) {
+                    for (auto &cluster_event: temp_cluster.events) {
+                        if (device_event.name == cluster_event.name) {
 
+                        }
+                    }
                 }
-                for (const auto& server_command : device_cluster.server_commands) {
-
-                }
-                for (const auto& event : device_cluster.events) {
-
-                }
-                std::cout << "Cluster " << cluster.name << " Matched" << std::endl;
-                break;
+                device_cluster = temp_cluster;
             }
         }
     }
@@ -1593,7 +1622,7 @@ int MapMatterToSdf(const std::optional<matter::Device>& optional_device,
         matter::Device device = optional_device.value();
         sdf_model.information_block = GenerateInformationBlock(device);
         sdf_mapping.information_block = GenerateInformationBlock(device);
-        MergeDeviceTypeWithClusters(device, cluster_list);
+        MergeDeviceCluster(device, cluster_list);
         sdf::SdfThing sdf_thing = MapMatterDevice(device);
         sdf_model.sdf_thing.insert({sdf_thing.label, sdf_thing});
     } else {
