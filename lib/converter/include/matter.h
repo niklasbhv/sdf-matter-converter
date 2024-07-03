@@ -31,6 +31,7 @@
 #include <pugixml.hpp>
 #include <optional>
 #include <variant>
+#include "nlohmann/json.hpp"
 
 //! Max and Min Type boundaries if value is not nullable
 //! For nullable values, max has to be decreased by one
@@ -189,9 +190,9 @@ struct Conformance {
     std::list<Conformance> otherwise;
     //! List representing the choice element
     std::list<Conformance> choice;
-    //! Represents the entire logical term
-    //! Note that this will be in a C++ fashion format
-    std::string condition;
+    //! Represents the entire logical term as nested json objects
+    nlohmann::json condition;
+
 };
 
 /**

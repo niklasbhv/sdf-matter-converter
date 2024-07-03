@@ -336,7 +336,6 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
     //TODO: Event needs an ID, this needs to be set here
     event.name = sdf_event_pair.second.label;
     event.summary = sdf_event_pair.second.description;
-    //comment TODO: Try to fit this into an XML Comment
     //sdf_required TODO: Collect these and set the conformance for the corresponding element to mandatory
     //sdf_output_data TODO: How do we map sdf_output_data to the Event Fields?
     for (auto elem : sdf_event_pair.second.sdf_data) {
@@ -1200,32 +1199,60 @@ void MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdf_propert
     current_given_name_node->AddAttribute("access", access_json);
 }
 
-// Function used to evaluate a string expression
-std::function<bool()> buildEvaluator(const std::string& expr) {
-    if (expr == "true") return []() { return true; };
-    if (expr == "false") return []() { return false; };
-    if (expr == "!true") return []() { return false; };
-    if (expr == "!false") return []() { return true; };
-
-    // Evaluate AND expressions
-    size_t andPos = expr.find("&&");
-    if (andPos != std::string::npos) {
-        auto left = buildEvaluator(expr.substr(0, andPos));
-        auto right = buildEvaluator(expr.substr(andPos + 2));
-        return [left, right]() { return left() && right(); };
+bool EvaluateConformanceCondition(const json& condition)
+{
+    if (condition.contains("andTerm")) {
+        // Return true, if all of the contained expressions evaluate to true
+        // Returns false otherwise
+        for (auto& item : condition.at("andTerm")) {
+            if (!EvaluateConformanceCondition(item))
+                return false;
+        }
+        return true;
     }
-
-    // Evaluate OR expressions
-    size_t orPos = expr.find("||");
-    if (orPos != std::string::npos) {
-        auto left = buildEvaluator(expr.substr(0, orPos));
-        auto right = buildEvaluator(expr.substr(orPos + 2));
-        return [left, right]() { return left() || right(); };
+    else if (condition.contains("orTerm")) {
+        // Returns true, if any one of the contained expressions evaluate to true
+        // Returns false otherwise
+        for (auto& item : condition.at("orTerm")) {
+            if (EvaluateConformanceCondition(item))
+                return true;
+        }
+        return false;
     }
-
-    throw std::runtime_error("Unrecognized expression: " + expr);
+    else if (condition.contains("xorTerm")) {
+        // Returns true, if just one of the contained expressions evalutes to true
+        // Returns false otherwise
+        bool evalutated_one = false;
+        for (auto& item : condition.at("xorTerm")) {
+            if (EvaluateConformanceCondition(item)) {
+                if (!evalutated_one)
+                    evalutated_one = true;
+                else
+                    return true;
+            }
+            return evalutated_one;
+        }
+    }
+    else if (condition.contains("notTerm")) {
+        return !EvaluateConformanceCondition(condition.at("notTerm"));
+    }
+    else if (condition.contains("feature")) {
+        std::cout << "Reached" << condition.at("feature") << std::endl;
+        // TODO: Check if the feature is supported
+        return true;
+    }
+    else if (condition.contains("condition")) {
+        std::cout << "Reached" << condition.at("condition") << std::endl;
+        // TODO: Check if the condition is satisfied
+        return true;
+    }
+    else if (condition.contains("attribute")) {
+        std::cout << "Reached" << condition.at("attribute") << std::endl;
+        // TODO: Check if the attribute exists
+        return true;
+    }
+    return false;
 }
-
 
 /**
  * @brief Adds element to sdf_required depending on the conformance.
@@ -1236,18 +1263,31 @@ std::function<bool()> buildEvaluator(const std::string& expr) {
  * @param current_node The reference tree node of the current element.
  * @return 0 on success, negative on failure.
  */
-int MapMatterConformance(const matter::Conformance& conformance) {
+void MapMatterConformance(const matter::Conformance& conformance) {
     if (conformance.mandatory.has_value()) {
         if (conformance.mandatory.value()) {
             sdf_required_list.push_back(current_given_name_node->GeneratePointer());
         }
     }
+    if (!conformance.condition.is_null()) {
+        EvaluateConformanceCondition(conformance.condition);
+        if (conformance.mandatory.has_value())
+            current_given_name_node->AddAttribute("mandatoryConform", conformance.condition);
+        else if (conformance.optional.has_value())
+            current_given_name_node->AddAttribute("optionalConform", conformance.condition);
+        else if (conformance.provisional.has_value())
+            current_given_name_node->AddAttribute("provisionalConform", conformance.condition);
+        else if (conformance.deprecated.has_value())
+            current_given_name_node->AddAttribute("deprecatedConform", conformance.condition);
+        else if (conformance.disallowed.has_value())
+            current_given_name_node->AddAttribute("disallowConform", conformance.condition);
+    }
+
     // TODO: Currently there seems to be no way to handle conformance based on the selected feature
     // That's why the boolean expression is outsourced to the mapping file
     //if (conformance.condition.has_value()) {
     //    sdf_node.append_attribute("condition").set_value(conformance.condition.value().c_str());
     //}
-    return 0;
 }
 
 sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_field_list)

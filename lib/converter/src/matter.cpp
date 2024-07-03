@@ -18,10 +18,12 @@
 #include <iostream>
 #include <cstring>
 #include <pugixml.hpp>
+#include <nlohmann/json.hpp>
 #include "matter.h"
 
 namespace matter {
 
+//! Function used to parse a quality node into a OtherQuality object
 OtherQuality ParseOtherQuality(const pugi::xml_node& parent_node) {
     OtherQuality other_quality;
     auto other_quality_node = parent_node.child("quality");
@@ -61,6 +63,7 @@ OtherQuality ParseOtherQuality(const pugi::xml_node& parent_node) {
     return other_quality;
 }
 
+//! Function used to parse a constraint node into a Constraint object
 Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
     Constraint constraint;
     constraint.type = constraint_node.attribute("type").value();
@@ -118,41 +121,41 @@ Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
     return constraint;
 }
 
-int parse_logical_term(const pugi::xml_node& logical_node, std::string& condition) {
+//! Function used to parse a logical term into a JSON representation
+//! This will allow the easy exporting to the mapping aswell as the
+//! easy evaluation for the contained expression
+nlohmann::json ParseLogicalTerm(const pugi::xml_node& logical_node) {
+    nlohmann::json condition;
     std::string node_name = logical_node.name();
     if (node_name == "orTerm") {
-        for (auto or_child: logical_node.child("orTerm").children()) {
-            parse_logical_term(or_child, condition);
-            condition.append("||");
+        for (auto or_child: logical_node.children()) {
+            condition["orTerm"].push_back(ParseLogicalTerm(or_child));
         }
     } else if (node_name == "andTerm") {
-        for (auto and_child: logical_node.child("andTerm").children()) {
-            parse_logical_term(and_child, condition);
-            condition.append("&&");
+        for (auto and_child: logical_node.children()) {
+            condition["andTerm"].push_back(ParseLogicalTerm(and_child));
         }
     } else if (node_name == "xorTerm") {
-        for (auto xor_child: logical_node.child("xorTerm").children()) {
-            parse_logical_term(xor_child, condition);
-            condition.append("^^");
+        for (auto xor_child: logical_node.children()) {
+            condition["xorTerm"].push_back(ParseLogicalTerm(xor_child));
         }
     } else if (node_name == "notTerm") {
-        for (auto not_child: logical_node.child("notTerm").children()) {
-            condition.append("!");
-            parse_logical_term(not_child, condition);
+        for (auto not_child: logical_node.children()) {
+            condition["notTerm"].push_back(ParseLogicalTerm(not_child));
         }
     }
-    // Parentheses
     else if (node_name == "feature") {
-        condition.append(logical_node.child("feature").attribute("name").value());
+        condition["feature"]["name"] = logical_node.attribute("name").value();
     } else if (node_name == "condition") {
-        condition.append(logical_node.child("condition").attribute("name").value());
+        condition["condition"]["name"] = logical_node.attribute("name").value();
     } else if (node_name == "attribute") {
-        condition.append(logical_node.child("attribute").attribute("name").value());
+        condition["attribute"]["name"] = logical_node.attribute("name").value();
     }
 
-    return 0;
+    return condition;
 }
 
+//! Function used to parse a conformance node into a Conformance object
 Conformance ParseConformance(const pugi::xml_node& conformance_node) {
     Conformance conformance;
     // Mandatory conform
@@ -160,14 +163,14 @@ Conformance ParseConformance(const pugi::xml_node& conformance_node) {
         conformance.mandatory = true;
         // If the conformance has a child it is bound to a condition
         if (!conformance_node.child("mandatoryConform").children().empty())
-            parse_logical_term(conformance_node.child("mandatoryConform").first_child(), conformance.condition);
+            conformance.condition = ParseLogicalTerm(conformance_node.child("mandatoryConform").first_child());
     }
     // Optional conform
     else if (!conformance_node.child("optionalConform").empty()) {
         conformance.optional = true;
         // If the conformance has a child it is bound to a condition
         if (!conformance_node.child("optionalConform").children().empty())
-            parse_logical_term(conformance_node.child("optionalConform").first_child(), conformance.condition);
+            conformance.condition = ParseLogicalTerm(conformance_node.child("optionalConform").first_child());
     }
 
     // Provisional conform
@@ -175,21 +178,21 @@ Conformance ParseConformance(const pugi::xml_node& conformance_node) {
         conformance.provisional = true;
         // If the conformance has a child it is bound to a condition
         if (!conformance_node.child("provisionalConform").children().empty())
-            parse_logical_term(conformance_node.child("provisionalConform").first_child(), conformance.condition);
+            conformance.condition = ParseLogicalTerm(conformance_node.child("provisionalConform").first_child());
     }
     // Deprecated conform
     else if (!conformance_node.child("deprecatedConform").empty()) {
         conformance.deprecated = true;
         // If the conformance has a child it is bound to a condition
         if (!conformance_node.child("deprecatedConform").children().empty())
-            parse_logical_term(conformance_node.child("deprecatedConform").first_child(), conformance.condition);
+            conformance.condition = ParseLogicalTerm(conformance_node.child("deprecatedConform").first_child());
     }
     // Disallowed conform
     else if (!conformance_node.child("disallowConform").empty()) {
         conformance.disallowed = true;
         // If the conformance has a child it is bound to a condition
         if (!conformance_node.child("disallowConform").children().empty())
-            parse_logical_term(conformance_node.child("disallowConform").first_child(), conformance.condition);
+            conformance.condition = ParseLogicalTerm(conformance_node.child("disallowConform").first_child());
     }
     // Otherwise conform
     else if (!conformance_node.child("otherwiseConform").empty()) {
@@ -211,6 +214,7 @@ Conformance ParseConformance(const pugi::xml_node& conformance_node) {
     return conformance;
 }
 
+//! Function used to parse a access node into a Access object
 Access ParseAccess(const pugi::xml_node& access_node) {
     Access access;
     if (!access_node.attribute("read").empty())
@@ -903,6 +907,7 @@ pugi::xml_document SerializeCluster(const Cluster &cluster) {
 
     cluster_node.append_attribute("id").set_value(IntToHex(cluster.id).c_str());
     cluster_node.append_attribute("name").set_value(cluster.name.c_str());
+    cluster_node.append_attribute("revision").set_value(cluster.revision);
 
     if (cluster.conformance.has_value())
         SerializeConformance(cluster.conformance.value(), cluster_node);
