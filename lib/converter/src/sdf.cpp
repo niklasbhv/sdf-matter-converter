@@ -15,10 +15,7 @@
  */
 
 #include <string>
-
 #include <nlohmann/json.hpp>
-
-#include "matter.h"
 #include "sdf.h"
 
 using json = nlohmann::ordered_json;
@@ -164,11 +161,9 @@ void ParseDataQualities(json& data_qualities_json, DataQuality& data_quality)
     if (data_qualities_json.contains("enum"))
         data_qualities_json.at("enum").get_to(data_quality.enum_);
 
-    // Select a fitting datatype for the default quality
     if (data_qualities_json.contains("const"))
         data_qualities_json.at("const").get_to(data_quality.default_);
 
-    // Select a fitting datatype for the default quality
     if (data_qualities_json.contains("default"))
         data_qualities_json.at("default").get_to(data_quality.default_);
 
@@ -369,7 +364,12 @@ SdfThing ParseSdfThing(json& sdf_thing_json)
 
     ParseCommonQualities(sdf_thing_json, sdf_thing);
 
-    // sdf_thing
+    // Iterate through all sdfThings and parse them individually
+    if (sdf_thing_json.contains("sdfThing")){
+        for (const auto& nested_sdf_thing_json : sdf_thing_json.at("sdfThing").items()) {
+            sdf_thing.sdf_thing.insert({nested_sdf_thing_json.key(), ParseSdfThing(nested_sdf_thing_json.value())});
+        }
+    }
 
     // Iterate through all sdfObjects and parse them individually
     if (sdf_thing_json.contains("sdfObject")){
@@ -858,7 +858,14 @@ json SerializeSdfThing(const SdfThing& sdf_thing)
     // Serialize the common qualities
     SerializeCommonQualities(sdf_thing, sdf_thing_json);
 
-    // sdf_thing
+    // Serialize the sdfThings
+    if (!sdf_thing.sdf_thing.empty()) {
+        json nested_sdf_thing_json;
+        for (const auto& sdf_thing_pair: sdf_thing.sdf_thing) {
+            nested_sdf_thing_json[sdf_thing_pair.first] = SerializeSdfThing(sdf_thing_pair.second);
+        }
+        sdf_thing_json["sdfThing"] = nested_sdf_thing_json;
+    }
 
     // Serialize the sdfObjects
     if (!sdf_thing.sdf_object.empty()) {
@@ -958,9 +965,7 @@ json SerializeInformationBlock(const InformationBlock& information_block)
     return info_block_json;
 }
 
-/*
- * Serialize a sdf-model into the json format.
- */
+//! Serialize a SdfModel object into the json format.
 json SerializeSdfModel(const SdfModel& sdf_model)
 {
     json sdf_model_json;
@@ -993,24 +998,11 @@ json SerializeSdfModel(const SdfModel& sdf_model)
     return sdf_model_json;
 }
 
-// Custom to_json function for std::variant
-template <typename... Types>
-void to_json(nlohmann::ordered_json& j, const std::variant<Types...>& v) {
-    std::visit([&j](const auto& value) {
-        j = value; // Serialize the current value to JSON
-    }, v);
-}
-
-/*
- * Serialize a sdf-mapping back into the json format.
- */
+//! Serialize a SdfMapping object into the json format.
 json SerializeSdfMapping(const SdfMapping& sdf_mapping)
 {
     json sdf_mapping_json;
     // Serialize the information block
-    json j;
-    MappingValue test = 1;
-    to_json(j, test);
     if (sdf_mapping.information_block.has_value())
         sdf_mapping_json["info"] = SerializeInformationBlock(sdf_mapping.information_block.value());
 
