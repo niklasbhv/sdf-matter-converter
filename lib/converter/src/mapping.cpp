@@ -1443,6 +1443,18 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map)
     current_quality_name_node->AddAttribute("features", feature_map_json);
 }
 
+void MapClusterClassification(const matter::ClusterClassification& cluster_classification)
+{
+    json cluster_classification_json;
+    cluster_classification_json["hierarchy"] = cluster_classification.hierarchy;
+    cluster_classification_json["role"] = cluster_classification.role;
+    cluster_classification_json["picsCode"] = cluster_classification.picsCode;
+    cluster_classification_json["scope"] = cluster_classification.scope;
+    cluster_classification_json["baseCluster"] = cluster_classification.base_cluster;
+    cluster_classification_json["primaryTransaction"] = cluster_classification.primary_transaction;
+    current_quality_name_node->AddAttribute("classification", cluster_classification_json);
+}
+
 sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
 {
     sdf::SdfObject sdf_object;
@@ -1467,7 +1479,8 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
     }
     cluster_reference->AddAttribute("revisionHistory", revision_history_json);
 
-    //cluster_reference->AddAttribute("classification", cluster.classification);
+    if (cluster.classification.has_value())
+        MapClusterClassification(cluster.classification.value());
 
     MapFeatureMap(cluster.feature_map);
 
@@ -1526,6 +1539,15 @@ sdf::InformationBlock GenerateInformationBlock(const std::variant<matter::Device
     return information_block;
 }
 
+void MapDeviceClassification(const matter::DeviceClassification& device_classification)
+{
+    json device_classification_json;
+    device_classification_json["superset"] = device_classification.superset;
+    device_classification_json["class"] = device_classification.class_;
+    device_classification_json["scope"] = device_classification.scope;
+    current_given_name_node->AddAttribute("classification", device_classification_json);
+}
+
 sdf::SdfThing MapMatterDevice(const matter::Device& device)
 {
     sdf::SdfThing sdf_thing;
@@ -1535,7 +1557,8 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
     current_given_name_node = device_reference;
 
     device_reference->AddAttribute("id", (uint64_t) device.id);
-    // device.classification -> sdfMapping
+    if (device.classification.has_value())
+        MapDeviceClassification(device.classification.value());
     if (device.conformance.has_value())
         MapMatterConformance(device.conformance.value());
     // Export the revision history to the mapping
