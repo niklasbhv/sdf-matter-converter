@@ -1576,9 +1576,15 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
     sdf_thing.description = device.summary;
 
     // Iterate through cluster definitions for the device
+    auto* sdf_object_reference = new ReferenceTreeNode("sdfObject");
+    device_reference->AddChild(sdf_object_reference);
+    current_quality_name_node = sdf_object_reference;
     for (const auto& cluster : device.clusters){
-        sdf::SdfObject sdf_object = MapMatterCluster(cluster);;
+        sdf::SdfObject sdf_object = MapMatterCluster(cluster);
+        // Clear the sdfRequired list as it would result in duplicates
+        sdf_object.sdf_required.clear();
         sdf_thing.sdf_object.insert({cluster.name, sdf_object});
+        current_quality_name_node = sdf_object_reference;
     }
     sdf_thing.sdf_required = sdf_required_list;
 
@@ -1638,10 +1644,10 @@ int MapMatterToSdf(const std::optional<matter::Device>& optional_device,
                    sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping)
 {
     ReferenceTree reference_tree;
-    current_quality_name_node = new ReferenceTreeNode("sdfObject");
-    reference_tree.root->AddChild(current_quality_name_node);
-
     if (optional_device.has_value()) {
+        auto* sdf_thing_reference = new ReferenceTreeNode("sdfThing");
+        reference_tree.root->AddChild(sdf_thing_reference);
+        current_quality_name_node = sdf_thing_reference;
         matter::Device device = optional_device.value();
         sdf_model.information_block = GenerateInformationBlock(device);
         sdf_mapping.information_block = GenerateInformationBlock(device);
@@ -1649,11 +1655,15 @@ int MapMatterToSdf(const std::optional<matter::Device>& optional_device,
         sdf::SdfThing sdf_thing = MapMatterDevice(device);
         sdf_model.sdf_thing.insert({sdf_thing.label, sdf_thing});
     } else {
+        auto* sdf_object_reference = new ReferenceTreeNode("sdfObject");
+        reference_tree.root->AddChild(sdf_object_reference);
+        current_quality_name_node = sdf_object_reference;
         for (const auto& cluster : cluster_list) {
             sdf_model.information_block = GenerateInformationBlock(cluster);
             sdf_mapping.information_block = GenerateInformationBlock(cluster);
             sdf::SdfObject sdf_object = MapMatterCluster(cluster);
             sdf_model.sdf_object.insert({sdf_object.label, sdf_object});
+            current_quality_name_node = sdf_object_reference;
         }
     }
 
