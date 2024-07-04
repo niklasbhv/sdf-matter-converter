@@ -191,7 +191,7 @@ struct Conformance {
     //! List representing the choice element
     std::list<Conformance> choice;
     //! Represents the entire logical term as nested json objects
-    nlohmann::json condition;
+    nlohmann::json condition = nlohmann::json::object();
 
 };
 

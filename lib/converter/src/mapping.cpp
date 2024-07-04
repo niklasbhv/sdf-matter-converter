@@ -1310,7 +1310,7 @@ void MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdf_propert
 
 bool EvaluateConformanceCondition(const json& condition)
 {
-    if (condition.is_null())
+    if (condition.empty())
         return true;
     else if (condition.contains("andTerm")) {
         // Return true, if all the contained expressions evaluate to true
@@ -1383,20 +1383,16 @@ bool MapMatterConformance(const matter::Conformance& conformance) {
         }
     }
 
-    if (!conformance.condition.is_null()) {
-        if (conformance.mandatory.has_value())
-            current_given_name_node->AddAttribute("mandatoryConform", conformance.condition);
-        else if (conformance.optional.has_value())
-            current_given_name_node->AddAttribute("optionalConform", conformance.condition);
-        else if (conformance.provisional.has_value())
-            current_given_name_node->AddAttribute("provisionalConform", conformance.condition);
-        else if (conformance.deprecated.has_value())
-            current_given_name_node->AddAttribute("deprecatedConform", conformance.condition);
-        else if (conformance.disallowed.has_value())
-            current_given_name_node->AddAttribute("disallowConform", conformance.condition);
-    } else {
-        return true;
-    }
+    if (conformance.mandatory.has_value())
+        current_given_name_node->AddAttribute("mandatoryConform", conformance.condition);
+    else if (conformance.optional.has_value())
+        current_given_name_node->AddAttribute("optionalConform", conformance.condition);
+    else if (conformance.provisional.has_value())
+        current_given_name_node->AddAttribute("provisionalConform", conformance.condition);
+    else if (conformance.deprecated.has_value())
+        current_given_name_node->AddAttribute("deprecatedConform", conformance.condition);
+    else if (conformance.disallowed.has_value())
+        current_given_name_node->AddAttribute("disallowConform", conformance.condition);
 
     return EvaluateConformanceCondition(conformance.condition);
 }
