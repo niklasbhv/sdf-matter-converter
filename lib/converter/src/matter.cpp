@@ -1004,7 +1004,15 @@ pugi::xml_document SerializeDevice(const Device& device) {
     // Iterate through all clusters and serialize them individually
     auto clusters_node = device_node.append_child("clusters");
     for (const auto &cluster: device.clusters) {
-        clusters_node.append_move(SerializeCluster(cluster).document_element());
+        auto cluster_node = clusters_node.append_child("cluster");
+        cluster_node.append_attribute("id").set_value(IntToHex(cluster.id).c_str());
+        cluster_node.append_attribute("name").set_value(cluster.name.c_str());
+        if (!cluster.side.empty())
+            cluster_node.append_attribute("side").set_value(cluster.side.c_str());
+        else
+            cluster_node.append_attribute("side").set_value("server");
+        if (cluster.conformance.has_value())
+            SerializeConformance(cluster.conformance.value(), cluster_node);
     }
 
     return device_document_xml;
