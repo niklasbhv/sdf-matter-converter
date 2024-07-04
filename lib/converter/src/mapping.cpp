@@ -335,23 +335,6 @@ matter::DataField MapSdfData(sdf::DataQuality& data_quality)
     return data_field;
 }
 
-//! Maps a sdfEvent onto a Matter event
-matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event_pair)
-{
-    matter::Event event;
-    auto* sdf_event_reference = new ReferenceTreeNode(sdf_event_pair.first);
-    current_quality_name_node->AddChild(sdf_event_reference);
-    //TODO: Event needs an ID, this needs to be set here
-    event.name = sdf_event_pair.second.label;
-    event.summary = sdf_event_pair.second.description;
-    //sdf_required TODO: Collect these and set the conformance for the corresponding element to mandatory
-    //sdf_output_data TODO: How do we map sdf_output_data to the Event Fields?
-    for (auto elem : sdf_event_pair.second.sdf_data) {
-        MapSdfData(elem.second);
-    }
-    return event;
-}
-
 //! Maps either a sdfInputData or sdfOutputData element onto a Matter data field
 matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality)
 {
@@ -379,6 +362,24 @@ matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality)
     //content_format
 
     return data_field;
+}
+
+//! Maps a sdfEvent onto a Matter event
+matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event_pair)
+{
+    matter::Event event;
+    auto* sdf_event_reference = new ReferenceTreeNode(sdf_event_pair.first);
+    current_quality_name_node->AddChild(sdf_event_reference);
+    ImportFromMapping(sdf_event_reference->GeneratePointer(), "id", event.id);
+    event.name = sdf_event_pair.second.label;
+    event.summary = sdf_event_pair.second.description;
+    //sdf_required TODO: Collect these and set the conformance for the corresponding element to mandatory
+    if (sdf_event_pair.second.sdf_output_data.has_value())
+        MapSdfInputOutputData(sdf_event_pair.second.sdf_output_data.value());
+    for (auto elem : sdf_event_pair.second.sdf_data) {
+        MapSdfData(elem.second);
+    }
+    return event;
 }
 
 //! Maps a sdfAction onto a Matter client and optionally on a server command
@@ -470,17 +471,60 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     return attribute;
 }
 
+std::list<matter::Feature> GenerateFeatureMap()
+{
+    std::list<matter::Feature> feature_map;
+    json feature_map_json;
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "features", feature_map_json);
+    for (const auto& feature_json : feature_map_json) {
+        matter::Feature feature;
+        if (feature_json.contains("bit"))
+            feature_json.at("bit").get_to(feature.bit);
+        if (feature_json.contains("code"))
+            feature_json.at("code").get_to(feature.code);
+        if (feature_json.contains("name"))
+            feature_json.at("name").get_to(feature.name);
+        if (feature_json.contains("summary"))
+            feature_json.at("summary").get_to(feature.summary);
+        feature_map.push_back(feature);
+    }
+    return feature_map;
+}
+
+matter::ClusterClassification GenerateClusterClassification()
+{
+    matter::ClusterClassification cluster_classification;
+    json cluster_classification_json;
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "classification", cluster_classification_json);
+    if (cluster_classification_json.contains("hierarchy"))
+        cluster_classification_json.at("hierarchy").get_to(cluster_classification.hierarchy);
+    if (cluster_classification_json.contains("role"))
+        cluster_classification_json.at("role").get_to(cluster_classification.role);
+    if (cluster_classification_json.contains("picsCode"))
+        cluster_classification_json.at("picsCode").get_to(cluster_classification.picsCode);
+    if (cluster_classification_json.contains("scope"))
+        cluster_classification_json.at("scope").get_to(cluster_classification.scope);
+    if (cluster_classification_json.contains("baseCluster"))
+        cluster_classification_json.at("baseCluster").get_to(cluster_classification.base_cluster);
+    if (cluster_classification_json.contains("primaryTransaction"))
+        cluster_classification_json.at("primaryTransaction").get_to(cluster_classification.primary_transaction);
+
+    return cluster_classification;
+}
+
 //! Maps a sdfObject onto a Matter cluster
 matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_object_pair)
 {
     matter::Cluster cluster;
     auto* sdf_object_reference = new ReferenceTreeNode(sdf_object_pair.first);
     current_quality_name_node->AddChild(sdf_object_reference);
+    current_given_name_node = sdf_object_reference;
 
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "id", cluster.id);
     cluster.name = sdf_object_pair.second.label;
     // conformance
     cluster.summary = sdf_object_pair.second.description;
+    ImportFromMapping(sdf_object_reference->GeneratePointer(), "side", cluster.side);
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "revision", cluster.revision);
     json revision_history_json;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "revisionHistory", revision_history_json);
@@ -491,7 +535,9 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
         item.at("summary").get_to(summary);
         cluster.revision_history[revision] = summary;
     }
-    // classification
+    cluster.classification = GenerateClusterClassification();
+
+    cluster.feature_map = GenerateFeatureMap();
 
     // Iterate through all sdfProperties and parse them individually
     auto* sdf_property_reference = new ReferenceTreeNode("sdfProperty");
@@ -523,6 +569,20 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     return cluster;
 }
 
+matter::DeviceClassification GenerateDeviceClassification()
+{
+    matter::DeviceClassification device_classification;
+    json device_classification_json;
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "classification", device_classification_json);
+    if (device_classification_json.contains("superset"))
+        device_classification_json.at("superset").get_to(device_classification.superset);
+    if (device_classification_json.contains("class"))
+        device_classification_json.at("class").get_to(device_classification.class_);
+    if (device_classification_json.contains("scope"))
+        device_classification_json.at("scope").get_to(device_classification.scope);
+    return device_classification;
+}
+
 //! Maps a sdfThing onto a Matter device type
 matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thing_pair)
 {
@@ -530,12 +590,24 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     // Add the current sdf_thing to the reference tree
     auto* sdf_thing_reference = new ReferenceTreeNode(sdf_thing_pair.first);
     current_quality_name_node->AddChild(sdf_thing_reference);
+    current_given_name_node = sdf_thing_reference;
     // Import the ID from the mapping
     ImportFromMapping(sdf_thing_reference->GeneratePointer(), "id", device.id);
     device.name = sdf_thing_pair.second.label;
     device.summary = sdf_thing_pair.second.description;
-    // revision
-    // revision_history
+    // Import the revision as well as the revision history from the mapping
+    ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revision", device.revision);
+    json revision_history_json;
+    ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revisionHistory", revision_history_json);
+    for (const auto& item : revision_history_json) {
+        u_int8_t revision;
+        item.at("revision").get_to(revision);
+        std::string summary;
+        item.at("summary").get_to(summary);
+        device.revision_history[revision] = summary;
+    }
+
+    device.classification = GenerateDeviceClassification();
 
     // Iterate through all sdfObjects and map them individually
     for (const auto& sdf_object_pair : sdf_thing_pair.second.sdf_object) {
@@ -560,7 +632,7 @@ int MapSdfToMatter(const sdf::SdfModel& sdf_model,
 
     // Initialize a reference tree used to resolve json references
     ReferenceTree reference_tree;
-
+    // Check if the model contains either sdfThings or sdfObject at the top level
     if (!sdf_model.sdf_thing.empty()){
         current_quality_name_node = new ReferenceTreeNode("sdfThing");
         reference_tree.root->AddChild(current_quality_name_node);
@@ -569,11 +641,13 @@ int MapSdfToMatter(const sdf::SdfModel& sdf_model,
             if (optional_device.has_value())
                 cluster_list = optional_device.value().clusters;
         }
-    } else if (!sdf_model.sdf_object.empty()){
+    }
+    else if (!sdf_model.sdf_object.empty()){
         // Make sure, that optional_device is empty, as there is no sdfThing present
         optional_device.reset();
         current_quality_name_node = new ReferenceTreeNode("sdfObject");
         reference_tree.root->AddChild(current_quality_name_node);
+        // Iterate through all sdfObjects and add them to the list of clusters, after mapping them
         for (const auto& sdf_object_pair : sdf_model.sdf_object) {
             matter::Cluster cluster = MapSdfObject(sdf_object_pair);
             cluster_list.push_back(cluster);
@@ -1455,7 +1529,7 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map)
         }
         feature_map_json.push_back(feature_json);
     }
-    current_quality_name_node->AddAttribute("features", feature_map_json);
+    current_given_name_node->AddAttribute("features", feature_map_json);
 }
 
 void MapClusterClassification(const matter::ClusterClassification& cluster_classification)
@@ -1467,7 +1541,7 @@ void MapClusterClassification(const matter::ClusterClassification& cluster_class
     cluster_classification_json["scope"] = cluster_classification.scope;
     cluster_classification_json["baseCluster"] = cluster_classification.base_cluster;
     cluster_classification_json["primaryTransaction"] = cluster_classification.primary_transaction;
-    current_quality_name_node->AddAttribute("classification", cluster_classification_json);
+    current_given_name_node->AddAttribute("classification", cluster_classification_json);
 }
 
 sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
