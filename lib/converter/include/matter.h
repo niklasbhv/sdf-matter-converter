@@ -347,6 +347,8 @@ struct ClusterClassification {
  * Struct which contains Matter cluster information.
  */
 struct Cluster : CommonQuality {
+    //! Either server, client or empty
+    std::string side;
     //! Current revision
     int revision;
     //! History of revisions
@@ -394,10 +396,8 @@ struct Device : CommonQuality {
     std::optional<DeviceClassification> classification;
     //! Device conditions
     std::map<std::string, std::string> conditions;
-    //! List of used server clusters
-    std::list<Cluster> server_clusters;
-    //! List of used client clusters
-    std::list<Cluster> client_clusters;
+    //! List of used server and client clusters
+    std::list<Cluster> clusters;
 };
 
 /**

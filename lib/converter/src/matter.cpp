@@ -436,7 +436,10 @@ Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
     Cluster cluster;
     cluster.id = cluster_xml.attribute("id").as_int();
     cluster.name = cluster_xml.attribute("name").value();
+    cluster.conformance = ParseConformance(cluster_xml);
     cluster.summary = cluster_xml.attribute("summary").value();
+    if (!cluster_xml.attribute("side").empty())
+        cluster.side = cluster_xml.attribute("side").value();
     cluster.revision = cluster_xml.attribute("revision").as_int();
 
     // Iterate through all revisions and parse them individually
@@ -523,11 +526,7 @@ Device ParseDevice(const pugi::xml_node& device_xml) {
 
     // Iterate through all clusters needed by the device and parse them individually
     for (const auto &cluster_node: device_xml.child("clusters").children("cluster")) {
-        std::string side = cluster_node.attribute("side").value();
-            if (side == "client")
-                device.client_clusters.push_back(ParseCluster(cluster_node));
-            else if (side == "server")
-                device.server_clusters.push_back(ParseCluster(cluster_node));
+        device.clusters.push_back(ParseCluster(cluster_node));
     }
 
     return device;
@@ -1004,11 +1003,8 @@ pugi::xml_document SerializeDevice(const Device& device) {
 
     // Iterate through all clusters and serialize them individually
     auto clusters_node = device_node.append_child("clusters");
-    for (const auto &server_cluster: device.server_clusters) {
-        clusters_node.append_move(SerializeCluster(server_cluster).document_element());
-    }
-    for (const auto &client_cluster: device.client_clusters) {
-        clusters_node.append_move(SerializeCluster(client_cluster).document_element());
+    for (const auto &cluster: device.clusters) {
+        clusters_node.append_move(SerializeCluster(cluster).document_element());
     }
 
     return device_document_xml;

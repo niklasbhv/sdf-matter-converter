@@ -541,9 +541,7 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     for (const auto& sdf_object_pair : sdf_thing_pair.second.sdf_object) {
         current_quality_name_node = new ReferenceTreeNode("sdfObject");
         sdf_thing_reference->AddChild(current_quality_name_node);
-        device.server_clusters.push_back(MapSdfObject(sdf_object_pair));
-        // TODO: Differentiate between server and client clusters
-        // Should default to a server cluster, if no information is given
+        device.clusters.push_back(MapSdfObject(sdf_object_pair));
     }
 
     return device;
@@ -1469,9 +1467,27 @@ void MapClusterClassification(const matter::ClusterClassification& cluster_class
 sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
 {
     sdf::SdfObject sdf_object;
-    auto* cluster_reference = new ReferenceTreeNode(cluster.name);
-    current_quality_name_node->AddChild(cluster_reference);
-    current_given_name_node = cluster_reference;
+    ReferenceTreeNode* cluster_reference;
+    // When combined with a device type definition, we have to differentiate between server and client clusters, as they
+    // differentiate in the way they are translated. Furthermore, as a device type can have the same cluster as a server
+    // as well as a client cluster at the same time, we have to add an appendix to their given name, as they would
+    // otherwise override each other. If side is missing, that indicates, that the cluster is processed without a
+    // device type definition.
+    if (cluster.side == "client") {
+        cluster_reference = new ReferenceTreeNode(cluster.name + "_Client");
+        current_quality_name_node->AddChild(cluster_reference);
+        current_given_name_node = cluster_reference;
+        cluster_reference->AddAttribute("side", cluster.side);
+    } else if (cluster.side == "server"){
+        cluster_reference = new ReferenceTreeNode(cluster.name + "_Server");
+        current_quality_name_node->AddChild(cluster_reference);
+        current_given_name_node = cluster_reference;
+        cluster_reference->AddAttribute("side", cluster.side);
+    } else {
+        cluster_reference = new ReferenceTreeNode(cluster.name);
+        current_quality_name_node->AddChild(cluster_reference);
+        current_given_name_node = cluster_reference;
+    }
 
     cluster_reference->AddAttribute("id", (uint64_t) cluster.id);
     sdf_object.label = cluster.name;
@@ -1590,20 +1606,17 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
     auto* sdf_object_reference = new ReferenceTreeNode("sdfObject");
     device_reference->AddChild(sdf_object_reference);
     current_quality_name_node = sdf_object_reference;
-    for (const auto& cluster : device.server_clusters){
+    for (const auto& cluster : device.clusters){
         sdf::SdfObject sdf_object = MapMatterCluster(cluster);
         // Clear the sdfRequired list as it would result in duplicates
         sdf_object.sdf_required.clear();
-        sdf_thing.sdf_object.insert({cluster.name, sdf_object});
-        current_quality_name_node = sdf_object_reference;
-        // Clear the list of supported features after every run
-        supported_features.clear();
-    }
-    for (const auto& cluster : device.client_clusters){
-        sdf::SdfObject sdf_object = MapMatterCluster(cluster);
-        // Clear the sdfRequired list as it would result in duplicates
-        sdf_object.sdf_required.clear();
-        sdf_thing.sdf_object.insert({cluster.name, sdf_object});
+        if (cluster.side == "client")
+            sdf_thing.sdf_object.insert({cluster.name + "_Client", sdf_object});
+        else if (cluster.side == "server")
+            sdf_thing.sdf_object.insert({cluster.name + "_Server", sdf_object});
+        else {
+            std::cout << "Something went wrong" << std::endl;
+        }
         current_quality_name_node = sdf_object_reference;
         // Clear the list of supported features after every run
         supported_features.clear();
@@ -1616,55 +1629,14 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
 //! Function used to merge device and cluster specifications together
 void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>& cluster_list)
 {
-    for (auto& device_cluster : device.server_clusters) {
+    for (auto& device_cluster : device.clusters) {
         for (const auto& cluster: cluster_list) {
             if (device_cluster.id == cluster.id) {
                 matter::Cluster temp_cluster = cluster;
                 // Overwrite the conformance for the cluster
                 temp_cluster.conformance = device_cluster.conformance;
-                // Overwrite the feature conformance's
-                for (auto &device_feature: device_cluster.feature_map) {
-                    for (auto &cluster_feature: temp_cluster.feature_map) {
-                        if (device_feature.name == cluster_feature.name) {
-                            cluster_feature.conformance = device_feature.conformance;
-                        }
-                    }
-                }
-
-                // Overwrite certain attributes
-                for (auto &device_attribute: device_cluster.attributes) {
-                    for (auto &cluster_attribute: temp_cluster.attributes) {
-                        if (device_attribute.name == cluster_attribute.name) {
-
-                        }
-                    }
-                }
-                // Overwrite certain commands
-                for (auto &client_command: device_cluster.client_commands) {
-
-                }
-                // Overwrite certain commands
-                for (auto &server_command: device_cluster.server_commands) {
-
-                }
-                // Overwrite certain events
-                for (auto &device_event: device_cluster.events) {
-                    for (auto &cluster_event: temp_cluster.events) {
-                        if (device_event.name == cluster_event.name) {
-
-                        }
-                    }
-                }
-                device_cluster = temp_cluster;
-            }
-        }
-    }
-    for (auto& device_cluster : device.client_clusters) {
-        for (const auto& cluster: cluster_list) {
-            if (device_cluster.id == cluster.id) {
-                matter::Cluster temp_cluster = cluster;
-                // Overwrite the conformance for the cluster
-                temp_cluster.conformance = device_cluster.conformance;
+                // Set the side of the cluster
+                temp_cluster.side = device_cluster.side;
                 // Overwrite the feature conformance's
                 for (auto &device_feature: device_cluster.feature_map) {
                     for (auto &cluster_feature: temp_cluster.feature_map) {
