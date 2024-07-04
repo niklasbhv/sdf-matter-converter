@@ -872,6 +872,18 @@ void SerializeDataTypes(const Cluster& cluster, pugi::xml_node& cluster_xml) {
     }
 }
 
+void SerializeFeatureMap(const std::list<matter::Feature>& features_map, pugi::xml_node& cluster_node)
+{
+    auto features_node = cluster_node.append_child("features");
+    for (const auto& feature : features_map) {
+        auto feature_node = features_node.append_child("feature");
+        feature_node.append_attribute("bit").set_value(feature.bit);
+        feature_node.append_attribute("code").set_value(feature.code.c_str());
+        feature_node.append_attribute("name").set_value(feature.name.c_str());
+        feature_node.append_attribute("summary").set_value(feature.summary.c_str());
+    }
+}
+
 //! Serializes a cluster classification into a xml node and appends it to the given parent node
 void SerializeClusterClassification(const ClusterClassification& cluster_classification, pugi::xml_node& cluster_node) {
     auto classification_node = cluster_node.append_child("classification");
@@ -914,10 +926,6 @@ void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml)
     if (!cluster.summary.empty())
         cluster_node.append_attribute("summary").set_value(cluster.summary.c_str());
 
-    // Serialize the classification information
-    if (cluster.classification.has_value())
-        SerializeClusterClassification(cluster.classification.value(), cluster_node);
-
     // Iterate through all revisions and serialize them individually
     auto revision_history_node = cluster_node.append_child("revisionHistory");
     for (const auto &revision: cluster.revision_history) {
@@ -925,6 +933,13 @@ void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml)
         revision_node.append_attribute("revision").set_value(revision.first);
         revision_node.append_attribute("summary").set_value(revision.second.c_str());
     }
+
+    // Serialize the classification information
+    if (cluster.classification.has_value())
+        SerializeClusterClassification(cluster.classification.value(), cluster_node);
+
+    if (!cluster.feature_map.empty())
+        SerializeFeatureMap(cluster.feature_map, cluster_node);
 
     // Serialize the custom data types
     SerializeDataTypes(cluster, cluster_node);
