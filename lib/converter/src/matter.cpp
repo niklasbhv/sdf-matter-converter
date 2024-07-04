@@ -723,19 +723,19 @@ void SerializeConformance(const Conformance& conformance, pugi::xml_node& parent
     pugi::xml_node conformance_node;
     if (conformance.mandatory.has_value()) {
         if (conformance.mandatory.value())
-            conformance_node = parent_node.append_child("mandatoryConformance");
+            conformance_node = parent_node.append_child("mandatoryConform");
     } else if (conformance.optional.has_value()) {
         if (conformance.optional.value())
-            conformance_node = parent_node.append_child("optionalConformance");
+            conformance_node = parent_node.append_child("optionalConform");
     } else if (conformance.provisional.has_value()) {
         if (conformance.provisional.value())
-            conformance_node = parent_node.append_child("provisionalConformance");
+            conformance_node = parent_node.append_child("provisionalConform");
     } else if (conformance.deprecated.has_value()) {
         if (conformance.deprecated.value())
-            conformance_node = parent_node.append_child("deprecatedConformance");
+            conformance_node = parent_node.append_child("deprecatedConform");
     } else if (conformance.disallowed.has_value()) {
         if (conformance.disallowed.value())
-            conformance_node = parent_node.append_child("disallowedConformance");
+            conformance_node = parent_node.append_child("disallowedConform");
     }
     if (!conformance.condition.is_null())
         SerializeLogicalTerm(conformance.condition, conformance_node);
