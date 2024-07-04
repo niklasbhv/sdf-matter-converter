@@ -430,7 +430,7 @@ Cluster ParseCluster(const pugi::xml_node& cluster_xml);
  * @param device The input device object.
  * @return The resulting device xml.
  */
-pugi::xml_document SerializeDevice(const Device& device);
+void SerializeDevice(const Device& device, pugi::xml_document& device_document_xml);
 
 
 /**
@@ -441,7 +441,7 @@ pugi::xml_document SerializeDevice(const Device& device);
  * @param device The input cluster object.
  * @return The resulting cluster xml.
  */
-pugi::xml_document SerializeCluster(const Cluster& cluster);
+void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml);
 
 } // namespace matter
 

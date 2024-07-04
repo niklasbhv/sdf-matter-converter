@@ -29,7 +29,7 @@
 json reference_map;
 
 //! Set containing the supported features
-//! Contains their short code for usage with conformances
+//! Contains their short code for usage with conformance's
 std::set<std::string> supported_features;
 
 //! List containing required sdf elements
@@ -566,6 +566,8 @@ int MapSdfToMatter(const sdf::SdfModel& sdf_model,
         reference_tree.root->AddChild(current_quality_name_node);
         for (const auto& sdf_thing_pair : sdf_model.sdf_thing) {
             optional_device = MapSdfThing(sdf_thing_pair);
+            if (optional_device.has_value())
+                cluster_list = optional_device.value().clusters;
         }
     } else if (!sdf_model.sdf_object.empty()){
         // Make sure, that optional_device is empty, as there is no sdfThing present
@@ -748,10 +750,14 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Single precision floating point data type
     else if (matter_type == "single") {
         data_quality.type = "number";
+        data_quality.minimum = std::numeric_limits<float>::min();
+        data_quality.minimum = std::numeric_limits<float>::max();
     }
     // Double precision floating point data type
     else if (matter_type == "double") {
         data_quality.type = "number";
+        data_quality.minimum = std::numeric_limits<double>::min();
+        data_quality.minimum = std::numeric_limits<double>::max();
     }
     // Octet string data type
     else if (matter_type == "octstr") {

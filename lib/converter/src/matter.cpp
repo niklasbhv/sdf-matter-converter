@@ -896,8 +896,8 @@ void SerializeClusterClassification(const ClusterClassification& cluster_classif
 }
 
 //! Serializes a cluster object into a xml document
-pugi::xml_document SerializeCluster(const Cluster &cluster) {
-    pugi::xml_document cluster_xml;
+void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml)
+{
     // Create the cluster node
     auto cluster_node = cluster_xml.append_child("cluster");
 
@@ -955,8 +955,6 @@ pugi::xml_document SerializeCluster(const Cluster &cluster) {
             SerializeEvent(event, events_node);
         }
     }
-
-    return cluster_xml;
 }
 
 //! Serializes a device type classification object into a xml node and appends it to the given parent node
@@ -973,11 +971,11 @@ void SerializeDeviceClassification(const DeviceClassification& device_classifica
 }
 
 //! Serializes a device object into a xml document
-pugi::xml_document SerializeDevice(const Device& device) {
-    pugi::xml_document device_document_xml;
-    pugi::xml_node device_xml = device_document_xml.document_element();
-    auto device_node = device_xml.append_child("Device");
-
+void SerializeDevice(const Device& device, pugi::xml_document& device_xml)
+{
+    auto device_node = device_xml.append_child("deviceType");
+    device_node.append_attribute("xmlns:xsi").set_value("http://www.w3.org/2001/XMLSchema-instance");
+    device_node.append_attribute("xsi:schemaLocation").set_value("types types.xsd devicetype devicetype.xsd");
     device_node.append_attribute("id").set_value(IntToHex(device.id).c_str());
     device_node.append_attribute("name").set_value(device.name.c_str());
     device_node.append_attribute("revision").set_value(device.revision);
@@ -1001,6 +999,7 @@ pugi::xml_document SerializeDevice(const Device& device) {
     if (device.classification.has_value())
         SerializeDeviceClassification(device.classification.value(), device_node);
 
+    device_node.append_child("conditions");
     // Iterate through all clusters and serialize them individually
     auto clusters_node = device_node.append_child("clusters");
     for (const auto &cluster: device.clusters) {
@@ -1014,8 +1013,6 @@ pugi::xml_document SerializeDevice(const Device& device) {
         if (cluster.conformance.has_value())
             SerializeConformance(cluster.conformance.value(), cluster_node);
     }
-
-    return device_document_xml;
 }
 
 } // namespace matter
