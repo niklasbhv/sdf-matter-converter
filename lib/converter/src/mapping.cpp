@@ -224,8 +224,6 @@ std::optional<matter::OtherQuality> ImportOtherQualityFromMapping(const std::str
     return other_quality;
 }
 
-matter::Conformance ImportConformanceFromMapping();
-
 //! Generates a Matter access based on information of the provided sdfProperty
 matter::Access GenerateMatterAccess(sdf::SdfProperty)
 {
@@ -240,16 +238,40 @@ matter::Access GenerateMatterAccess(sdf::SdfProperty)
 //! If the referred element mentioned in either of these factors,
 //! a mandatory conformance will be created.
 //! Otherwise a optional conformance will be created.
-matter::Conformance GenerateMatterConformance(std::string& json_pointer)
+matter::Conformance GenerateMatterConformance()
 {
     matter::Conformance conformance;
-    /*
-    if (ImportFromMapping(json_pointer, "conformance"))
-    else if (CheckForRequired(""))
+    json conformance_json;
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "mandatoryConform", conformance_json);
+    if (!conformance_json.is_null()) {
         conformance.mandatory = true;
-    else
+        conformance.condition = conformance_json;
+    }
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "optionalConform", conformance_json);
+    if (!conformance_json.is_null()) {
         conformance.optional = true;
-    */
+        conformance.condition = conformance_json;
+    }
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "provisionalConform", conformance_json);
+    if (!conformance_json.is_null()) {
+        conformance.provisional = true;
+    }
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "deprecatedConform", conformance_json);
+    if (!conformance_json.is_null()) {
+        conformance.deprecated = true;
+    }
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "disallowedConform", conformance_json);
+    if (!conformance_json.is_null()) {
+        conformance.disallowed = true;
+    }
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "otherwiseConformance", conformance_json);
+    if (!conformance_json.is_null()) {}
+
+    //if (CheckForRequired(""))
+    //    conformance.mandatory = true;
+    //else
+    //    conformance.optional = true;
+
     return conformance;
 }
 
@@ -370,10 +392,12 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
     matter::Event event;
     auto* sdf_event_reference = new ReferenceTreeNode(sdf_event_pair.first);
     current_quality_name_node->AddChild(sdf_event_reference);
+    current_given_name_node = sdf_event_reference;
+
     ImportFromMapping(sdf_event_reference->GeneratePointer(), "id", event.id);
     event.name = sdf_event_pair.second.label;
     event.summary = sdf_event_pair.second.description;
-    //sdf_required TODO: Collect these and set the conformance for the corresponding element to mandatory
+    event.conformance = GenerateMatterConformance();
     if (sdf_event_pair.second.sdf_output_data.has_value())
         MapSdfInputOutputData(sdf_event_pair.second.sdf_output_data.value());
     for (auto elem : sdf_event_pair.second.sdf_data) {
@@ -388,6 +412,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     matter::Command client_command;
     auto* sdf_action_reference = new ReferenceTreeNode(sdf_action_pair.first);
     current_quality_name_node->AddChild(sdf_action_reference);
+    current_given_name_node = sdf_action_reference;
 
     ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", client_command.id);
     client_command.name = sdf_action_pair.second.label;
@@ -451,12 +476,13 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     matter::Attribute attribute;
     auto* sdf_property_reference = new ReferenceTreeNode(sdf_property_pair.first);
     current_quality_name_node->AddChild(sdf_property_reference);
+    current_given_name_node = sdf_property_reference;
 
     ImportFromMapping(sdf_property_reference->GeneratePointer(), "id", attribute.id);
     attribute.name = sdf_property_pair.second.label;
     // sdf_property.comment
     // sdf_property.sdf_required
-    // conformance
+    attribute.conformance = GenerateMatterConformance();
     attribute.access = ImportAccessFromMapping(sdf_property_reference->GeneratePointer());
     attribute.access->write = sdf_property_pair.second.writable;
     attribute.access->read = sdf_property_pair.second.readable;
@@ -522,7 +548,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
 
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "id", cluster.id);
     cluster.name = sdf_object_pair.second.label;
-    // conformance
+    cluster.conformance = GenerateMatterConformance();
     cluster.summary = sdf_object_pair.second.description;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "side", cluster.side);
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "revision", cluster.revision);

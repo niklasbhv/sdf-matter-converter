@@ -680,25 +680,65 @@ void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_no
     // Character string constraints
 }
 
+void SerializeLogicalTerm(const nlohmann::json& condition, pugi::xml_node& parent_node)
+{
+    if (condition.contains("orTerm")) {
+        auto or_node = parent_node.append_child("orTerm");
+        SerializeLogicalTerm(condition.at("orTerm"), or_node);
+    }
+
+    else if (condition.contains("andTerm")) {
+        auto and_node = parent_node.append_child("andTerm");
+        SerializeLogicalTerm(condition.at("andTerm"), and_node);
+    }
+
+    else if (condition.contains("xorTerm")) {
+        auto xor_node = parent_node.append_child("xorTerm");
+        SerializeLogicalTerm(condition.at("xorTerm"), xor_node);
+    }
+
+    else if (condition.contains("notTerm")) {
+        auto not_node = parent_node.append_child("notTerm");
+        SerializeLogicalTerm(condition.at("notTerm"), not_node);
+    }
+    else if (condition.contains("feature")) {
+        std::string name;
+        condition.at("feature").at("name").get_to(name);
+        parent_node.append_child("feature").append_attribute("name").set_value(name.c_str());
+    }
+    else if (condition.contains("condition")) {
+        std::string name;
+        condition.at("condition").at("name").get_to(name);
+        parent_node.append_child("condition").append_attribute("name").set_value(name.c_str());
+    }
+    else if (condition.contains("attribute")) {
+        std::string name;
+        condition.at("attribute").at("name").get_to(name);
+        parent_node.append_child("attribute").append_attribute("name").set_value(name.c_str());
+    }
+}
+
 //! Serializes a conformance object into a xml node and appends it to the given parent node
 void SerializeConformance(const Conformance& conformance, pugi::xml_node& parent_node) {
+    pugi::xml_node conformance_node;
     if (conformance.mandatory.has_value()) {
         if (conformance.mandatory.value())
-            parent_node.append_child("mandatoryConformance");
+            conformance_node = parent_node.append_child("mandatoryConformance");
     } else if (conformance.optional.has_value()) {
         if (conformance.optional.value())
-            parent_node.append_child("optionalConformance");
+            conformance_node = parent_node.append_child("optionalConformance");
     } else if (conformance.provisional.has_value()) {
         if (conformance.provisional.value())
-            parent_node.append_child("provisionalConformance");
+            conformance_node = parent_node.append_child("provisionalConformance");
     } else if (conformance.deprecated.has_value()) {
         if (conformance.deprecated.value())
-            parent_node.append_child("deprecatedConformance");
+            conformance_node = parent_node.append_child("deprecatedConformance");
     } else if (conformance.disallowed.has_value()) {
         if (conformance.disallowed.value())
-            parent_node.append_child("disallowedConformance");
+            conformance_node = parent_node.append_child("disallowedConformance");
     }
-    // expression
+    if (!conformance.condition.is_null())
+        SerializeLogicalTerm(conformance.condition, conformance_node);
 }
 
 //! Serializes a access object into a xml node and appends it to the given parent node
