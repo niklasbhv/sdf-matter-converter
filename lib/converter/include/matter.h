@@ -394,8 +394,10 @@ struct Device : CommonQuality {
     std::optional<DeviceClassification> classification;
     //! Device conditions
     std::map<std::string, std::string> conditions;
-    //! List of used clusters
-    std::list<Cluster> clusters;
+    //! List of used server clusters
+    std::list<Cluster> server_clusters;
+    //! List of used client clusters
+    std::list<Cluster> client_clusters;
 };
 
 /**
@@ -404,10 +406,9 @@ struct Device : CommonQuality {
  * This function takes a device type definition and the cluster definitions in XML format and converts it into a device.
  *
  * @param device_xml Device definitions in xml format.
- * @param client If the resulting SDF-Model should be a client.
  * @return The resulting device.
  */
-Device ParseDevice(const pugi::xml_node& device_xml, bool client);
+Device ParseDevice(const pugi::xml_node& device_xml);
 
 
 /**

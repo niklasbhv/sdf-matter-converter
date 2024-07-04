@@ -27,13 +27,16 @@
 //! Map containing the elements of the sdf mapping
 //! This map is used to resolve the elements outsourced into the map
 json reference_map;
+
+//! Set containing the supported features
+//! Contains their short code for usage with conformances
 std::set<std::string> supported_features;
 
 //! List containing required sdf elements
 //! This list gets filled while mapping and afterward appended to the corresponding sdfModel
 std::list<std::string> sdf_required_list;
 
-// Function to escape JSON Pointer according to RFC 6901
+//! Function to escape JSON Pointer according to RFC 6901
 std::string EscapeJsonPointer(const std::string& input) {
     std::string result = input;
     std::size_t pos = 0;
@@ -114,13 +117,17 @@ public:
     }
 };
 
-//! This is a global point to the current node
-//! This is designed to point at the top level SDF element like
+//! This is a global pointer to the quality name current node
+//! This is designed to point at the top level sdf element like
 //! for example the `sdfThing` node, not a specific sdfThing
 ReferenceTreeNode* current_quality_name_node = nullptr;
+
+//! This is a global pointer to the given name current node
+//! This is designed to point at the given name of an element
+//! for example the `OnOff` node, not a top level sdf element
 ReferenceTreeNode* current_given_name_node = nullptr;
 
-// Function to unescape JSON Pointer according to RFC 6901
+//! Function to unescape JSON Pointer according to RFC 6901
 std::string UnescapeJsonPointer(const std::string& input) {
     std::string result = input;
     std::size_t pos = 0;
@@ -534,7 +541,9 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     for (const auto& sdf_object_pair : sdf_thing_pair.second.sdf_object) {
         current_quality_name_node = new ReferenceTreeNode("sdfObject");
         sdf_thing_reference->AddChild(current_quality_name_node);
-        device.clusters.push_back(MapSdfObject(sdf_object_pair));
+        device.server_clusters.push_back(MapSdfObject(sdf_object_pair));
+        // TODO: Differentiate between server and client clusters
+        // Should default to a server cluster, if no information is given
     }
 
     return device;
@@ -1197,7 +1206,9 @@ void MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdf_propert
 
 bool EvaluateConformanceCondition(const json& condition)
 {
-    if (condition.contains("andTerm")) {
+    if (condition.is_null())
+        return true;
+    else if (condition.contains("andTerm")) {
         // Return true, if all the contained expressions evaluate to true
         // Returns false otherwise
         for (auto& item : condition.at("andTerm")) {
@@ -1236,8 +1247,8 @@ bool EvaluateConformanceCondition(const json& condition)
         std::cout << "Reached" << condition.at("feature") << std::endl;
         if (supported_features.find(condition.at("feature").at("name")) != supported_features.end()) {
             std::cout << "Feature" << condition.at("feature") << "supported" << std::endl;
+            return true;
         }
-        return true;
     }
     else if (condition.contains("condition")) {
         std::cout << "Reached" << condition.at("condition") << std::endl;
@@ -1263,7 +1274,7 @@ bool EvaluateConformanceCondition(const json& condition)
  */
 bool MapMatterConformance(const matter::Conformance& conformance) {
     if (conformance.mandatory.has_value()) {
-        if (conformance.mandatory.value()) {
+        if (conformance.mandatory.value() and EvaluateConformanceCondition(conformance.condition)) {
             sdf_required_list.push_back(current_given_name_node->GeneratePointer());
         }
     }
@@ -1579,12 +1590,23 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
     auto* sdf_object_reference = new ReferenceTreeNode("sdfObject");
     device_reference->AddChild(sdf_object_reference);
     current_quality_name_node = sdf_object_reference;
-    for (const auto& cluster : device.clusters){
+    for (const auto& cluster : device.server_clusters){
         sdf::SdfObject sdf_object = MapMatterCluster(cluster);
         // Clear the sdfRequired list as it would result in duplicates
         sdf_object.sdf_required.clear();
         sdf_thing.sdf_object.insert({cluster.name, sdf_object});
         current_quality_name_node = sdf_object_reference;
+        // Clear the list of supported features after every run
+        supported_features.clear();
+    }
+    for (const auto& cluster : device.client_clusters){
+        sdf::SdfObject sdf_object = MapMatterCluster(cluster);
+        // Clear the sdfRequired list as it would result in duplicates
+        sdf_object.sdf_required.clear();
+        sdf_thing.sdf_object.insert({cluster.name, sdf_object});
+        current_quality_name_node = sdf_object_reference;
+        // Clear the list of supported features after every run
+        supported_features.clear();
     }
     sdf_thing.sdf_required = sdf_required_list;
 
@@ -1594,7 +1616,50 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
 //! Function used to merge device and cluster specifications together
 void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>& cluster_list)
 {
-    for (auto& device_cluster : device.clusters) {
+    for (auto& device_cluster : device.server_clusters) {
+        for (const auto& cluster: cluster_list) {
+            if (device_cluster.id == cluster.id) {
+                matter::Cluster temp_cluster = cluster;
+                // Overwrite the conformance for the cluster
+                temp_cluster.conformance = device_cluster.conformance;
+                // Overwrite the feature conformance's
+                for (auto &device_feature: device_cluster.feature_map) {
+                    for (auto &cluster_feature: temp_cluster.feature_map) {
+                        if (device_feature.name == cluster_feature.name) {
+                            cluster_feature.conformance = device_feature.conformance;
+                        }
+                    }
+                }
+
+                // Overwrite certain attributes
+                for (auto &device_attribute: device_cluster.attributes) {
+                    for (auto &cluster_attribute: temp_cluster.attributes) {
+                        if (device_attribute.name == cluster_attribute.name) {
+
+                        }
+                    }
+                }
+                // Overwrite certain commands
+                for (auto &client_command: device_cluster.client_commands) {
+
+                }
+                // Overwrite certain commands
+                for (auto &server_command: device_cluster.server_commands) {
+
+                }
+                // Overwrite certain events
+                for (auto &device_event: device_cluster.events) {
+                    for (auto &cluster_event: temp_cluster.events) {
+                        if (device_event.name == cluster_event.name) {
+
+                        }
+                    }
+                }
+                device_cluster = temp_cluster;
+            }
+        }
+    }
+    for (auto& device_cluster : device.client_clusters) {
         for (const auto& cluster: cluster_list) {
             if (device_cluster.id == cluster.id) {
                 matter::Cluster temp_cluster = cluster;

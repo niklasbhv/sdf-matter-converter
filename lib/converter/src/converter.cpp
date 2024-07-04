@@ -60,7 +60,7 @@ int ConvertMatterToSdf(const std::optional<pugi::xml_document>& device_xml,
     sdf::SdfMapping sdf_mapping;
 
     if (device_xml.has_value()) {
-        matter::Device device = matter::ParseDevice(device_xml.value().document_element(), false);
+        matter::Device device = matter::ParseDevice(device_xml.value().document_element());
         MapMatterToSdf(device, cluster_list, sdf_model, sdf_mapping);
     } else {
         MapMatterToSdf(std::nullopt, cluster_list, sdf_model, sdf_mapping);
