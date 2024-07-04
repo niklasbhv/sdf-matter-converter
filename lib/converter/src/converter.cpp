@@ -31,7 +31,8 @@ int ConvertSdfToMatter(json& sdf_model_json, json& sdf_mapping_json,
     std::optional<matter::Device> device;
     std::list<matter::Cluster> clusters;
     MapSdfToMatter(sdf_model, sdf_mapping, device, clusters);
-    SerializeDevice(device.value(), device_xml);
+    if (device.has_value())
+        SerializeDevice(device.value(), device_xml);
 
 
     for (const auto& cluster : clusters) {
