@@ -225,9 +225,13 @@ std::optional<matter::OtherQuality> ImportOtherQualityFromMapping(const std::str
 }
 
 //! Generates a Matter access based on information of the provided sdfProperty
-matter::Access GenerateMatterAccess(sdf::SdfProperty)
+matter::Access GenerateMatterAccess(sdf::SdfProperty& sdf_property)
 {
     matter::Access access;
+    if (sdf_property.readable.has_value())
+        access.read = sdf_property.readable;
+    if (sdf_property.writable.has_value())
+        access.write = sdf_property.writable;
     return access;
 }
 
@@ -344,9 +348,104 @@ matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
     return constraint;
 }
 
+// Function to check if the variant's integer value is within borders
+bool isVariantIntWithinBorders(const std::variant<double, int64_t, uint64_t>& variant, int64_t lowerBound, uint64_t upperBound) {
+    return std::visit([&](auto&& value) -> bool {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, int>) {
+            if (value >= lowerBound && value <= upperBound) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }, variant);
+}
+
 std::string MapIntegerType(const sdf::DataQuality& data_quality)
 {
-    if (data_quality.minimum.has_value()) {}
+    if (data_quality.minimum.has_value()) {
+        // Check if the minimum value is positive or negative
+        if (isVariantIntWithinBorders(data_quality.minimum.value(), 0, std::numeric_limits<uint64_t>::max())) {
+            if (data_quality.maximum.has_value()) {
+                if (isVariantIntWithinBorders(data_quality.maximum.value(), 0, MATTER_U_INT_8_MAX)) {
+                    return "uint8";
+                }
+                else if (isVariantIntWithinBorders(data_quality.maximum.value(), 0, MATTER_U_INT_16_MAX)) {
+                    return "uint16";
+                }
+                else if (isVariantIntWithinBorders(data_quality.maximum.value(), 0, MATTER_U_INT_24_MAX)) {
+                    return "uint24";
+                }
+                else if (isVariantIntWithinBorders(data_quality.maximum.value(), 0, MATTER_U_INT_32_MAX)) {
+                    return "uint32";
+                }
+                else if (isVariantIntWithinBorders(data_quality.maximum.value(), 0, MATTER_U_INT_40_MAX)) {
+                    return "uint40";
+                }
+                else if (isVariantIntWithinBorders(data_quality.maximum.value(), 0, MATTER_U_INT_48_MAX)) {
+                    return "uint48";
+                }
+                else if (isVariantIntWithinBorders(data_quality.maximum.value(), 0, MATTER_U_INT_56_MAX)) {
+                    return "uint56";
+                }
+                else if (isVariantIntWithinBorders(data_quality.maximum.value(), 0, std::numeric_limits<uint64_t>::max())) {
+                    return "uint64";
+                }
+            }
+            // If no maximum value exists
+            else {}
+        }
+        // If minimum is negative (or larger than an uint64_t)
+        else {
+            if (data_quality.maximum.has_value()) {
+                if (isVariantIntWithinBorders(data_quality.minimum.value(), MATTER_INT_8_MIN, 0)) {
+                    if (isVariantIntWithinBorders(data_quality.maximum.value(), MATTER_INT_8_MIN, MATTER_INT_8_MAX)) {
+                        return "int8";
+                    }
+                }
+                else if (isVariantIntWithinBorders(data_quality.minimum.value(), MATTER_INT_16_MIN, 0)) {
+                    if (isVariantIntWithinBorders(data_quality.maximum.value(), MATTER_INT_16_MIN, MATTER_INT_16_MAX)) {
+                        return "int16";
+                    }
+                }
+                else if (isVariantIntWithinBorders(data_quality.minimum.value(), MATTER_INT_24_MIN, 0)) {
+                    if (isVariantIntWithinBorders(data_quality.maximum.value(), MATTER_INT_24_MIN, MATTER_INT_24_MAX)) {
+                        return "int24";
+                    }
+                }
+                else if (isVariantIntWithinBorders(data_quality.minimum.value(), MATTER_INT_32_MIN, 0)) {
+                    if (isVariantIntWithinBorders(data_quality.maximum.value(), MATTER_INT_32_MIN, MATTER_INT_32_MAX)) {
+                        return "int32";
+                    }
+                }
+                else if (isVariantIntWithinBorders(data_quality.minimum.value(), MATTER_INT_40_MIN, 0)) {
+                    if (isVariantIntWithinBorders(data_quality.maximum.value(), MATTER_INT_40_MIN, MATTER_INT_40_MAX)) {
+                        return "int40";
+                    }
+                }
+                else if (isVariantIntWithinBorders(data_quality.minimum.value(), MATTER_INT_48_MIN, 0)) {
+                    if (isVariantIntWithinBorders(data_quality.maximum.value(), MATTER_INT_48_MIN, MATTER_INT_48_MAX)) {
+                        return "int48";
+                    }
+                }
+                else if (isVariantIntWithinBorders(data_quality.minimum.value(), MATTER_INT_56_MIN, 0)) {
+                    if (isVariantIntWithinBorders(data_quality.maximum.value(), MATTER_INT_56_MIN, MATTER_INT_56_MAX)) {
+                        return "int56";
+                    }
+                }
+                else if (isVariantIntWithinBorders(data_quality.minimum.value(), std::numeric_limits<int64_t>::max(), 0)) {
+                    if (isVariantIntWithinBorders(data_quality.maximum.value(), std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max())) {
+                        return "int64";
+                    }
+                }
+            }
+            // If maximum does not have a value
+            else {}
+        }
+    }
     if (data_quality.maximum.has_value()) {}
     return "";
 }
@@ -362,7 +461,7 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality)
     } else if (data_quality.type == "boolean") {
         result = "bool";
     } else if (data_quality.type == "integer") {
-
+        result = MapIntegerType(data_quality);
     } else if (data_quality.type == "array") {
 
     } else if (data_quality.type == "object") {
@@ -384,7 +483,7 @@ matter::DataField MapSdfData(sdf::DataQuality& data_quality)
     //data_field.conformance = GenerateMatterConformance();
     // data_field.access
     data_field.summary = data_quality.description;
-    // data_field.type =
+    data_field.type = MapSdfDataType(data_quality);
     data_field.constraint = GenerateMatterConstraint(data_quality);
     // data_field.quality;
     // data_field.default_ = data_quality.default_;
@@ -876,7 +975,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         } else if (matter_type.substr(4) == "56") {
             data_quality.maximum = MATTER_U_INT_56_MAX;
         } else if (matter_type.substr(4) == "64") {
-            data_quality.maximum = std::numeric_limits<uint64_t>::min();
+            data_quality.maximum = std::numeric_limits<uint64_t>::max();
         }
     }
     // Signed integer data type
