@@ -546,6 +546,33 @@ std::list<matter::Feature> GenerateFeatureMap()
             feature_json.at("name").get_to(feature.name);
         if (feature_json.contains("summary"))
             feature_json.at("summary").get_to(feature.summary);
+        if (feature_json.contains("mandatoryConform")) {
+            matter::Conformance conformance;
+            conformance.mandatory = true;
+            feature_json.at("mandatoryConform").get_to(conformance.condition);
+            feature.conformance = conformance;
+        }
+        if (feature_json.contains("optionalConform")) {
+            matter::Conformance conformance;
+            conformance.optional = true;
+            feature_json.at("optionalConform").get_to(conformance.condition);
+            feature.conformance = conformance;
+        }
+        if (feature_json.contains("provisionalConform")) {
+            matter::Conformance conformance;
+            conformance.provisional = true;
+            feature.conformance = conformance;
+        }
+        if (feature_json.contains("deprecatedConform")) {
+            matter::Conformance conformance;
+            conformance.deprecated = true;
+            feature.conformance = conformance;
+        }
+        if (feature_json.contains("disallowConform")) {
+            matter::Conformance conformance;
+            conformance.disallowed = true;
+            feature.conformance = conformance;
+        }
         feature_map.push_back(feature);
     }
     return feature_map;
@@ -1569,7 +1596,17 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map)
         feature_json["name"] = feature.name;
         feature_json["summary"] = feature.summary;
         if (feature.conformance.has_value()) {
-            condition = MapMatterConformance(feature.conformance.value());
+            if (feature.conformance.value().mandatory.has_value())
+                feature_json["mandatoryConform"] = feature.conformance.value().condition;
+            if (feature.conformance.value().optional.has_value())
+                feature_json["optionalConform"] = feature.conformance.value().condition;
+            if (feature.conformance.value().provisional.has_value())
+                feature_json["provisionalConform"] = feature.conformance.value().condition;
+            if (feature.conformance.value().deprecated.has_value())
+                feature_json["deprecatedConform"] = feature.conformance.value().condition;
+            if (feature.conformance.value().disallowed.has_value())
+                feature_json["disallowConform"] = feature.conformance.value().condition;
+            condition = EvaluateConformanceCondition(feature.conformance.value().condition);
             if (feature.conformance.value().mandatory.has_value() and condition) {
                 supported_features.insert(feature.code);
                 std::cout << "Supported Feature: " << feature.code << std::endl;
@@ -1577,7 +1614,8 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map)
         }
         feature_map_json.push_back(feature_json);
     }
-    current_given_name_node->AddAttribute("features", feature_map_json);
+    if (!feature_map_json.is_null())
+        current_given_name_node->AddAttribute("features", feature_map_json);
 }
 
 void MapClusterClassification(const matter::ClusterClassification& cluster_classification)

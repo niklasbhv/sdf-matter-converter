@@ -901,6 +901,8 @@ void SerializeFeatureMap(const std::list<matter::Feature>& features_map, pugi::x
         feature_node.append_attribute("code").set_value(feature.code.c_str());
         feature_node.append_attribute("name").set_value(feature.name.c_str());
         feature_node.append_attribute("summary").set_value(feature.summary.c_str());
+        if (feature.conformance.has_value())
+            SerializeConformance(feature.conformance.value(), feature_node);
     }
 }
 
