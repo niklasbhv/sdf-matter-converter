@@ -100,7 +100,7 @@ inline std::string IntToHex(u_int32_t num) {
 namespace matter {
 
 //!Type definition for the default type.
-typedef std::variant<double, int64_t, uint64_t, std::string> DefaultType;
+typedef std::variant<double, int64_t, uint64_t, std::string, bool> DefaultType;
 
 //! Type definition for the numeric type.
 typedef std::variant<double, int64_t, uint64_t> NumericType;
@@ -264,7 +264,7 @@ struct DataField : CommonQuality {
     //! Other qualities
     std::optional<OtherQuality> quality;
     //! Default value
-    DefaultType default_;
+    std::optional<DefaultType> default_;
 };
 
 //! Type definition for the struct.
@@ -299,7 +299,7 @@ struct Event : CommonQuality {
  * Struct which contains Matter command information.
  */
 struct Command : CommonQuality {
-    DefaultType default_;
+    std::optional<DefaultType> default_;
     //! Either commandToServer or responseFromServer
     std::string direction;
     //! Either Y, N or the name of the response command
@@ -319,7 +319,7 @@ struct Attribute : CommonQuality {
     //! Other qualities
     std::optional<OtherQuality> quality;
     //! Default value
-    DefaultType default_;
+    std::optional<DefaultType> default_;
 };
 
 /**

@@ -782,7 +782,8 @@ void SerializeDataField(const DataField& data_field, pugi::xml_node& parent_node
     if (data_field.quality.has_value())
         SerializeOtherQuality(data_field.quality.value(), data_field_node);
 
-    SerializeDefaultType(data_field.default_, "default", data_field_node);
+    if (data_field.default_.has_value())
+        SerializeDefaultType(data_field.default_.value(), "default", data_field_node);
 }
 
 //! Serializes a event object into a xml node and appends it to the given parent node
@@ -820,7 +821,8 @@ void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
     if (!command.summary.empty())
         command_node.append_attribute("summary").set_value(command.summary.c_str());
 
-    SerializeDefaultType(command.default_, "default", command_node);
+    if (command.default_.has_value())
+        SerializeDefaultType(command.default_.value(), "default", command_node);
 
     command_node.append_attribute("direction").set_value(command.direction.c_str());
     command_node.append_attribute("response").set_value(command.response.c_str());
@@ -854,7 +856,9 @@ void SerializeAttribute(const Attribute& attribute, pugi::xml_node& attributes_n
         SerializeOtherQuality(attribute.quality.value(), attribute_node);
 
     attribute_node.attribute("type").set_value(attribute.type.c_str());
-    SerializeDefaultType(attribute.default_, "default", attribute_node);
+
+    if (attribute.default_.has_value())
+        SerializeDefaultType(attribute.default_.value(), "default", attribute_node);
 }
 
 void SerializeItem(const Item& item, pugi::xml_node& enum_node) {

@@ -167,39 +167,40 @@ template <typename T> void ImportFromMapping(const std::string& json_pointer, co
     }
 }
 
-matter::DefaultType MapSdfDefaultValue(sdf::VariableType& variable_type)
+std::optional<matter::DefaultType> MapSdfDefaultValue(const sdf::VariableType& variable_type)
 {
-    if (holds_alternative<<uint64_t>(variable_type)) {
+    if (std::holds_alternative<uint64_t>(variable_type)) {
         matter::DefaultType default_type;
         default_type = std::get<uint64_t>(variable_type);
         return default_type;
     }
-    else if (holds_alternative<<int64_t>(variable_type)) {
+    else if (std::holds_alternative<int64_t>(variable_type)) {
         matter::DefaultType default_type;
         default_type = std::get<int64_t>(variable_type);
         return default_type;
     }
-    else if (holds_alternative<<double>(variable_type)) {
+    else if (std::holds_alternative<double>(variable_type)) {
         matter::DefaultType default_type;
         default_type = std::get<double>(variable_type);
         return default_type;
     }
-    else if (holds_alternative<<std::string>(variable_type)) {
+    else if (std::holds_alternative<std::string>(variable_type)) {
         matter::DefaultType default_type;
         default_type = std::get<std::string>(variable_type);
         return default_type;
     }
-    else if (holds_alternative<<bool>(variable_type)) {
+    else if (std::holds_alternative<bool>(variable_type)) {
         matter::DefaultType default_type;
         default_type = std::get<bool>(variable_type);
         return default_type;
     }
-    else if (holds_alternative<<std::list<sdf::ArrayItem>>(variable_type)) {
+    else if (std::holds_alternative<std::list<sdf::ArrayItem>>(variable_type)) {
         // Currently they do not seem to be really compatible with each other
         matter::DefaultType default_type;
         //default_type = to_string(std::get<std::list<sdf::ArrayItem>>(variable_type));
         return default_type;
     }
+    return std::nullopt;
 }
 
 std::optional<matter::Access> ImportAccessFromMapping(const std::string& json_pointer)
@@ -515,7 +516,7 @@ matter::DataField MapSdfData(sdf::DataQuality& data_quality)
     data_field.constraint = GenerateMatterConstraint(data_quality);
     // data_field.quality;
     if (data_quality.default_.has_value())
-        data_field.default_ = MapSdfDefaultValue(data_quality.default_);
+        data_field.default_ = MapSdfDefaultValue(data_quality.default_.value());
     return data_field;
 }
 
@@ -652,7 +653,7 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     attribute.summary = sdf_property_pair.second.description;
     attribute.type = MapSdfDataType(sdf_property_pair.second);
     if (sdf_property_pair.second.default_.has_value())
-        attribute.default_ = sdf_property_pair.second.default_;
+        attribute.default_ = MapSdfDefaultValue(sdf_property_pair.second.default_.value());
     attribute.quality = ImportOtherQualityFromMapping(sdf_property_reference->GeneratePointer());
     //attribute.quality.nullable = sdf_property.nullable;
     //attribute.quality.fixed = !sdf_property.const_.empty();
