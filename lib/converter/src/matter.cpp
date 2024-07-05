@@ -665,22 +665,30 @@ void SerializeLogicalTerm(const nlohmann::json& condition, pugi::xml_node& paren
 {
     if (condition.contains("orTerm")) {
         auto or_node = parent_node.append_child("orTerm");
-        SerializeLogicalTerm(condition.at("orTerm"), or_node);
+        for (const auto& or_child : condition.at("orTerm")) {
+            SerializeLogicalTerm(or_child, or_node);
+        }
     }
 
     else if (condition.contains("andTerm")) {
         auto and_node = parent_node.append_child("andTerm");
-        SerializeLogicalTerm(condition.at("andTerm"), and_node);
+        for (const auto& and_child : condition.at("andTerm")) {
+            SerializeLogicalTerm(and_child, and_node);
+        }
     }
 
     else if (condition.contains("xorTerm")) {
         auto xor_node = parent_node.append_child("xorTerm");
-        SerializeLogicalTerm(condition.at("xorTerm"), xor_node);
+        for (const auto& xor_child : condition.at("xorTerm")) {
+            SerializeLogicalTerm(xor_child, xor_node);
+        }
     }
 
     else if (condition.contains("notTerm")) {
         auto not_node = parent_node.append_child("notTerm");
-        SerializeLogicalTerm(condition.at("notTerm"), not_node);
+        for (const auto& not_child : condition.at("notTerm")) {
+            SerializeLogicalTerm(not_child, not_node);
+        }
     }
     else if (condition.contains("feature")) {
         std::string name;
