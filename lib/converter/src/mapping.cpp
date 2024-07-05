@@ -281,25 +281,59 @@ matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
     matter::Constraint constraint;
     //constraint.value = dataQuality.default_;
     if (dataQuality.type == "number" or dataQuality.type == "integer") {
-        if (dataQuality.minimum.has_value())
-            constraint.min = dataQuality.minimum.value();
-        if (dataQuality.maximum.has_value())
+        if (dataQuality.const_.has_value()) {
+            //constraint.type = "allowed";
+        }
+        if (dataQuality.minimum.has_value()) {
+            if (dataQuality.maximum.has_value()) {
+                constraint.type = "between";
+                constraint.min = dataQuality.minimum.value();
+                constraint.max = dataQuality.maximum.value();
+            } else {
+                constraint.type = "min";
+                constraint.min = dataQuality.minimum.value();
+            }
+        }
+        else if (dataQuality.maximum.has_value()) {
+            constraint.type = "max";
             constraint.max = dataQuality.maximum.value();
+        }
+
         // exclusive_minimum
         // exclusive_maximum
         // multiple_of
     } else if (dataQuality.type == "string") {
-        if (dataQuality.min_length.has_value())
-            constraint.min = dataQuality.min_length.value();
-        if (dataQuality.max_length.has_value())
+        if (dataQuality.min_length.has_value()) {
+            if (dataQuality.max_length.has_value()) {
+                constraint.type = "lengthBetween";
+                constraint.min = dataQuality.min_length.value();
+                constraint.max = dataQuality.max_length.value();
+            } else {
+                constraint.type = "minLength";
+                constraint.min = dataQuality.min_length.value();
+            }
+        }
+        else if (dataQuality.max_length.has_value()) {
+            constraint.type = "maxLength";
             constraint.max = dataQuality.max_length.value();
+        }
+
         // pattern
         // format
     } else if (dataQuality.type == "array") {
-        if (dataQuality.min_items.has_value())
-            constraint.min = dataQuality.min_items.value();
-        if (dataQuality.max_items.has_value())
+        if (dataQuality.min_items.has_value()) {
+            if (dataQuality.max_items.has_value()) {
+                constraint.type = "countBetween";
+                constraint.min = dataQuality.min_items.value();
+                constraint.max = dataQuality.max_items.value();
+            } else {
+                constraint.type = "minCount";
+                constraint.min = dataQuality.min_items.value();
+            }
+        } else if (dataQuality.max_items.has_value()) {
+            constraint.type = "maxCount";
             constraint.max = dataQuality.max_items.value();
+        }
         // unique_items
         // items -> Translate these into entry constraints
     } else if (dataQuality.type == "object") {
@@ -1217,10 +1251,6 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
     if (data_quality.type == "number" or data_quality.type == "integer") {
         if (constraint.value.has_value()) {}
             //data_quality.const_ = constraint.value;
-        if (constraint.from.has_value())
-            data_quality.minimum = constraint.from.value();
-        if (constraint.to.has_value())
-            data_quality.maximum = constraint.to.value();
         if (constraint.min.has_value())
             data_quality.minimum = constraint.min.value();
         if (constraint.max.has_value())
@@ -1229,8 +1259,6 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
     else if (data_quality.type == "string") {
         if (constraint.value.has_value()) {}
         //data_quality.const_ = constraint.value;
-        if (constraint.from.has_value()) {}
-        if (constraint.to.has_value()) {}
         if (constraint.min.has_value()) {
             if (std::holds_alternative<uint64_t>(constraint.min.value()))
                 data_quality.min_length = std::get<uint64_t>(constraint.min.value());
@@ -1244,8 +1272,6 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
     else if (data_quality.type == "array") {
         if (constraint.value.has_value()) {}
         //data_quality.const_ = constraint.value;
-        if (constraint.from.has_value()) {}
-        if (constraint.to.has_value()) {}
         if (constraint.min.has_value()) {
             if (std::holds_alternative<uint64_t>(constraint.min.value()))
                 data_quality.min_items = std::get<uint64_t>(constraint.min.value());

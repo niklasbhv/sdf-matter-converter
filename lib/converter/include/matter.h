@@ -149,9 +149,6 @@ struct Constraint {
     //! The interpretation for each of these values depends on the data type its applied to
     //! Exact value.
     std::optional<DefaultType> value;
-    //! For range constraints -> x to y.
-    std::optional<NumericType> from;
-    std::optional<NumericType> to;
     //! Minimum value.
     std::optional<NumericType> min;
     //! Maximum value.

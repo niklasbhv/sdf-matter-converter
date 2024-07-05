@@ -83,8 +83,8 @@ Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
     else if (constraint.type == "allowed") {
         constraint.value = constraint_node.attribute("value").as_int();
     } else if (constraint.type == "between") {
-        constraint.from = constraint_node.attribute("from").as_int();
-        constraint.to = constraint_node.attribute("to").as_int();
+        constraint.min = constraint_node.attribute("from").as_int();
+        constraint.max = constraint_node.attribute("to").as_int();
     } else if (constraint.type == "min") {
         constraint.min = constraint_node.attribute("value").as_int();
     } else if (constraint.type == "max") {
@@ -95,8 +95,8 @@ Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
     // Octet string constraints
     // lengthAllowed
     else if (constraint.type == "lengthBetween") {
-        constraint.from = constraint_node.attribute("from").as_int();
-        constraint.to = constraint_node.attribute("to").as_int();
+        constraint.min = constraint_node.attribute("from").as_int();
+        constraint.max = constraint_node.attribute("to").as_int();
     } else if (constraint.type == "minLength") {
         constraint.min = constraint_node.attribute("value").as_int();
     } else if (constraint.type == "maxLength") {
@@ -107,8 +107,8 @@ Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
     // List constraints
     // countAllowed
     else if (constraint.type == "countBetween") {
-        constraint.from = constraint_node.attribute("from").as_int();
-        constraint.to = constraint_node.attribute("to").as_int();
+        constraint.min = constraint_node.attribute("from").as_int();
+        constraint.max = constraint_node.attribute("to").as_int();
     } else if (constraint.type == "minCount") {
         constraint.min = constraint_node.attribute("value").as_int();
     } else if (constraint.type == "maxCount") {
@@ -569,38 +569,31 @@ void SerializeOtherQuality(const OtherQuality& other_quality, pugi::xml_node& pa
 }
 
 //! Serializes the given default value into its actual contained datatype
-pugi::xml_attribute SerializeDefaultType(const DefaultType &value, const char *attribute_name) {
-    pugi::xml_attribute attribute;
-    attribute.set_name(attribute_name);
+void SerializeDefaultType(const DefaultType& value, const char* attribute_name, pugi::xml_node& target_node) {
     if (std::holds_alternative<double>(value))
-        attribute.set_value(std::get<double>(value));
+        target_node.append_attribute(attribute_name).set_value(std::get<double>(value));
 
     else if (std::holds_alternative<int64_t>(value))
-        attribute.set_value(std::get<int64_t>(value));
+        target_node.append_attribute(attribute_name).set_value(std::get<int64_t>(value));
 
     else if (std::holds_alternative<uint64_t>(value))
-        attribute.set_value(std::get<uint64_t>(value));
+        target_node.append_attribute(attribute_name).set_value(std::get<uint64_t>(value));
 
     else if (std::holds_alternative<std::string>(value))
-        attribute.set_value(std::get<std::string>(value).c_str());
+        target_node.append_attribute(attribute_name).set_value(std::get<std::string>(value).c_str());
 
-    return attribute;
 }
 
 //! Serializes the given numeric value into its actual contained datatype
-pugi::xml_attribute SerializeNumericType(const NumericType& value, const char* attribute_name) {
-    pugi::xml_attribute attribute;
-    attribute.set_name(attribute_name);
+void SerializeNumericType(const NumericType& value, const char* attribute_name, pugi::xml_node& target_node) {
     if (std::holds_alternative<double>(value))
-        attribute.set_value(std::get<double>(value));
+        target_node.append_attribute(attribute_name).set_value(std::get<double>(value));
 
     else if (std::holds_alternative<int64_t>(value))
-        attribute.set_value(std::get<int64_t>(value));
+        target_node.append_attribute(attribute_name).set_value(std::get<int64_t>(value));
 
     else if (std::holds_alternative<uint64_t>(value))
-        attribute.set_value(std::get<uint64_t>(value));
-
-    return attribute;
+        target_node.append_attribute(attribute_name).set_value(std::get<uint64_t>(value));
 }
 
 //! Serializes a constraint object into a xml node and appends it to the given parent node
@@ -620,22 +613,17 @@ void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_no
     // Numeric constraints
     else if (constraint.type == "allowed") {
         constraint_node.append_attribute("type").set_value("allowed");
-
-        constraint_node.append_copy(SerializeDefaultType(constraint.value.value(), "value"));
+        SerializeDefaultType(constraint.value.value(), "value", constraint_node);
     } else if (constraint.type == "between") {
         constraint_node.append_attribute("type").set_value("between");
-
-        constraint_node.append_copy(SerializeNumericType(constraint.from.value(), "from"));
-
-        constraint_node.append_copy(SerializeNumericType(constraint.to.value(), "to"));
+        SerializeNumericType(constraint.min.value(), "from", constraint_node);
+        SerializeNumericType(constraint.max.value(), "to", constraint_node);
     } else if (constraint.type == "min") {
         constraint_node.append_attribute("type").set_value("min");
-
-        constraint_node.append_copy(SerializeNumericType(constraint.min.value(), "value"));
+        SerializeNumericType(constraint.min.value(), "value", constraint_node);
     } else if (constraint.type == "max") {
         constraint_node.append_attribute("type").set_value("max");
-
-        constraint_node.append_copy(SerializeNumericType(constraint.max.value(), "value"));
+        SerializeNumericType(constraint.max.value(), "value", constraint_node);
     }
     // all
 
@@ -643,18 +631,14 @@ void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_no
     // lengthAllowed
     else if (constraint.type == "lengthBetween") {
         constraint_node.append_attribute("type").set_value("lengthBetween");
-
-        constraint_node.append_copy(SerializeNumericType(constraint.from.value(), "from"));
-
-        constraint_node.append_copy(SerializeNumericType(constraint.to.value(), "to"));
+        SerializeNumericType(constraint.min.value(), "from", constraint_node);
+        SerializeNumericType(constraint.max.value(), "to", constraint_node);
     } else if (constraint.type == "minLength") {
         constraint_node.append_attribute("type").set_value("minLength");
-
-        constraint_node.append_copy(SerializeNumericType(constraint.min.value(), "value"));
+        SerializeNumericType(constraint.min.value(), "value", constraint_node);
     } else if (constraint.type == "maxLength") {
         constraint_node.append_attribute("type").set_value("maxLength");
-
-        constraint_node.append_copy(SerializeNumericType(constraint.max.value(), "value"));
+        SerializeNumericType(constraint.max.value(), "value", constraint_node);
     }
     // all
 
@@ -662,18 +646,15 @@ void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_no
     // countAllowed
     else if (constraint.type == "countBetween") {
         constraint_node.append_attribute("type").set_value("countBetween");
-
-        constraint_node.append_copy(SerializeNumericType(constraint.from.value(), "from"));
-
-        constraint_node.append_copy(SerializeNumericType(constraint.to.value(), "to"));;
+        SerializeNumericType(constraint.min.value(), "from", constraint_node);
+        SerializeNumericType(constraint.max.value(), "to", constraint_node);
     } else if (constraint.type == "minCount") {
         constraint_node.append_attribute("type").set_value("minCount");
 
-        constraint_node.append_copy(SerializeNumericType(constraint.min.value(), "value"));
+        SerializeNumericType(constraint.min.value(), "value", constraint_node);
     } else if (constraint.type == "maxCount") {
         constraint_node.append_attribute("type").set_value("maxCount");
-
-        constraint_node.append_copy(SerializeNumericType(constraint.max.value(), "value"));
+        SerializeNumericType(constraint.max.value(), "value", constraint_node);
     }
     // all
     // Entry constraint -> Child named "entry"
@@ -793,7 +774,7 @@ void SerializeDataField(const DataField& data_field, pugi::xml_node& parent_node
     if (data_field.quality.has_value())
         SerializeOtherQuality(data_field.quality.value(), data_field_node);
 
-    // default
+    SerializeDefaultType(data_field.default_, "default", data_field_node);
 }
 
 //! Serializes a event object into a xml node and appends it to the given parent node
@@ -831,8 +812,7 @@ void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
     if (!command.summary.empty())
         command_node.append_attribute("summary").set_value(command.summary.c_str());
 
-    //if (!command.default_.empty())
-    //    command_node.append_attribute("default").set_value(command.default_.c_str());
+    SerializeDefaultType(command.default_, "default", command_node);
 
     command_node.append_attribute("direction").set_value(command.direction.c_str());
     command_node.append_attribute("response").set_value(command.response.c_str());
@@ -866,7 +846,7 @@ void SerializeAttribute(const Attribute& attribute, pugi::xml_node& attributes_n
         SerializeOtherQuality(attribute.quality.value(), attribute_node);
 
     attribute_node.attribute("type").set_value(attribute.type.c_str());
-    //attribute_node.attribute("default").set_value(attribute.default_.c_str());
+    SerializeDefaultType(attribute.default_, "default", attribute_node);
 }
 
 void SerializeItem(const Item& item, pugi::xml_node& enum_node) {
