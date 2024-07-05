@@ -167,6 +167,41 @@ template <typename T> void ImportFromMapping(const std::string& json_pointer, co
     }
 }
 
+matter::DefaultType MapSdfDefaultValue(sdf::VariableType& variable_type)
+{
+    if (holds_alternative<<uint64_t>(variable_type)) {
+        matter::DefaultType default_type;
+        default_type = std::get<uint64_t>(variable_type);
+        return default_type;
+    }
+    else if (holds_alternative<<int64_t>(variable_type)) {
+        matter::DefaultType default_type;
+        default_type = std::get<int64_t>(variable_type);
+        return default_type;
+    }
+    else if (holds_alternative<<double>(variable_type)) {
+        matter::DefaultType default_type;
+        default_type = std::get<double>(variable_type);
+        return default_type;
+    }
+    else if (holds_alternative<<std::string>(variable_type)) {
+        matter::DefaultType default_type;
+        default_type = std::get<std::string>(variable_type);
+        return default_type;
+    }
+    else if (holds_alternative<<bool>(variable_type)) {
+        matter::DefaultType default_type;
+        default_type = std::get<bool>(variable_type);
+        return default_type;
+    }
+    else if (holds_alternative<<std::list<sdf::ArrayItem>>(variable_type)) {
+        // Currently they do not seem to be really compatible with each other
+        matter::DefaultType default_type;
+        //default_type = to_string(std::get<std::list<sdf::ArrayItem>>(variable_type));
+        return default_type;
+    }
+}
+
 std::optional<matter::Access> ImportAccessFromMapping(const std::string& json_pointer)
 {
     json access_json;
@@ -302,10 +337,6 @@ matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
             constraint.type = "max";
             constraint.max = dataQuality.maximum.value();
         }
-
-        // exclusive_minimum
-        // exclusive_maximum
-        // multiple_of
     } else if (dataQuality.type == "string") {
         if (dataQuality.min_length.has_value()) {
             if (dataQuality.max_length.has_value()) {
@@ -321,9 +352,6 @@ matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
             constraint.type = "maxLength";
             constraint.max = dataQuality.max_length.value();
         }
-
-        // pattern
-        // format
     } else if (dataQuality.type == "array") {
         if (dataQuality.min_items.has_value()) {
             if (dataQuality.max_items.has_value()) {
@@ -338,12 +366,12 @@ matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
             constraint.type = "maxCount";
             constraint.max = dataQuality.max_items.value();
         }
+
+        if (dataQuality.items.has_value()) {
+
+        }
         // unique_items
         // items -> Translate these into entry constraints
-    } else if (dataQuality.type == "object") {
-        // Currently does not seem like object contains usefull information for constraints
-        // properties
-        // required
     }
     return constraint;
 }
@@ -486,7 +514,8 @@ matter::DataField MapSdfData(sdf::DataQuality& data_quality)
     data_field.type = MapSdfDataType(data_quality);
     data_field.constraint = GenerateMatterConstraint(data_quality);
     // data_field.quality;
-    // data_field.default_ = data_quality.default_;
+    if (data_quality.default_.has_value())
+        data_field.default_ = MapSdfDefaultValue(data_quality.default_);
     return data_field;
 }
 
@@ -502,7 +531,8 @@ matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality)
     //sdf_choice
     //enum
     //const
-    //default
+    if (data_quality.default_.has_value())
+        data_field.default_ = MapSdfDefaultValue(data_quality.default_.value());
     data_field.constraint = GenerateMatterConstraint(data_quality);
     //exclusive_minimum
     //exclusive_maximum
@@ -613,7 +643,6 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
 
     ImportFromMapping(sdf_property_reference->GeneratePointer(), "id", attribute.id);
     attribute.name = sdf_property_pair.second.label;
-    // sdf_property.comment
     // sdf_property.sdf_required
     attribute.conformance = GenerateMatterConformance();
     attribute.access = ImportAccessFromMapping(sdf_property_reference->GeneratePointer());
@@ -622,7 +651,8 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     // sdf_property.observable
     attribute.summary = sdf_property_pair.second.description;
     attribute.type = MapSdfDataType(sdf_property_pair.second);
-    //attribute.default_ = sdf_property.default_;
+    if (sdf_property_pair.second.default_.has_value())
+        attribute.default_ = sdf_property_pair.second.default_;
     attribute.quality = ImportOtherQualityFromMapping(sdf_property_reference->GeneratePointer());
     //attribute.quality.nullable = sdf_property.nullable;
     //attribute.quality.fixed = !sdf_property.const_.empty();
