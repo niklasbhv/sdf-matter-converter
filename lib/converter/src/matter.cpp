@@ -385,6 +385,15 @@ Attribute ParseAttribute(const pugi::xml_node& attribute_node) {
 */
 void ParseDataTypes(const pugi::xml_node& data_type_xml, Cluster& cluster) {
     // Parse all data types based on enums.
+    for (const auto& struct_node: data_type_xml.children("struct")) {
+        std::list<DataField> struct_fields;
+        for (const auto& field_node : struct_node.children("field")) {
+            struct_fields.push_back(ParseDataField(field_node));
+        }
+        cluster.structs[struct_node.attribute("name").value()] = struct_fields;
+    }
+
+    // Parse all data types based on enums.
     for (const auto& enum_node: data_type_xml.children("enum")) {
         std::list<Item> enum_items;
         for (const auto& item_node : enum_node.children("item")) {
@@ -884,9 +893,16 @@ void SerializeDataTypes(const Cluster& cluster, pugi::xml_node& cluster_xml) {
     auto data_type_node = cluster_xml.append_child("dataTypes");
 
     // number
-    // struct
 
-    for (const auto &current_enum: cluster.enums) {
+    for (const auto& current_struct : cluster.structs) {
+        pugi::xml_node struct_node = data_type_node.append_child("struct");
+        struct_node.append_attribute("name").set_value(current_struct.first.c_str());
+        for (const auto& struct_field : current_struct.second) {
+            SerializeDataField(struct_field, struct_node);
+        }
+    }
+
+    for (const auto& current_enum: cluster.enums) {
         pugi::xml_node enum_node = data_type_node.append_child("enum");
         enum_node.append_attribute("name").set_value(current_enum.first.c_str());
         for (const auto &enum_item: current_enum.second) {
@@ -894,7 +910,7 @@ void SerializeDataTypes(const Cluster& cluster, pugi::xml_node& cluster_xml) {
         }
     }
 
-    for (const auto &bitmap: cluster.bitmaps) {
+    for (const auto& bitmap: cluster.bitmaps) {
         pugi::xml_node bitmap_node = data_type_node.append_child("bitmap");
         bitmap_node.append_attribute("name").set_value(bitmap.first.c_str());
         for (const auto &bitfield: bitmap.second) {

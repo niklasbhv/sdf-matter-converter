@@ -367,6 +367,8 @@ struct Cluster : CommonQuality {
     std::map<std::string, std::list<Item>> enums;
     //! Map for globally defined bitmaps
     std::map<std::string, std::list<Bitfield>> bitmaps;
+    //! Map for globally defined bitmaps
+    std::map<std::string, Struct> structs;
 };
 
 /**
