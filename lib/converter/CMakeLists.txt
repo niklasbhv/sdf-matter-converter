@@ -3,12 +3,15 @@ project(converter)
 
 # Add a library with the above sources
 add_library(${PROJECT_NAME} src/converter.cpp
-        src/mapping.cpp
         src/matter.cpp
         src/sdf.cpp
+        src/sdf_to_matter.cpp
+        src/matter_to_sdf.cpp
         include/mapping.h
         include/matter.h
-        include/sdf.h)
+        include/sdf.h
+        include/sdf_to_matter.h
+        include/matter_to_sdf.h)
 
 # add dependencies
 include(../../cmake/CPM.cmake)

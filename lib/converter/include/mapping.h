@@ -20,39 +20,112 @@
  *
  * @section Description
  *
- * Helper structures and functions to map matter and sdf.
+ * Helper structures used by both conversion directions.
  */
 
 #ifndef MAPPING_H
 #define MAPPING_H
 
-#include "matter.h"
-#include "sdf.h"
+//! Function to unescape JSON Pointer according to RFC 6901
+inline std::string UnescapeJsonPointer(const std::string& input) {
+    std::string result = input;
+    std::size_t pos = 0;
+    while ((pos = result.find("~1", pos)) != std::string::npos) {
+        result.replace(pos, 2, "/");
+        pos += 1;
+    }
+    pos = 0;
+    while ((pos = result.find("~0", pos)) != std::string::npos) {
+        result.replace(pos, 2, "~");
+        pos += 1;
+    }
+    pos = 0;
+    while ((pos = result.find("%20", pos)) != std::string::npos) {
+        result.replace(pos, 3, " ");
+        pos += 1;
+    }
+    return result;
+}
 
-//! @brief Map a sdf-model and sdf-mapping to a matter object.
-//!
-//! This function maps a sdf-model and sdf-mapping onto a matter device and a list of clusters.
-//!
-//! @param sdf_model The input sdf-model.
-//! @param sdf_mapping The input sdf-mapping.
-//! @param device The optionally resulting device definition.
-//! @param cluster_list The resulting list of cluster definitions.
-//! @return 0 on success, negative on failure.
-int MapSdfToMatter(const sdf::SdfModel& sdf_model,
-                   const sdf::SdfMapping& sdf_mapping,
-                   std::optional<matter::Device>& optional_device, std::list<matter::Cluster>& cluster_list);
+//! Function to escape JSON Pointer according to RFC 6901
+inline std::string EscapeJsonPointer(const std::string& input) {
+    std::string result = input;
+    std::size_t pos = 0;
+    while ((pos = result.find('~', pos)) != std::string::npos) {
+        result.replace(pos, 1, "~0");
+        pos += 2;
+    }
+    pos = 0;
+    while ((pos = result.find('/', pos)) != std::string::npos) {
+        result.replace(pos, 1, "~1");
+        pos += 2;
+    }
+    pos = 0;
+    while ((pos = result.find(' ', pos)) != std::string::npos) {
+        result.replace(pos, 1, "%20");
+        pos += 3;
+    }
+    return result;
+}
 
-//! @brief Map a device type definition to a sdf-object.
-//!
-//! This function maps a device and a list of clusters onto a sdf-model and sdf-mapping.
-//!
-//! @param device The optional input device definition.
-//! @param cluster_list The input list of cluster definitions.
-//! @param sdf_model The resulting sdf-model.
-//! @param sdf_mapping The resulting sdf-mapping.
-//! @return 0 on success, negative on failure.
-int MapMatterToSdf(const std::optional<matter::Device>& optional_device,
-                   const std::list<matter::Cluster>& cluster_list,
-                   sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping);
+class ReferenceTreeNode {
+public:
+    std::string name;
+    std::map<std::string, sdf::MappingValue> attributes;
+    ReferenceTreeNode* parent;
+    std::vector<ReferenceTreeNode*> children;
+
+    ReferenceTreeNode(std::string name) : name(std::move(name)), attributes(), parent(nullptr) {}
+
+    void AddChild(ReferenceTreeNode* child) {
+        child->parent = this;
+        children.push_back(child);
+    }
+
+    void AddAttribute(const std::string& key, sdf::MappingValue value) {
+        attributes[key] = std::move(value);
+    }
+
+    std::string GeneratePointer() {
+        std::string path;
+        ReferenceTreeNode* current = this;
+        while (current != nullptr) {
+            path = EscapeJsonPointer(current->name) + (path.empty() ? "" : "/" + path);
+            current = current->parent;
+        }
+        return path;
+    }
+};
+
+class ReferenceTree {
+public:
+    ReferenceTreeNode* root;
+
+    ReferenceTree() {
+        root = new ReferenceTreeNode("#");
+    }
+
+    std::map<std::string, std::map<std::string, sdf::MappingValue>> GenerateMapping(ReferenceTreeNode* node) {
+        std::map<std::string, std::map<std::string, sdf::MappingValue>> map;
+        ReferenceTreeNode* current = node;
+        for (const auto& child : current->children) {
+            if (!child->attributes.empty()) {
+                map[GeneratePointer(child)] = child->attributes;
+            }
+            map.merge(GenerateMapping(child));
+        }
+        return map;
+    }
+
+    std::string GeneratePointer(ReferenceTreeNode* node) {
+        std::string path;
+        ReferenceTreeNode* current = node;
+        while (current != nullptr) {
+            path = EscapeJsonPointer(current->name) + (path.empty() ? "" : "/" + path);
+            current = current->parent;
+        }
+        return path;
+    }
+};
 
 #endif //MAPPING_H

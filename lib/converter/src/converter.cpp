@@ -18,7 +18,7 @@
 #include <pugixml.hpp>
 #include "matter.h"
 #include "sdf.h"
-#include "mapping.h"
+#include "converter.h"
 
 using json = nlohmann::ordered_json;
 

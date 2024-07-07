@@ -30,6 +30,8 @@
 #include <pugixml.hpp>
 #include <list>
 #include <optional>
+#include "matter_to_sdf.h"
+#include "sdf_to_matter.h"
 
 
 //! @brief Convert sdf to matter.
