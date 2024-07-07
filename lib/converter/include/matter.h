@@ -173,15 +173,15 @@ struct Constraint {
  */
 struct Conformance {
     //! M -> Mandatory conformance
-    std::optional<bool> mandatory;
+    bool mandatory = false;
     //! O -> Optional conformance
-    std::optional<bool> optional;
+    bool optional = false;
     //! P -> Provisional conformance
-    std::optional<bool> provisional;
+    bool provisional = false;
     //! D -> Deprecated conformance
-    std::optional<bool> deprecated;
+    bool deprecated = false;
     //! X -> Disallowed conformance
-    std::optional<bool> disallowed;
+    bool disallowed = false;
     //! List representing the otherwise conformance
     //! Note that the first true conformance in this list will be chosen
     std::list<Conformance> otherwise;

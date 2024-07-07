@@ -719,22 +719,16 @@ void SerializeLogicalTerm(const nlohmann::json& condition, pugi::xml_node& paren
 //! Serializes a conformance object into a xml node and appends it to the given parent node
 void SerializeConformance(const Conformance& conformance, pugi::xml_node& parent_node) {
     pugi::xml_node conformance_node;
-    if (conformance.mandatory.has_value()) {
-        if (conformance.mandatory.value())
-            conformance_node = parent_node.append_child("mandatoryConform");
-    } else if (conformance.optional.has_value()) {
-        if (conformance.optional.value())
-            conformance_node = parent_node.append_child("optionalConform");
-    } else if (conformance.provisional.has_value()) {
-        if (conformance.provisional.value())
-            conformance_node = parent_node.append_child("provisionalConform");
-    } else if (conformance.deprecated.has_value()) {
-        if (conformance.deprecated.value())
-            conformance_node = parent_node.append_child("deprecatedConform");
-    } else if (conformance.disallowed.has_value()) {
-        if (conformance.disallowed.value())
-            conformance_node = parent_node.append_child("disallowedConform");
-    }
+    if (conformance.mandatory)
+        conformance_node = parent_node.append_child("mandatoryConform");
+    else if (conformance.optional)
+        conformance_node = parent_node.append_child("optionalConform");
+    else if (conformance.provisional)
+        conformance_node = parent_node.append_child("provisionalConform");
+    else if (conformance.deprecated)
+        conformance_node = parent_node.append_child("deprecatedConform");
+    else if (conformance.disallowed)
+        conformance_node = parent_node.append_child("disallowedConform");
     if (!conformance.condition.is_null())
         SerializeLogicalTerm(conformance.condition, conformance_node);
 }

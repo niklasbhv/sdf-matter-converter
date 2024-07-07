@@ -193,7 +193,7 @@ std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::st
         struct_field_data_quality.description = struct_field.summary;
         data_quality.properties[struct_field.name] = struct_field_data_quality;
         if (struct_field.conformance.has_value()) {
-            if (struct_field.conformance.value().mandatory.has_value()) {
+            if (struct_field.conformance.value().mandatory) {
                 if (EvaluateConformanceCondition(struct_field.conformance.value().condition))
                     data_quality.required.push_back(struct_field.name);
             }
@@ -742,21 +742,19 @@ void MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdf_propert
  * @return 0 on success, negative on failure.
  */
 bool MapMatterConformance(const matter::Conformance& conformance) {
-    if (conformance.mandatory.has_value()) {
-        if (conformance.mandatory.value() and EvaluateConformanceCondition(conformance.condition)) {
-            sdf_required_list.push_back(current_given_name_node->GeneratePointer());
-        }
+    if (conformance.mandatory and EvaluateConformanceCondition(conformance.condition)) {
+        sdf_required_list.push_back(current_given_name_node->GeneratePointer());
     }
 
-    if (conformance.mandatory.has_value())
+    if (conformance.mandatory)
         current_given_name_node->AddAttribute("mandatoryConform", conformance.condition);
-    else if (conformance.optional.has_value())
+    else if (conformance.optional)
         current_given_name_node->AddAttribute("optionalConform", conformance.condition);
-    else if (conformance.provisional.has_value())
+    else if (conformance.provisional)
         current_given_name_node->AddAttribute("provisionalConform", conformance.condition);
-    else if (conformance.deprecated.has_value())
+    else if (conformance.deprecated)
         current_given_name_node->AddAttribute("deprecatedConform", conformance.condition);
-    else if (conformance.disallowed.has_value())
+    else if (conformance.disallowed)
         current_given_name_node->AddAttribute("disallowConform", conformance.condition);
 
     return EvaluateConformanceCondition(conformance.condition);
@@ -908,18 +906,18 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map)
         feature_json["name"] = feature.name;
         feature_json["summary"] = feature.summary;
         if (feature.conformance.has_value()) {
-            if (feature.conformance.value().mandatory.has_value())
+            if (feature.conformance.value().mandatory)
                 feature_json["mandatoryConform"] = feature.conformance.value().condition;
-            if (feature.conformance.value().optional.has_value())
+            if (feature.conformance.value().optional)
                 feature_json["optionalConform"] = feature.conformance.value().condition;
-            if (feature.conformance.value().provisional.has_value())
+            if (feature.conformance.value().provisional)
                 feature_json["provisionalConform"] = feature.conformance.value().condition;
-            if (feature.conformance.value().deprecated.has_value())
+            if (feature.conformance.value().deprecated)
                 feature_json["deprecatedConform"] = feature.conformance.value().condition;
-            if (feature.conformance.value().disallowed.has_value())
+            if (feature.conformance.value().disallowed)
                 feature_json["disallowConform"] = feature.conformance.value().condition;
             condition = EvaluateConformanceCondition(feature.conformance.value().condition);
-            if (feature.conformance.value().mandatory.has_value() and condition) {
+            if (feature.conformance.value().mandatory and condition) {
                 supported_features.insert(feature.code);
                 std::cout << "Supported Feature: " << feature.code << std::endl;
             }
