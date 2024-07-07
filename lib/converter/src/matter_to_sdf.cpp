@@ -95,10 +95,69 @@ void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::DataQuality
         current_given_name_node->AddAttribute("quality", quality_json);
 }
 
-std::pair<std::string, sdf::DataQuality> MapMatterBitfield(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair)
+bool EvaluateConformanceCondition(const json& condition)
+{
+    if (condition.empty())
+        return true;
+    else if (condition.contains("andTerm")) {
+        // Return true, if all the contained expressions evaluate to true
+        // Returns false otherwise
+        for (auto& item : condition.at("andTerm")) {
+            if (!EvaluateConformanceCondition(item))
+                return false;
+        }
+        return true;
+    }
+    else if (condition.contains("orTerm")) {
+        // Returns true, if any one of the contained expressions evaluate to true
+        // Returns false otherwise
+        for (auto& item : condition.at("orTerm")) {
+            if (EvaluateConformanceCondition(item))
+                return true;
+        }
+        return false;
+    }
+    else if (condition.contains("xorTerm")) {
+        // Returns true, if just one of the contained expressions evaluates to true
+        // Returns false otherwise
+        bool evaluated_one = false;
+        for (auto& item : condition.at("xorTerm")) {
+            if (EvaluateConformanceCondition(item)) {
+                if (!evaluated_one)
+                    evaluated_one = true;
+                else
+                    return true;
+            }
+            return evaluated_one;
+        }
+    }
+    else if (condition.contains("notTerm")) {
+        return !EvaluateConformanceCondition(condition.at("notTerm"));
+    }
+    else if (condition.contains("feature")) {
+        std::cout << "Reached" << condition.at("feature") << std::endl;
+        if (supported_features.find(condition.at("feature").at("name")) != supported_features.end()) {
+            std::cout << "Feature" << condition.at("feature") << "supported" << std::endl;
+            return true;
+        }
+    }
+    else if (condition.contains("condition")) {
+        std::cout << "Reached" << condition.at("condition") << std::endl;
+        // TODO: Check if the condition is satisfied
+        return true;
+    }
+    else if (condition.contains("attribute")) {
+        std::cout << "Reached" << condition.at("attribute") << std::endl;
+        // TODO: Check if the attribute exists
+        return true;
+    }
+    return false;
+}
+
+std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair)
 {
     sdf::DataQuality data_quality;
-    data_quality.type = "object";
+    data_quality.type = "array";
     for (const auto& bitfield : bitmap_pair.second) {
         sdf::DataQuality sdf_choice_data_quality;
         sdf_choice_data_quality.const_ = bitfield.bit;
@@ -113,7 +172,6 @@ std::pair<std::string, sdf::DataQuality> MapMatterBitfield(const std::pair<std::
 std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::string, std::list<matter::Item>>& enum_pair)
 {
     sdf::DataQuality data_quality;
-    data_quality.type = "object";
     for (const auto& item : enum_pair.second) {
         sdf::DataQuality sdf_choice_data_quality;
         sdf_choice_data_quality.const_ = item.value;
@@ -123,6 +181,25 @@ std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::stri
     }
     //required
     return {enum_pair.first, data_quality};
+}
+
+std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::string, matter::Struct>& struct_pair)
+{
+    sdf::DataQuality data_quality;
+    data_quality.type = "object";
+    for (const auto& struct_field : struct_pair.second) {
+        sdf::DataQuality struct_field_data_quality;
+        struct_field_data_quality.label = struct_field.name;
+        struct_field_data_quality.description = struct_field.summary;
+        data_quality.properties[struct_field.name] = struct_field_data_quality;
+        if (struct_field.conformance.has_value()) {
+            if (struct_field.conformance.value().mandatory.has_value()) {
+                if (EvaluateConformanceCondition(struct_field.conformance.value().condition))
+                    data_quality.required.push_back(struct_field.name);
+            }
+        }
+    }
+    return {struct_pair.first, data_quality};
 }
 
 //! Generates data qualities based on the given matter type
@@ -655,65 +732,6 @@ void MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdf_propert
     current_given_name_node->AddAttribute("access", access_json);
 }
 
-bool EvaluateConformanceCondition(const json& condition)
-{
-    if (condition.empty())
-        return true;
-    else if (condition.contains("andTerm")) {
-        // Return true, if all the contained expressions evaluate to true
-        // Returns false otherwise
-        for (auto& item : condition.at("andTerm")) {
-            if (!EvaluateConformanceCondition(item))
-                return false;
-        }
-        return true;
-    }
-    else if (condition.contains("orTerm")) {
-        // Returns true, if any one of the contained expressions evaluate to true
-        // Returns false otherwise
-        for (auto& item : condition.at("orTerm")) {
-            if (EvaluateConformanceCondition(item))
-                return true;
-        }
-        return false;
-    }
-    else if (condition.contains("xorTerm")) {
-        // Returns true, if just one of the contained expressions evaluates to true
-        // Returns false otherwise
-        bool evaluated_one = false;
-        for (auto& item : condition.at("xorTerm")) {
-            if (EvaluateConformanceCondition(item)) {
-                if (!evaluated_one)
-                    evaluated_one = true;
-                else
-                    return true;
-            }
-            return evaluated_one;
-        }
-    }
-    else if (condition.contains("notTerm")) {
-        return !EvaluateConformanceCondition(condition.at("notTerm"));
-    }
-    else if (condition.contains("feature")) {
-        std::cout << "Reached" << condition.at("feature") << std::endl;
-        if (supported_features.find(condition.at("feature").at("name")) != supported_features.end()) {
-            std::cout << "Feature" << condition.at("feature") << "supported" << std::endl;
-            return true;
-        }
-    }
-    else if (condition.contains("condition")) {
-        std::cout << "Reached" << condition.at("condition") << std::endl;
-        // TODO: Check if the condition is satisfied
-        return true;
-    }
-    else if (condition.contains("attribute")) {
-        std::cout << "Reached" << condition.at("attribute") << std::endl;
-        // TODO: Check if the attribute exists
-        return true;
-    }
-    return false;
-}
-
 /**
  * @brief Adds element to sdf_required depending on the conformance.
  *
@@ -998,12 +1016,16 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
         sdf_object.sdf_event.insert({event.name, sdf_event});
     }
 
+    for (const auto& struct_pair : cluster.structs) {
+        sdf_object.sdf_data.insert(MapMatterStruct(struct_pair));
+    }
+
     for (const auto& enum_pair : cluster.enums) {
         sdf_object.sdf_data.insert(MapMatterEnum(enum_pair));
     }
 
     for (const auto& bitmap_pair : cluster.bitmaps) {
-        sdf_object.sdf_data.insert(MapMatterBitfield(bitmap_pair));
+        sdf_object.sdf_data.insert(MapMatterBitmap(bitmap_pair));
     }
 
     sdf_object.sdf_required = sdf_required_list;
