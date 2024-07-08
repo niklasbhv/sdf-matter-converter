@@ -959,12 +959,18 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map)
 void MapClusterClassification(const matter::ClusterClassification& cluster_classification)
 {
     json cluster_classification_json;
-    cluster_classification_json["hierarchy"] = cluster_classification.hierarchy;
-    cluster_classification_json["role"] = cluster_classification.role;
-    cluster_classification_json["picsCode"] = cluster_classification.picsCode;
-    cluster_classification_json["scope"] = cluster_classification.scope;
-    cluster_classification_json["baseCluster"] = cluster_classification.base_cluster;
-    cluster_classification_json["primaryTransaction"] = cluster_classification.primary_transaction;
+    if (!cluster_classification.hierarchy.empty())
+        cluster_classification_json["hierarchy"] = cluster_classification.hierarchy;
+    if (!cluster_classification.role.empty())
+        cluster_classification_json["role"] = cluster_classification.role;
+    if (!cluster_classification.picsCode.empty())
+        cluster_classification_json["picsCode"] = cluster_classification.picsCode;
+    if (!cluster_classification.scope.empty())
+        cluster_classification_json["scope"] = cluster_classification.scope;
+    if (!cluster_classification.base_cluster.empty())
+        cluster_classification_json["baseCluster"] = cluster_classification.base_cluster;
+    if (!cluster_classification.primary_transaction.empty())
+        cluster_classification_json["primaryTransaction"] = cluster_classification.primary_transaction;
     current_given_name_node->AddAttribute("classification", cluster_classification_json);
 }
 
@@ -1079,9 +1085,12 @@ sdf::InformationBlock GenerateInformationBlock(const std::variant<matter::Device
 void MapDeviceClassification(const matter::DeviceClassification& device_classification)
 {
     json device_classification_json;
-    device_classification_json["superset"] = device_classification.superset;
-    device_classification_json["class"] = device_classification.class_;
-    device_classification_json["scope"] = device_classification.scope;
+    if (!device_classification.superset.empty())
+        device_classification_json["superset"] = device_classification.superset;
+    if (!device_classification.class_.empty())
+        device_classification_json["class"] = device_classification.class_;
+    if (!device_classification.scope.empty())
+        device_classification_json["scope"] = device_classification.scope;
     current_given_name_node->AddAttribute("classification", device_classification_json);
 }
 
