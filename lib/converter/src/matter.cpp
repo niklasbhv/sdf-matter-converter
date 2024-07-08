@@ -72,13 +72,6 @@ Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
     if (constraint.type == "desc") {
         // In this case, there is nothing more to parse
     }
-
-    // Composed device type constraints
-    // allowed
-    // between
-    // min
-    // max
-
     // Numeric constraints
     else if (constraint.type == "allowed") {
         constraint.value = constraint_node.attribute("value").as_int();
@@ -90,10 +83,8 @@ Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
     } else if (constraint.type == "max") {
         constraint.max = constraint_node.attribute("value").as_int();
     }
-    // all
 
     // Octet string constraints
-    // lengthAllowed
     else if (constraint.type == "lengthBetween") {
         constraint.min = constraint_node.attribute("from").as_int();
         constraint.max = constraint_node.attribute("to").as_int();
@@ -102,10 +93,8 @@ Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
     } else if (constraint.type == "maxLength") {
         constraint.max = constraint_node.attribute("value").as_int();
     }
-    // all
 
     // List constraints
-    // countAllowed
     else if (constraint.type == "countBetween") {
         constraint.min = constraint_node.attribute("from").as_int();
         constraint.max = constraint_node.attribute("to").as_int();
@@ -113,9 +102,9 @@ Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
         constraint.min = constraint_node.attribute("value").as_int();
     } else if (constraint.type == "maxCount") {
         constraint.max = constraint_node.attribute("value").as_int();
+    } else if (constraint.type == "entry") {
+        constraint.entry_constraint_type = constraint_node.attribute("type").value();
     }
-    // all
-    // Entry constraint -> Child named "entry"
     // Character string constraints
 
     return constraint;
@@ -290,6 +279,9 @@ DataField ParseDataField(const pugi::xml_node& data_field_node) {
 
     if (!data_field_node.child("constraint").empty())
         data_field.constraint = ParseConstraint(data_field_node.child("constraint"));
+
+    if (!data_field_node.child("entry").empty())
+        data_field.constraint = ParseConstraint(data_field_node.child("entry"));
 
     if (!data_field_node.child("quality").empty())
         data_field.quality = ParseOtherQuality(data_field_node);
@@ -607,69 +599,65 @@ void SerializeNumericType(const NumericType& value, const char* attribute_name, 
 
 //! Serializes a constraint object into a xml node and appends it to the given parent node
 void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_node) {
-    auto constraint_node = parent_node.append_child("constraint");
-    // Constraint is defined in the description section
-    if (constraint.type == "desc") {
-        constraint_node.append_attribute("type").set_value("desc");
+    // If the constraint is an entry constraint
+    if (constraint.type == "entry") {
+        auto constraint_node = parent_node.append_child("entry");
+        constraint_node.append_attribute("type").set_value(constraint.entry_constraint_type.c_str());
     }
+    else {
+            auto constraint_node = parent_node.append_child("constraint");
+            // Constraint is defined in the description section
+            if (constraint.type == "desc")
+                constraint_node.append_attribute("type").set_value("desc");
 
-    // Composed device type constraints
-    // allowed
-    // between
-    // min
-    // max
+            // Numeric constraints
+            else if (constraint.type == "allowed") {
+                constraint_node.append_attribute("type").set_value("allowed");
+                SerializeDefaultType(constraint.value.value(), "value", constraint_node);
+            } else if (constraint.type == "between") {
+                constraint_node.append_attribute("type").set_value("between");
+                SerializeNumericType(constraint.min.value(), "from", constraint_node);
+                SerializeNumericType(constraint.max.value(), "to", constraint_node);
+            } else if (constraint.type == "min") {
+                constraint_node.append_attribute("type").set_value("min");
+                SerializeNumericType(constraint.min.value(), "value", constraint_node);
+            } else if (constraint.type == "max") {
+                constraint_node.append_attribute("type").set_value("max");
+                SerializeNumericType(constraint.max.value(), "value", constraint_node);
+            }
 
-    // Numeric constraints
-    else if (constraint.type == "allowed") {
-        constraint_node.append_attribute("type").set_value("allowed");
-        SerializeDefaultType(constraint.value.value(), "value", constraint_node);
-    } else if (constraint.type == "between") {
-        constraint_node.append_attribute("type").set_value("between");
-        SerializeNumericType(constraint.min.value(), "from", constraint_node);
-        SerializeNumericType(constraint.max.value(), "to", constraint_node);
-    } else if (constraint.type == "min") {
-        constraint_node.append_attribute("type").set_value("min");
-        SerializeNumericType(constraint.min.value(), "value", constraint_node);
-    } else if (constraint.type == "max") {
-        constraint_node.append_attribute("type").set_value("max");
-        SerializeNumericType(constraint.max.value(), "value", constraint_node);
-    }
-    // all
+            // Octet string constraints
+            else if (constraint.type == "lengthBetween") {
+                constraint_node.append_attribute("type").set_value("lengthBetween");
+                SerializeNumericType(constraint.min.value(), "from", constraint_node);
+                SerializeNumericType(constraint.max.value(), "to", constraint_node);
+            } else if (constraint.type == "minLength") {
+                constraint_node.append_attribute("type").set_value("minLength");
+                SerializeNumericType(constraint.min.value(), "value", constraint_node);
+            } else if (constraint.type == "maxLength") {
+                constraint_node.append_attribute("type").set_value("maxLength");
+                SerializeNumericType(constraint.max.value(), "value", constraint_node);
+            }
 
-    // Octet string constraints
-    // lengthAllowed
-    else if (constraint.type == "lengthBetween") {
-        constraint_node.append_attribute("type").set_value("lengthBetween");
-        SerializeNumericType(constraint.min.value(), "from", constraint_node);
-        SerializeNumericType(constraint.max.value(), "to", constraint_node);
-    } else if (constraint.type == "minLength") {
-        constraint_node.append_attribute("type").set_value("minLength");
-        SerializeNumericType(constraint.min.value(), "value", constraint_node);
-    } else if (constraint.type == "maxLength") {
-        constraint_node.append_attribute("type").set_value("maxLength");
-        SerializeNumericType(constraint.max.value(), "value", constraint_node);
-    }
-    // all
+            // List constraints
+            else if (constraint.type == "countBetween") {
+                constraint_node.append_attribute("type").set_value("countBetween");
+                SerializeNumericType(constraint.min.value(), "from", constraint_node);
+                SerializeNumericType(constraint.max.value(), "to", constraint_node);
+            } else if (constraint.type == "minCount") {
+                constraint_node.append_attribute("type").set_value("minCount");
 
-    // List constraints
-    // countAllowed
-    else if (constraint.type == "countBetween") {
-        constraint_node.append_attribute("type").set_value("countBetween");
-        SerializeNumericType(constraint.min.value(), "from", constraint_node);
-        SerializeNumericType(constraint.max.value(), "to", constraint_node);
-    } else if (constraint.type == "minCount") {
-        constraint_node.append_attribute("type").set_value("minCount");
-
-        SerializeNumericType(constraint.min.value(), "value", constraint_node);
-    } else if (constraint.type == "maxCount") {
-        constraint_node.append_attribute("type").set_value("maxCount");
-        SerializeNumericType(constraint.max.value(), "value", constraint_node);
-    }
-    // all
-    // Entry constraint -> Child named "entry"
-    // Character string constraints
+                SerializeNumericType(constraint.min.value(), "value", constraint_node);
+            } else if (constraint.type == "maxCount") {
+                constraint_node.append_attribute("type").set_value("maxCount");
+                SerializeNumericType(constraint.max.value(), "value", constraint_node);
+            }
+            // Character string constraints
+        }
 }
 
+//! Serialize a matter conformance logical term into nested xml nodes
+//! This function is usually used in combination with SerializeConformance
 void SerializeLogicalTerm(const nlohmann::json& condition, pugi::xml_node& parent_node)
 {
     if (condition.contains("orTerm")) {
@@ -864,6 +852,7 @@ void SerializeAttribute(const Attribute& attribute, pugi::xml_node& attributes_n
         SerializeDefaultType(attribute.default_.value(), "default", attribute_node);
 }
 
+//! Serialize a enum item into a xml node
 void SerializeItem(const Item& item, pugi::xml_node& enum_node) {
     auto item_node = enum_node.append_child("item");
     item_node.append_attribute("value").set_value(item.value);
@@ -873,6 +862,7 @@ void SerializeItem(const Item& item, pugi::xml_node& enum_node) {
         SerializeConformance(item.conformance.value(), item_node);
 }
 
+//! Serialize a bitfield into a xml node
 void SerializeBitfield(const Bitfield& bitfield, pugi::xml_node& bitmap_node) {
     auto bitfield_node = bitmap_node.append_child("bitfield");
     bitfield_node.append_attribute("name").set_value(bitfield.name.c_str());
@@ -914,6 +904,7 @@ void SerializeDataTypes(const Cluster& cluster, pugi::xml_node& cluster_xml) {
     }
 }
 
+//! Serialize a feature map into a list of xml nodes
 void SerializeFeatureMap(const std::list<matter::Feature>& features_map, pugi::xml_node& cluster_node)
 {
     auto features_node = cluster_node.append_child("features");

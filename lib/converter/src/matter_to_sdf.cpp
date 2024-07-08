@@ -32,11 +32,13 @@ static ReferenceTreeNode* current_given_name_node = nullptr;
 
 //! Set containing the supported features
 //! Contains their short code for usage with conformance's
-std::set<std::string> supported_features;
+static std::set<std::string> supported_features;
 
 //! List containing required sdf elements
 //! This list gets filled while mapping and afterward appended to the corresponding sdfModel
-std::list<std::string> sdf_required_list;
+static std::list<std::string> sdf_required_list;
+
+static std::string sdf_data_location;
 
 //! Maps information of the given other quality onto a sdfProperty object
 void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty& sdf_property)
@@ -200,6 +202,22 @@ std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::st
         }
     }
     return {struct_pair.first, data_quality};
+}
+
+sdf::VariableType MapMatterDefaultType(const matter::DefaultType& default_type)
+{
+    sdf::VariableType variable_type;
+    if (std::holds_alternative<double>(default_type))
+        variable_type = std::get<double>(default_type);
+    else if (std::holds_alternative<int64_t>(default_type))
+        variable_type = std::get<int64_t>(default_type);
+    else if (std::holds_alternative<uint64_t>(default_type))
+        variable_type = std::get<uint64_t>(default_type);
+    else if (std::holds_alternative<std::string>(default_type))
+        variable_type = std::get<std::string>(default_type);
+    else if (std::holds_alternative<bool>(default_type))
+        variable_type = std::get<bool>(default_type);
+    return variable_type;
 }
 
 //! Generates data qualities based on the given matter type
@@ -637,9 +655,17 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         // Otherwise, the type is a custom type defined in the data type section
     else {
         data_quality.label = matter_type;
-        //data_quality.sdf_ref
+        data_quality.sdf_ref = sdf_data_location + matter_type;
         std::cout << "Found: " << matter_type << std::endl;
     }
+}
+
+//! Maps a Matter entry constraint onto a Jso Item object
+sdf::JsoItem MapMatterEntryConstraint(const matter::Constraint& entry_constraint)
+{
+    sdf::JsoItem jso_item;
+    jso_item.sdf_ref = sdf_data_location + entry_constraint.entry_constraint_type;
+    return jso_item;
 }
 
 //! Matter Constraint -> Data Quality
@@ -647,16 +673,16 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
 {
     // We ignore the "desc" constraint type as its dependent on the implementation of the cluster
     if (data_quality.type == "number" or data_quality.type == "integer") {
-        if (constraint.value.has_value()) {}
-        //data_quality.const_ = constraint.value;
+        if (constraint.value.has_value())
+            data_quality.const_ = MapMatterDefaultType(constraint.value.value());
         if (constraint.min.has_value())
             data_quality.minimum = constraint.min.value();
         if (constraint.max.has_value())
             data_quality.maximum = constraint.max.value();
     }
     else if (data_quality.type == "string") {
-        if (constraint.value.has_value()) {}
-        //data_quality.const_ = constraint.value;
+        if (constraint.value.has_value())
+            data_quality.const_ = MapMatterDefaultType(constraint.value.value());
         if (constraint.min.has_value()) {
             if (std::holds_alternative<uint64_t>(constraint.min.value()))
                 data_quality.min_length = std::get<uint64_t>(constraint.min.value());
@@ -668,8 +694,8 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
         }
     }
     else if (data_quality.type == "array") {
-        if (constraint.value.has_value()) {}
-        //data_quality.const_ = constraint.value;
+        if (constraint.value.has_value())
+            data_quality.const_ = MapMatterDefaultType(constraint.value.value());
         if (constraint.min.has_value()) {
             if (std::holds_alternative<uint64_t>(constraint.min.value()))
                 data_quality.min_items = std::get<uint64_t>(constraint.min.value());
@@ -678,6 +704,8 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
             if (std::holds_alternative<uint64_t>(constraint.min.value()))
                 data_quality.max_items = std::get<uint64_t>(constraint.min.value());
         }
+        if (!constraint.entry_constraint_type.empty())
+            data_quality.items = MapMatterEntryConstraint(constraint);
     }
     else if (data_quality.type == "object") {}
 }
@@ -964,6 +992,8 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
         current_quality_name_node->AddChild(cluster_reference);
         current_given_name_node = cluster_reference;
     }
+    // Set the location of sdfData
+    sdf_data_location = current_given_name_node->GeneratePointer() + "/sdfData/";
 
     cluster_reference->AddAttribute("id", (uint64_t) cluster.id);
     sdf_object.label = cluster.name;
@@ -1090,16 +1120,13 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
         sdf::SdfObject sdf_object = MapMatterCluster(cluster);
         // Clear the sdfRequired list as it would result in duplicates
         sdf_object.sdf_required.clear();
-        if (cluster.side == "client")
-            sdf_thing.sdf_object.insert({cluster.name + "_Client", sdf_object});
-        else if (cluster.side == "server")
-            sdf_thing.sdf_object.insert({cluster.name + "_Server", sdf_object});
-        else {
-            std::cout << "Something went wrong" << std::endl;
-        }
         current_quality_name_node = sdf_object_reference;
         // Clear the list of supported features after every run
         supported_features.clear();
+        if (cluster.side == "client")
+            sdf_thing.sdf_object.insert({cluster.name + "_Client", sdf_object});
+        else
+            sdf_thing.sdf_object.insert({cluster.name + "_Client", sdf_object});
     }
     sdf_thing.sdf_required = sdf_required_list;
 

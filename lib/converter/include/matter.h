@@ -160,7 +160,7 @@ struct Constraint {
     struct contraintType *constraint;
     //! Used for list_constraint[entry_constraint].
     //! List constraint is mapped to the above qualities, entry constraint is mapped to the below quality.
-    std::optional<bool> entry_constraint;
+    std::string entry_constraint_type;
     //! char_constraint[z].
     //! char_constraint is the string constraint in bytes.
     //! z is the maximum number of unicode codepoints.
