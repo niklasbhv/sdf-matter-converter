@@ -979,6 +979,8 @@ void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml)
 {
     // Create the cluster node
     auto cluster_node = cluster_xml.append_child("cluster");
+    cluster_node.append_attribute("xmlns:xsi").set_value("http://www.w3.org/2001/XMLSchema-instance");
+    cluster_node.append_attribute("xsi:schemaLocation").set_value("types types.xsd cluster cluster.xsd");
 
     cluster_node.append_attribute("id").set_value(IntToHex(cluster.id).c_str());
     cluster_node.append_attribute("name").set_value(cluster.name.c_str());
