@@ -418,7 +418,7 @@ void ParseDataTypes(const pugi::xml_node& data_type_xml, Cluster& cluster) {
     // Parse all data types based on bitmaps.
     for (const auto& bitmap_node: data_type_xml.children("bitmap")) {
         std::list<Bitfield> bitfields;
-        for (const auto& bitfield_node : bitmap_node.children("bitfields")) {
+        for (const auto& bitfield_node : bitmap_node.children("bitfield")) {
             bitfields.push_back(ParseBitfield(bitfield_node));
         }
         cluster.bitmaps[bitmap_node.attribute("name").value()] = bitfields;
