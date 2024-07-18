@@ -631,6 +631,8 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     cluster.summary = sdf_object_pair.second.description;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "side", cluster.side);
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "revision", cluster.revision);
+
+    // Import the revision history from the mapping
     json revision_history_json;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "revisionHistory", revision_history_json);
     for (const auto& item : revision_history_json) {
@@ -640,6 +642,18 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
         item.at("summary").get_to(summary);
         cluster.revision_history[revision] = summary;
     }
+
+    // Import the cluster aliases from the mapping
+    json cluster_aliases_json;
+    ImportFromMapping(sdf_object_reference->GeneratePointer(), "clusterIds", cluster_aliases_json);
+    for (const auto& cluster_alias : cluster_aliases_json) {
+        uint32_t id;
+        cluster_alias.at("id").get_to(id);
+        std::string name;
+        cluster_alias.at("name").get_to(name);
+        cluster.cluster_aliases.emplace_back(id, name);
+    }
+
     cluster.classification = GenerateClusterClassification();
 
     cluster.feature_map = GenerateFeatureMap();
