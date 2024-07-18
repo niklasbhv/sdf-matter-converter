@@ -783,7 +783,7 @@ bool MapMatterConformance(const matter::Conformance& conformance) {
     else if (conformance.provisional)
         current_given_name_node->AddAttribute("provisionalConform", conformance.condition);
     else if (conformance.deprecated)
-        current_given_name_node->AddAttribute("deprecatedConform", conformance.condition);
+        current_given_name_node->AddAttribute("deprecateConform", conformance.condition);
     else if (conformance.disallowed)
         current_given_name_node->AddAttribute("disallowConform", conformance.condition);
 
@@ -943,7 +943,7 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map)
             if (feature.conformance.value().provisional)
                 feature_json["provisionalConform"] = feature.conformance.value().condition;
             if (feature.conformance.value().deprecated)
-                feature_json["deprecatedConform"] = feature.conformance.value().condition;
+                feature_json["deprecateConform"] = feature.conformance.value().condition;
             if (feature.conformance.value().disallowed)
                 feature_json["disallowConform"] = feature.conformance.value().condition;
             condition = EvaluateConformanceCondition(feature.conformance.value().condition);

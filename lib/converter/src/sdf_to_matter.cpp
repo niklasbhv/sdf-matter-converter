@@ -182,11 +182,11 @@ matter::Conformance GenerateMatterConformance()
     if (!conformance_json.is_null()) {
         conformance.provisional = true;
     }
-    ImportFromMapping(current_given_name_node->GeneratePointer(), "deprecatedConform", conformance_json);
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "deprecateConform", conformance_json);
     if (!conformance_json.is_null()) {
         conformance.deprecated = true;
     }
-    ImportFromMapping(current_given_name_node->GeneratePointer(), "disallowedConform", conformance_json);
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "disallowConform", conformance_json);
     if (!conformance_json.is_null()) {
         conformance.disallowed = true;
     }
@@ -580,7 +580,7 @@ std::list<matter::Feature> GenerateFeatureMap()
             conformance.provisional = true;
             feature.conformance = conformance;
         }
-        if (feature_json.contains("deprecatedConform")) {
+        if (feature_json.contains("deprecateConform")) {
             matter::Conformance conformance;
             conformance.deprecated = true;
             feature.conformance = conformance;

@@ -197,11 +197,11 @@ Conformance ParseConformance(const pugi::xml_node& conformance_node) {
             conformance.condition = ParseLogicalTerm(conformance_node.child("provisionalConform").first_child());
     }
     // Deprecated conform
-    else if (!conformance_node.child("deprecatedConform").empty()) {
+    else if (!conformance_node.child("deprecateConform").empty()) {
         conformance.deprecated = true;
         // If the conformance has a child it is bound to a condition
-        if (!conformance_node.child("deprecatedConform").children().empty())
-            conformance.condition = ParseLogicalTerm(conformance_node.child("deprecatedConform").first_child());
+        if (!conformance_node.child("deprecateConform").children().empty())
+            conformance.condition = ParseLogicalTerm(conformance_node.child("deprecateConform").first_child());
     }
     // Disallowed conform
     else if (!conformance_node.child("disallowConform").empty()) {
@@ -213,18 +213,10 @@ Conformance ParseConformance(const pugi::xml_node& conformance_node) {
     // Otherwise conform
     else if (!conformance_node.child("otherwiseConform").empty()) {
         // Iterate through all child nodes
-        for (auto otherwise_child: conformance_node.child("otherwiseConform").children()) {
+        for (auto otherwise_child : conformance_node.child("otherwiseConform").children()) {
             // Recursively process the child nodes
-            // TODO: Currently the recursive processing with optional is pretty strange
-            //std::optional<Conformance> otherwiseConformance;
-            //ParseConformance(conformance_node.child("otherwiseConform"), otherwiseConformance);
-            //conformance.otherwise.push_back(otherwiseConformance.value());
+            conformance.otherwise.push_back(ParseConformance(otherwise_child));
         }
-    }
-
-    // In case no conformance is defined
-    else {
-        //optional_conformance = std::nullopt;
     }
 
     return conformance;
@@ -748,9 +740,15 @@ void SerializeConformance(const Conformance& conformance, pugi::xml_node& parent
     else if (conformance.provisional)
         conformance_node = parent_node.append_child("provisionalConform");
     else if (conformance.deprecated)
-        conformance_node = parent_node.append_child("deprecatedConform");
+        conformance_node = parent_node.append_child("deprecateConform");
     else if (conformance.disallowed)
-        conformance_node = parent_node.append_child("disallowedConform");
+        conformance_node = parent_node.append_child("disallowConform");
+    else if (!conformance.otherwise.empty()) {
+        conformance_node = parent_node.append_child("otherwiseConform");
+        for (const auto& otherwise_conformance : conformance.otherwise) {
+            SerializeConformance(otherwise_conformance, conformance_node);
+        }
+    }
     if (!conformance.condition.is_null())
         SerializeLogicalTerm(conformance.condition, conformance_node);
 }
