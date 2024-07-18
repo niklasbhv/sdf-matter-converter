@@ -312,6 +312,8 @@ struct Cluster : CommonQuality {
     int revision;
     //! History of revisions
     Revision revision_history;
+    //! List of cluster aliases consisting of pairs of a id and a name for the cluster alias
+    std::list<std::pair<uint32_t, std::string>> cluster_aliases;
     //! Cluster classification
     std::optional<ClusterClassification> classification;
     //! Feature map

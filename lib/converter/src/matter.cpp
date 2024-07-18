@@ -474,6 +474,16 @@ Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
                 {revision_node.attribute("revision").as_int(), revision_node.attribute("summary").value()});
     }
 
+    // Iterate through all cluster aliases and parse them individually
+    if (!cluster_xml.child("clusterIds").empty()) {
+        for (const auto& cluster_alias_node : cluster_xml.child("clusterIds").children()) {
+            std::pair<uint32_t, std::string> cluster_alias;
+            cluster_alias.first = cluster_alias_node.attribute("id").as_uint();
+            cluster_alias.second = cluster_alias_node.attribute("name").value();
+            cluster.cluster_aliases.push_back(cluster_alias);
+        }
+    }
+
     // Parse the classification section
     if (!cluster_xml.child("classification").empty())
         cluster.classification = ParseClusterClassification(cluster_xml.child("classification"));
@@ -991,6 +1001,14 @@ void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml)
         auto revision_node = revision_history_node.append_child("revision");
         revision_node.append_attribute("revision").set_value(revision.first);
         revision_node.append_attribute("summary").set_value(revision.second.c_str());
+    }
+
+    // Iterate through all cluster aliases and serialize them individually
+    auto cluster_aliases_node = cluster_node.append_child("clusterIds");
+    for (const auto& cluster_alias : cluster.cluster_aliases) {
+        auto cluster_alias_node = cluster_aliases_node.append_child("clusterId");
+        cluster_alias_node.append_attribute("id").set_value(IntToHex(cluster_alias.first).c_str());
+        cluster_alias_node.append_attribute("name").set_value(cluster_alias.second.c_str());
     }
 
     // Serialize the classification information
