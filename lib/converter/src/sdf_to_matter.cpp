@@ -125,10 +125,16 @@ std::optional<matter::OtherQuality> ImportOtherQualityFromMapping(const std::str
     matter::OtherQuality other_quality;
     if (other_quality_json.contains("nullable"))
         other_quality_json.at("nullable").get_to(other_quality.nullable);
-    if (other_quality_json.contains("nonVolatile"))
-        other_quality_json.at("nonVolatile").get_to(other_quality.non_volatile);
-    if (other_quality_json.contains("fixed"))
-        other_quality_json.at("fixed").get_to(other_quality.fixed);
+    if (other_quality_json.contains("persistence")) {
+        std::string persistence = other_quality_json.at("persistence");
+        if (persistence == "fixed") {
+            other_quality.fixed = true;
+        } else if (persistence == "nonVolatile") {
+            other_quality.non_volatile = true;
+        } else if (persistence == "volatile") {
+            other_quality.non_volatile = false;
+        }
+    }
     if (other_quality_json.contains("scene"))
         other_quality_json.at("scene").get_to(other_quality.scene);
     if (other_quality_json.contains("reportable"))
@@ -310,10 +316,10 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality)
                     return "uint64";
                 }
             }
-                // If no maximum value exists
+            // If no maximum value exists
             else {}
         }
-            // If minimum is negative (or larger than an uint64_t)
+        // If minimum is negative (or larger than an uint64_t)
         else {
             if (data_quality.maximum.has_value()) {
                 if (isVariantIntWithinBorders(data_quality.minimum.value(), MATTER_INT_8_MIN, 0)) {
@@ -357,7 +363,7 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality)
                     }
                 }
             }
-                // If maximum does not have a value
+            // If maximum does not have a value
             else {}
         }
     }

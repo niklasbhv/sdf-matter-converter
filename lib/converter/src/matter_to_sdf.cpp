@@ -46,10 +46,15 @@ void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty
     json quality_json;
     if (other_quality.nullable.has_value())
         sdf_property.nullable = other_quality.nullable.value();
-    if (other_quality.non_volatile.has_value())
-        quality_json["nonVolatile"] = other_quality.non_volatile.value();
+    if (other_quality.non_volatile.has_value()) {
+        if (other_quality.non_volatile.value()) {
+            quality_json["persistence"] = "nonVolatile";
+        } else {
+            quality_json["persistence"] = "volatile";
+        }
+    }
     if (other_quality.fixed.has_value())
-        quality_json["fixed"] = other_quality.fixed.value();
+        quality_json["persistence"] = "fixed";
     if (other_quality.scene.has_value())
         quality_json["scene"] = other_quality.scene.value();
     if (other_quality.reportable.has_value())
@@ -71,14 +76,18 @@ void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty
 //! Maps information of the given other quality onto a data quality object
 void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::DataQuality& data_quality)
 {
-    // TODO: Change nonVolatile to its actual value from the xml
     json quality_json;
     if (other_quality.nullable.has_value())
         data_quality.nullable = other_quality.nullable.value();
-    if (other_quality.non_volatile.has_value())
-        quality_json["nonVolatile"] = other_quality.non_volatile.value();
+    if (other_quality.non_volatile.has_value()) {
+        if (other_quality.non_volatile.value()) {
+            quality_json["persistence"] = "nonVolatile";
+        } else {
+            quality_json["persistence"] = "volatile";
+        }
+    }
     if (other_quality.fixed.has_value())
-        quality_json["fixed"] = other_quality.fixed.value();
+        quality_json["persistence"] = "fixed";
     if (other_quality.scene.has_value())
         quality_json["scene"] = other_quality.scene.value();
     if (other_quality.reportable.has_value())
