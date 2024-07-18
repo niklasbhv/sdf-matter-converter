@@ -1016,8 +1016,8 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
     json revision_history_json;
     for (const auto& revision : cluster.revision_history) {
         json revision_json;
-        revision_json["revision"] = revision.first;
-        revision_json["summary"] = revision.second;
+        revision_json["revision"]["revision"] = revision.first;
+        revision_json["revision"]["summary"] = revision.second;
         revision_history_json.push_back(revision_json);
     }
     cluster_reference->AddAttribute("revisionHistory", revision_history_json);
@@ -1126,8 +1126,8 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
     json revision_history_json;
     for (const auto& revision : device.revision_history) {
         json revision_json;
-        revision_json["revision"] = revision.first;
-        revision_json["summary"] = revision.second;
+        revision_json["revision"]["revision"] = revision.first;
+        revision_json["revision"]["summary"] = revision.second;
         revision_history_json.push_back(revision_json);
     }
     device_reference->AddAttribute("revisionHistory", revision_history_json);

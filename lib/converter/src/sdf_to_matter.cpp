@@ -637,9 +637,9 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "revisionHistory", revision_history_json);
     for (const auto& item : revision_history_json) {
         u_int8_t revision;
-        item.at("revision").get_to(revision);
+        item.at("revision").at("revision").get_to(revision);
         std::string summary;
-        item.at("summary").get_to(summary);
+        item.at("revision").at("summary").get_to(summary);
         cluster.revision_history[revision] = summary;
     }
 
@@ -648,9 +648,9 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "clusterIds", cluster_aliases_json);
     for (const auto& cluster_alias : cluster_aliases_json) {
         uint32_t id;
-        cluster_alias.at("id").get_to(id);
+        cluster_alias.at("clusterId").at("id").get_to(id);
         std::string name;
-        cluster_alias.at("name").get_to(name);
+        cluster_alias.at("clusterId").at("name").get_to(name);
         cluster.cluster_aliases.emplace_back(id, name);
     }
 
@@ -721,9 +721,9 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revisionHistory", revision_history_json);
     for (const auto& item : revision_history_json) {
         u_int8_t revision;
-        item.at("revision").get_to(revision);
+        item.at("revision").at("revision").get_to(revision);
         std::string summary;
-        item.at("summary").get_to(summary);
+        item.at("revision").at("summary").get_to(summary);
         device.revision_history[revision] = summary;
     }
 
