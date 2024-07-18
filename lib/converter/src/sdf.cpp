@@ -22,14 +22,10 @@ using json = nlohmann::ordered_json;
 
 namespace sdf {
 
-/*
- * Reference to the SDF-Model used for resolving sdfRef-Elements.
- */
+//! Reference to the SDF-Model used for resolving sdfRef-Elements.
 json global_sdf_model = {};
 
-/*
- * Function used to resolve sdf_ref qualities.
- */
+//! Function used to resolve sdf_ref qualities.
 int ResolveSdfRef(json& sdf_ref_qualities_json)
 {
     std::string sdfRef;
@@ -42,9 +38,7 @@ int ResolveSdfRef(json& sdf_ref_qualities_json)
     return 0;
 }
 
-/*
- * Parse common qualities from json into a CommonQuality object.
- */
+//! Parse common qualities from json into a CommonQuality object.
 void ParseCommonQualities(json& common_quality_json, CommonQuality& common_quality)
 {
     // If a sdf_ref-Element exists, resolve it
@@ -73,9 +67,7 @@ DataQuality ParseDataQualities(json& data_qualities_json) {
     return data_quality;
 }
 
-/*
- * Parse a sdf_choice from json into a DataQuality map.
- */
+//! Parse a sdf_choice from json into a DataQuality map.
 SdfChoice ParseSdfChoice(json& sdf_choice_json)
 {
     SdfChoice sdf_choice;
@@ -87,9 +79,7 @@ SdfChoice ParseSdfChoice(json& sdf_choice_json)
     return sdf_choice;
 }
 
-/*
- * Parse a JSO item type from json into a JsoItemType object.
- */
+//! Parse a JSO item type from json into a JsoItemType object.
 JsoItem ParseJsoItem(json& jso_item_json)
 {
     JsoItem jso_item;
@@ -143,9 +133,7 @@ JsoItem ParseJsoItem(json& jso_item_json)
     return jso_item;
 }
 
-/*
- * Parse data qualities from json into a DataQuality object.
- */
+//! Parse data qualities from json into a DataQuality object.
 void ParseDataQualities(json& data_qualities_json, DataQuality& data_quality)
 {
     // Parse the common qualities
@@ -233,9 +221,7 @@ void ParseDataQualities(json& data_qualities_json, DataQuality& data_quality)
         data_qualities_json.at("contentFormat").get_to(data_quality.content_format);
 }
 
-/*
- * Parse a sdf_event from json into a SdfEvent object.
- */
+//! Parse a sdf_event from json into a SdfEvent object.
 SdfEvent ParseSdfEvent(json& sdf_event_json)
 {
     SdfEvent sdf_event;
@@ -256,9 +242,7 @@ SdfEvent ParseSdfEvent(json& sdf_event_json)
     return sdf_event;
 }
 
-/*
- * Parse a sdf_action from json into a SdfAction object.
- */
+//! Parse a sdf_action from json into a SdfAction object.
 SdfAction ParseSdfAction(json& sdf_action_json)
 {
     SdfAction sdf_action;
@@ -286,9 +270,7 @@ SdfAction ParseSdfAction(json& sdf_action_json)
     return sdf_action;
 }
 
-/*
- * Parse a sdf_property from json into a SdfProperty object.
- */
+//! Parse a sdf_property from json into a SdfProperty object.
 SdfProperty ParseSdfProperty(json& sdf_property_json)
 {
     SdfProperty sdf_property;
@@ -308,9 +290,7 @@ SdfProperty ParseSdfProperty(json& sdf_property_json)
     return sdf_property;
 }
 
-/*
- * Parse a sdf_object from json into a SdfObject object.
- */
+//! Parse a sdf_object from json into a SdfObject object.
 SdfObject ParseSdfObject(json& sdf_object_json)
 {
     SdfObject sdf_object;
@@ -355,9 +335,7 @@ SdfObject ParseSdfObject(json& sdf_object_json)
     return sdf_object;
 }
 
-/*
- * Parse a sdf_thing from json into a SdfThing object.
- */
+//! Parse a sdf_thing from json into a SdfThing object.
 SdfThing ParseSdfThing(json& sdf_thing_json)
 {
     SdfThing sdf_thing;
@@ -416,9 +394,7 @@ SdfThing ParseSdfThing(json& sdf_thing_json)
     return sdf_thing;
 }
 
-/*
- * Parse a namespace block from json into a NamespaceBlock object.
- */
+//! Parse a namespace block from json into a NamespaceBlock object.
 NamespaceBlock ParseNamespaceBlock(json& namespace_block_json)
 {
     NamespaceBlock namespace_block;
@@ -432,9 +408,7 @@ NamespaceBlock ParseNamespaceBlock(json& namespace_block_json)
     return namespace_block;
 }
 
-/*
- * Parse an information block from json into a InformationBlock object.
- */
+//! Parse an information block from json into a InformationBlock object.
 InformationBlock ParseInformationBlock(json& info_block_json)
 {
     InformationBlock information_block;
@@ -466,9 +440,7 @@ InformationBlock ParseInformationBlock(json& info_block_json)
     return information_block;
 }
 
-/*
- * Parse a sdf-model from json into a SdfModel object.
- */
+//! Parse a sdf-model from json into a SdfModel object.
 SdfModel ParseSdfModel(json& sdf_model_json)
 {
     SdfModel sdf_model;
@@ -504,9 +476,7 @@ SdfModel ParseSdfModel(json& sdf_model_json)
     return sdf_model;
 }
 
-/*
- * Parse a sdf-mapping from json into a SdfMapping object.
- */
+//! Parse a sdf-mapping from json into a SdfMapping object.
 SdfMapping ParseSdfMapping(json& sdf_mapping_json)
 {
     SdfMapping sdf_mapping;
@@ -532,9 +502,7 @@ SdfMapping ParseSdfMapping(json& sdf_mapping_json)
     return sdf_mapping;
 }
 
-/*
- * Serialize common qualities into the json format.
- */
+//! Serialize common qualities into the json format.
 void SerializeCommonQualities(const CommonQuality& common_quality, json& common_quality_json)
 {
     if (!common_quality.description.empty())
@@ -554,14 +522,10 @@ void SerializeCommonQualities(const CommonQuality& common_quality, json& common_
 
 }
 
-/*
- * Function prototype used for recursive calls.
- */
+//! Function prototype used for recursive calls.
 json SerializeDataQualities(const DataQuality& data_quality);
 
-/*
- * Serialize jso items into the json format.
- */
+//! Serialize jso items into the json format.
 json SerializeJsoItemType(const JsoItem& jso_item)
 {
     json jso_item_type_json;
@@ -619,9 +583,7 @@ json SerializeJsoItemType(const JsoItem& jso_item)
     return jso_item_type_json;
 }
 
-/*
- * Serialize data qualities into the json format.
- */
+//! Serialize data qualities into the json format.
 void SerializeDataQualities(const DataQuality& data_quality, json& data_quality_json)
 {
     // Serialize common qualities
@@ -719,9 +681,7 @@ json SerializeDataQualities(const DataQuality& data_quality) {
     return data_quality_json;
 }
 
-/*
- * Serialize sdf_data into the json format.
- */
+//! Serialize sdf_data into the json format.
 json SerializeSdfData(const SdfData& sdf_data)
 {
     json sdf_data_json;
@@ -733,9 +693,7 @@ json SerializeSdfData(const SdfData& sdf_data)
     return sdf_data_json;
 }
 
-/*
- * Serialize a sdf_event into the json format.
- */
+//! Serialize a sdf_event into the json format.
 json SerializeSdfEvent(const SdfEvent& sdf_event)
 {
     json sdf_event_json;
@@ -753,9 +711,7 @@ json SerializeSdfEvent(const SdfEvent& sdf_event)
     return sdf_event_json;
 }
 
-/*
- * Serialize a sdf_action into the json format.
- */
+//! Serialize a sdf_action into the json format.
 json SerializeSdfAction(const SdfAction& sdf_action)
 {
     json sdf_action_json;
@@ -777,9 +733,7 @@ json SerializeSdfAction(const SdfAction& sdf_action)
     return sdf_action_json;
 }
 
-/*
- * Serialize a sdf_property into the json format.
- */
+//! Serialize a sdf_property into the json format.
 json SerializeSdfProperty(const SdfProperty& sdf_property)
 {
     json sdf_property_json;
@@ -799,9 +753,7 @@ json SerializeSdfProperty(const SdfProperty& sdf_property)
     return sdf_property_json;
 }
 
-/*
- * Serialize a sdf_object into the json format
- */
+//! Serialize a sdf_object into the json format
 json SerializeSdfObject(const SdfObject& sdf_object)
 {
      json sdf_object_json;
@@ -849,9 +801,7 @@ json SerializeSdfObject(const SdfObject& sdf_object)
     return sdf_object_json;
 }
 
-/*
- * Serialize a sdf_thing into the json format.
- */
+//! Serialize a sdf_thing into the json format.
 json SerializeSdfThing(const SdfThing& sdf_thing)
 {
     json sdf_thing_json;
@@ -917,9 +867,7 @@ json SerializeSdfThing(const SdfThing& sdf_thing)
     return sdf_thing_json;
 }
 
-/*
- * Serialize a namespace block into the json format.
- */
+//! Serialize a namespace block into the json format.
 json SerializeNamespaceBlock(const NamespaceBlock& namespace_block)
 {
     json namespace_block_json;
@@ -932,9 +880,7 @@ json SerializeNamespaceBlock(const NamespaceBlock& namespace_block)
     return namespace_block_json;
 }
 
-/*
- * Serialize an information block into the json format.
- */
+//! Serialize an information block into the json format.
 json SerializeInformationBlock(const InformationBlock& information_block)
 {
     json info_block_json;

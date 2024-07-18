@@ -595,7 +595,7 @@ std::list<matter::Feature> GenerateFeatureMap()
     return feature_map;
 }
 
-//! Imports the cluster classfication for the current cluster from the mapping
+//! Imports the cluster classification for the current cluster from the mapping
 matter::ClusterClassification GenerateClusterClassification()
 {
     matter::ClusterClassification cluster_classification;
