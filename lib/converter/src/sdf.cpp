@@ -545,8 +545,9 @@ json SerializeJsoItemType(const JsoItem& jso_item)
     if (!jso_item.sdf_choice.empty()){
         json sdf_choice_json;
         for (const auto& sdf_choice_pair : jso_item.sdf_choice) {
-            //TODO: Same as the below
             sdf_choice_json[sdf_choice_pair.first] = SerializeDataQualities(sdf_choice_pair.second);
+            if (sdf_choice_json.at(sdf_choice_pair.first).empty())
+                sdf_choice_json[sdf_choice_pair.first] = json::object();
         }
         jso_item_type_json["sdfChoice"] = sdf_choice_json;
     }
@@ -597,8 +598,9 @@ void SerializeDataQualities(const DataQuality& data_quality, json& data_quality_
     if (!data_quality.sdf_choice.empty()){
         json sdf_choice_json;
         for (const auto& sdf_choice_pair : data_quality.sdf_choice) {
-            //TODO: Consider empty Choices here
             sdf_choice_json[sdf_choice_pair.first] = SerializeDataQualities(sdf_choice_pair.second);
+            if (sdf_choice_json.at(sdf_choice_pair.first).empty())
+                sdf_choice_json[sdf_choice_pair.first] = json::object();
         }
         data_quality_json["sdfChoice"] = sdf_choice_json;
     }
