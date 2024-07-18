@@ -15,13 +15,40 @@
  */
 
 #include <list>
-#include <iostream>
 #include <cstring>
 #include <pugixml.hpp>
 #include <nlohmann/json.hpp>
 #include "matter.h"
 
 namespace matter {
+
+//! Function used to parse the default value
+DefaultType ParseDefaultType(const std::string& value)
+{
+    // Try to parse as int
+    try {
+        return std::stoi(value);
+    } catch (...) {
+        // Ignore the error
+    }
+
+    // Try to parse as double
+    try {
+        return std::stod(value);
+    } catch (...) {
+        // Ignore the error
+    }
+
+    // Try to parse as bool
+    if (value == "true") {
+        return true;
+    } else if (value == "false") {
+        return false;
+    }
+
+    // Fallback to string
+    return value;
+}
 
 //! Function used to parse a quality node into a OtherQuality object
 OtherQuality ParseOtherQuality(const pugi::xml_node& parent_node) {
@@ -51,13 +78,13 @@ OtherQuality ParseOtherQuality(const pugi::xml_node& parent_node) {
     if (!other_quality_node.attribute("singleton").empty())
         other_quality.singleton = other_quality_node.attribute("singleton").as_bool();
 
-    if (!other_quality_node.attribute("diagnostics").empty()) //Check this
+    if (!other_quality_node.attribute("diagnostics").empty())
         other_quality.diagnostics = other_quality_node.attribute("diagnostics").as_bool();
 
-    if (!other_quality_node.attribute("largeMessage").empty()) //Check this
+    if (!other_quality_node.attribute("largeMessage").empty())
         other_quality.large_message = other_quality_node.attribute("largeMessage").as_bool();
 
-    if (!other_quality_node.attribute("quieterReporting").empty()) //Check this
+    if (!other_quality_node.attribute("quieterReporting").empty())
         other_quality.quieter_reporting = other_quality_node.attribute("quieterReporting").as_bool();
 
     return other_quality;
@@ -111,7 +138,7 @@ Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
 }
 
 //! Function used to parse a logical term into a JSON representation
-//! This will allow the easy exporting to the mapping aswell as the
+//! This will allow the easy exporting to the mapping as well as the
 //! easy evaluation for the contained expression
 nlohmann::json ParseLogicalTerm(const pugi::xml_node& logical_node) {
     nlohmann::json condition;
@@ -233,11 +260,7 @@ Access ParseAccess(const pugi::xml_node& access_node) {
     return access;
 }
 
-CommonQuality ParseCommonQuality(const pugi::xml_node& common_quality_node) {
-    CommonQuality common_quality;
-    return common_quality;
-}
-
+//! Function used to parse a enum item
 Item ParseItem(const pugi::xml_node& enum_item_node) {
     Item item;
 
@@ -249,6 +272,7 @@ Item ParseItem(const pugi::xml_node& enum_item_node) {
     return item;
 }
 
+//! Function used to parse a bitmap bitfield
 Bitfield ParseBitfield(const pugi::xml_node& bitfield_node) {
     Bitfield bitfield;
 
@@ -260,6 +284,7 @@ Bitfield ParseBitfield(const pugi::xml_node& bitfield_node) {
     return bitfield;
 }
 
+//! Function used to parse a data field
 DataField ParseDataField(const pugi::xml_node& data_field_node) {
     DataField data_field;
 
@@ -286,11 +311,13 @@ DataField ParseDataField(const pugi::xml_node& data_field_node) {
     if (!data_field_node.child("quality").empty())
         data_field.quality = ParseOtherQuality(data_field_node);
 
-    //default
+    if (!data_field_node.attribute("default").empty())
+        data_field.default_ = ParseDefaultType(data_field_node.attribute("default").value());
 
     return data_field;
 }
 
+//! Function used to parse a feature
 Feature ParseFeature(const pugi::xml_node& feature_node) {
     Feature feature;
 
@@ -303,6 +330,7 @@ Feature ParseFeature(const pugi::xml_node& feature_node) {
     return feature;
 }
 
+//! Function used to parse a Matter event
 Event ParseEvent(const pugi::xml_node& event_node) {
     Event event;
     event.id = event_node.attribute("id").as_int();
@@ -325,6 +353,7 @@ Event ParseEvent(const pugi::xml_node& event_node) {
     return event;
 }
 
+//! Function used to parse a Matter command
 Command ParseCommand(const pugi::xml_node& command_node) {
     Command command;
     command.id = command_node.attribute("id").as_int();
@@ -336,7 +365,8 @@ Command ParseCommand(const pugi::xml_node& command_node) {
         command.access = ParseAccess(command_node.child("access"));
 
     command.summary = command_node.attribute("summary").value();
-    // default
+    if (!command_node.attribute("default").empty())
+        command.default_ = ParseDefaultType(command_node.attribute("default").value());
     command.direction = command_node.attribute("direction").value();
     command.response = command_node.attribute("response").value();
 
@@ -347,6 +377,7 @@ Command ParseCommand(const pugi::xml_node& command_node) {
     return command;
 }
 
+//! Function used to parse a Matter attribute
 Attribute ParseAttribute(const pugi::xml_node& attribute_node) {
     Attribute attribute;
     attribute.id = attribute_node.attribute("id").as_int();
@@ -372,9 +403,7 @@ Attribute ParseAttribute(const pugi::xml_node& attribute_node) {
 
 }
 
-/*
-* Function used to parse globally defined custom data types.
-*/
+//! Function used to parse globally defined custom data types.
 void ParseDataTypes(const pugi::xml_node& data_type_xml, Cluster& cluster) {
     // Parse all data types based on enums.
     for (const auto& struct_node: data_type_xml.children("struct")) {
@@ -404,9 +433,7 @@ void ParseDataTypes(const pugi::xml_node& data_type_xml, Cluster& cluster) {
     }
 }
 
-/*
-* Function used to parse classification information.
-*/
+//! Function used to parse classification information.
 ClusterClassification ParseClusterClassification(const pugi::xml_node& classification_xml) {
     ClusterClassification cluster_classification;
     if (!classification_xml.attribute("hierarchy").empty())
@@ -415,8 +442,8 @@ ClusterClassification ParseClusterClassification(const pugi::xml_node& classific
     if (!classification_xml.attribute("role").empty())
         cluster_classification.role = classification_xml.attribute("role").value();
 
-    if (!classification_xml.attribute("picsCode").empty())
-        cluster_classification.picsCode = classification_xml.attribute("picsCode").value();
+    if (!classification_xml.attribute("pics_code").empty())
+        cluster_classification.pics_code = classification_xml.attribute("pics_code").value();
 
     if (!classification_xml.attribute("scope").empty())
         cluster_classification.scope = classification_xml.attribute("scope").value();
@@ -430,9 +457,7 @@ ClusterClassification ParseClusterClassification(const pugi::xml_node& classific
     return cluster_classification;
 }
 
-/*
-* Function used to parse clusters.
-*/
+//! Function used to parse clusters.
 Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
     Cluster cluster;
     cluster.id = cluster_xml.attribute("id").as_int();
@@ -489,6 +514,7 @@ Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
     return cluster;
 }
 
+//! Function used to parse a device type classification
 DeviceClassification ParseDeviceClassification(const pugi::xml_node& classification_node)
 {
     DeviceClassification device_classification;
@@ -504,9 +530,7 @@ DeviceClassification ParseDeviceClassification(const pugi::xml_node& classificat
     return device_classification;
 }
 
-/*
-* Function used to parse devices.
-*/
+//! Function used to parse a device type definition.
 Device ParseDevice(const pugi::xml_node& device_xml) {
     Device device;
     device.id = device_xml.attribute("id").as_int();
@@ -928,8 +952,8 @@ void SerializeClusterClassification(const ClusterClassification& cluster_classif
     if (!cluster_classification.role.empty())
         classification_node.append_attribute("role").set_value(cluster_classification.role.c_str());
 
-    if (!cluster_classification.picsCode.empty())
-        classification_node.append_attribute("picsCode").set_value(cluster_classification.picsCode.c_str());
+    if (!cluster_classification.pics_code.empty())
+        classification_node.append_attribute("pics_code").set_value(cluster_classification.pics_code.c_str());
 
     if (!cluster_classification.scope.empty())
         classification_node.append_attribute("scope").set_value(cluster_classification.scope.c_str());

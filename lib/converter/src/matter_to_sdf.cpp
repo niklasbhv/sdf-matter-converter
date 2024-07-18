@@ -963,8 +963,8 @@ void MapClusterClassification(const matter::ClusterClassification& cluster_class
         cluster_classification_json["hierarchy"] = cluster_classification.hierarchy;
     if (!cluster_classification.role.empty())
         cluster_classification_json["role"] = cluster_classification.role;
-    if (!cluster_classification.picsCode.empty())
-        cluster_classification_json["picsCode"] = cluster_classification.picsCode;
+    if (!cluster_classification.pics_code.empty())
+        cluster_classification_json["picsCode"] = cluster_classification.pics_code;
     if (!cluster_classification.scope.empty())
         cluster_classification_json["scope"] = cluster_classification.scope;
     if (!cluster_classification.base_cluster.empty())

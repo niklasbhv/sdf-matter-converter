@@ -87,6 +87,7 @@ std::optional<matter::DefaultType> MapSdfDefaultValue(const sdf::VariableType& v
     return std::nullopt;
 }
 
+//! Imports the access information for the current object from the mapping
 std::optional<matter::Access> ImportAccessFromMapping(const std::string& json_pointer)
 {
     json access_json;
@@ -113,6 +114,7 @@ std::optional<matter::Access> ImportAccessFromMapping(const std::string& json_po
     return access;
 }
 
+//! Import the other qualities information for the current object for the mapping
 std::optional<matter::OtherQuality> ImportOtherQualityFromMapping(const std::string& json_pointer)
 {
     //TODO: Fix non_volatile to its actual field
@@ -545,6 +547,7 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     return attribute;
 }
 
+//! Imports the feature map for the current cluster from the mapping
 std::list<matter::Feature> GenerateFeatureMap()
 {
     std::list<matter::Feature> feature_map;
@@ -592,6 +595,7 @@ std::list<matter::Feature> GenerateFeatureMap()
     return feature_map;
 }
 
+//! Imports the cluster classfication for the current cluster from the mapping
 matter::ClusterClassification GenerateClusterClassification()
 {
     matter::ClusterClassification cluster_classification;
@@ -601,8 +605,8 @@ matter::ClusterClassification GenerateClusterClassification()
         cluster_classification_json.at("hierarchy").get_to(cluster_classification.hierarchy);
     if (cluster_classification_json.contains("role"))
         cluster_classification_json.at("role").get_to(cluster_classification.role);
-    if (cluster_classification_json.contains("picsCode"))
-        cluster_classification_json.at("picsCode").get_to(cluster_classification.picsCode);
+    if (cluster_classification_json.contains("pics_code"))
+        cluster_classification_json.at("pics_code").get_to(cluster_classification.pics_code);
     if (cluster_classification_json.contains("scope"))
         cluster_classification_json.at("scope").get_to(cluster_classification.scope);
     if (cluster_classification_json.contains("baseCluster"))
@@ -670,6 +674,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     return cluster;
 }
 
+//! Imports the device classification for the current device type
 matter::DeviceClassification GenerateDeviceClassification()
 {
     matter::DeviceClassification device_classification;

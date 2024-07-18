@@ -60,7 +60,7 @@
 #define MATTER_INT_56_MIN (-36028797018963968)
 #define MATTER_INT_56_MAX 36028797018963967
 
-// TODO: Check if this is neccessary for ids
+// TODO: Check if this is necessary for ids
 inline u_int32_t HexToInt(const std::string& hexStr) {
     int result = 0;
     for (char ch : hexStr) {
@@ -109,9 +109,7 @@ typedef std::variant<double, int64_t, uint64_t> NumericType;
 //!Maps a revision id onto a summary of changes.
 typedef std::map<u_int8_t, std::string> Revision;
 
-/**
- * Struct which represents the quality column.
- */
+//! Struct which represents the quality column.
 struct OtherQuality {
     //! X -> Nullable.
     std::optional<bool> nullable;
@@ -136,15 +134,9 @@ struct OtherQuality {
     //! Any of the above can be negated by using !.
 };
 
-/**
- * Struct definition for constraint type.
- */
-struct Constraint;
-
-/**
- * Struct which represents constraints.
- */
+//! Struct which represents constraints.
 struct Constraint {
+    //! The type of the constraint
     std::string type;
     //! The interpretation for each of these values depends on the data type its applied to
     //! Exact value.
@@ -153,24 +145,13 @@ struct Constraint {
     std::optional<NumericType> min;
     //! Maximum value.
     std::optional<NumericType> max;
-    //! No constraints.
-    //! Same as min to max.
-    std::optional<bool> all;
-    //! In case of a Union of multiple constraints, these get "chained" to each other
-    struct contraintType *constraint;
-    //! Used for list_constraint[entry_constraint].
-    //! List constraint is mapped to the above qualities, entry constraint is mapped to the below quality.
+    //! Used for the entry constraint type.
     std::string entry_constraint_type;
-    //! char_constraint[z].
-    //! char_constraint is the string constraint in bytes.
-    //! z is the maximum number of unicode codepoints.
-    //! char_constraint gets mapped with the above qualities, z is mapped to the below quality.
-    std::optional<int> max_unicode_endpoints;
+    //! Used for the number of bytes for a character string
+    std::optional<uint64_t> byte_size;
 };
 
-/**
- * Struct which represents feature conformance.
- */
+//! Struct which represents feature conformance.
 struct Conformance {
     //! M -> Mandatory conformance
     bool mandatory = false;
@@ -189,12 +170,9 @@ struct Conformance {
     std::list<Conformance> choice;
     //! Represents the entire logical term as nested json objects
     nlohmann::json condition = nlohmann::json::object();
-
 };
 
-/**
- * Struct which represents access qualities.
- */
+//! Struct which represents access qualities.
 struct Access {
     //! Each access is a combination of [RW FS VOMA T] seperated by spaces
     //! R -> Read
@@ -220,9 +198,7 @@ struct Access {
     std::optional<bool> timed;
 };
 
-/**
- * Struct which represents the common data.
- */
+//! Struct which represents the common data.
 struct CommonQuality {
     //! Unique identifier.
     u_int32_t id;
@@ -237,7 +213,7 @@ struct CommonQuality {
     std::string summary;
 };
 
-// TODO: Temporary, derived from the xml definitions
+//! Struct which represents a single enum item.
 struct Item {
     int value;
     std::string name;
@@ -245,7 +221,7 @@ struct Item {
     std::optional<Conformance> conformance;
 };
 
-// TODO: Temporary, derived from the xml definitions
+//! Struct which represents a single bitmap bitfield.
 struct Bitfield {
     int bit;
     std::string name;
@@ -253,9 +229,7 @@ struct Bitfield {
     std::optional<Conformance> conformance;
 };
 
-/**
- * Struct which contains data field information.
- */
+//! Struct which contains data field information.
 struct DataField : CommonQuality {
     //! Data type
     std::string type;
@@ -270,10 +244,8 @@ struct DataField : CommonQuality {
 //! Type definition for the struct.
 typedef std::list<DataField> Struct;
 
-/**
- * Struct which represents FeatureMap Attribute.
- * Used to define optional features.
- */
+//! Struct which represents FeatureMap Attribute.
+//! Used to define optional features.
 struct Feature {
     u_int8_t bit;
     std::optional<Conformance> conformance;
@@ -283,9 +255,7 @@ struct Feature {
     std::string summary;
 };
 
-/**
- * Struct which contains Matter event information.
- */
+//! Struct which contains Matter event information.
 struct Event : CommonQuality {
     //! Currently either debug, info or critical
     std::string priority;
@@ -295,9 +265,7 @@ struct Event : CommonQuality {
     Struct data;
 };
 
-/**
- * Struct which contains Matter command information.
- */
+//! Struct which contains Matter command information.
 struct Command : CommonQuality {
     std::optional<DefaultType> default_;
     //! Either commandToServer or responseFromServer
@@ -308,9 +276,7 @@ struct Command : CommonQuality {
     Struct command_fields;
 };
 
-/**
- * Struct which contains Matter attribute information.
- */
+//! Struct which contains Matter attribute information.
 struct Attribute : CommonQuality {
     //! Data type
     std::string type;
@@ -322,16 +288,14 @@ struct Attribute : CommonQuality {
     std::optional<DefaultType> default_;
 };
 
-/**
- * Struct which contains cluster classification information.
- */
+//! Struct which contains cluster classification information.
 struct ClusterClassification {
     //! Either base or derived
     std::string hierarchy;
     //! Either utility or application
     std::string role;
     //! Upper case identification code
-    std::string picsCode;
+    std::string pics_code;
     //! Either Endpoint or Node
     std::string scope;
     //! Cluster name of the base cluster
@@ -340,9 +304,7 @@ struct ClusterClassification {
     std::string primary_transaction;
 };
 
-/**
- * Struct which contains Matter cluster information.
- */
+//! Struct which contains Matter cluster information.
 struct Cluster : CommonQuality {
     //! Either server, client or empty
     std::string side;
@@ -371,9 +333,7 @@ struct Cluster : CommonQuality {
     std::map<std::string, Struct> structs;
 };
 
-/**
- * Struct which contains device classification information.
- */
+//! Struct which contains device classification information.
 struct DeviceClassification {
     //! Name of the superset device type
     std::string superset;
@@ -383,9 +343,7 @@ struct DeviceClassification {
     std::string scope;
 };
 
-/**
- *  Struct which contains Matter device type information.
- */
+//! Struct which contains Matter device type information.
 struct Device : CommonQuality {
     //! Current revision
     int revision;
@@ -399,47 +357,37 @@ struct Device : CommonQuality {
     std::list<Cluster> clusters;
 };
 
-/**
- * @brief Parses xml-file into a device.
- *
- * This function takes a device type definition and the cluster definitions in XML format and converts it into a device.
- *
- * @param device_xml Device definitions in xml format.
- * @return The resulting device.
- */
+//! @brief Parses xml-file into a device.
+//!
+//! This function takes a device type definition and the cluster definitions in XML format and converts it into a device.
+//!
+//! @param device_xml Device definitions in xml format.
+//! @return The resulting device.
 Device ParseDevice(const pugi::xml_node& device_xml);
 
-
-/**
- * @brief Parses xml-file into a cluster.
- *
- * This functions takes a cluster definition in XML format and converts it into a cluster.
- *
- * @param cluster_xml Cluster definition in XML format.
- * @return The resulting cluster.
- */
+//! @brief Parses xml-file into a cluster.
+//!
+//! This functions takes a cluster definition in XML format and converts it into a cluster.
+//!
+//! @param cluster_xml Cluster definition in XML format.
+//! @return The resulting cluster.
 Cluster ParseCluster(const pugi::xml_node& cluster_xml);
 
-
-/**
- * @brief Serializes device into xml-file.
- *
- * This functions takes a device object and serializes it into a device xml.
- *
- * @param device The input device object.
- * @return The resulting device xml.
- */
+//! @brief Serializes device into xml-file.
+//!
+//! This functions takes a device object and serializes it into a device xml.
+//!
+//! @param device The input device object.
+//! @return The resulting device xml.
 void SerializeDevice(const Device& device, pugi::xml_document& device_document_xml);
 
 
-/**
- * @brief Serializes cluster into xml-file.
- *
- * This functions takes a cluster object and serializes it into a cluster xml.
- *
- * @param device The input cluster object.
- * @return The resulting cluster xml.
- */
+//! @brief Serializes cluster into xml-file.
+//!
+//! This functions takes a cluster object and serializes it into a cluster xml.
+//!
+//! @param device The input cluster object.
+//! @return The resulting cluster xml.
 void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml);
 
 } // namespace matter
