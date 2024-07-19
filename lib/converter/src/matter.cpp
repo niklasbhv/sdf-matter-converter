@@ -988,9 +988,6 @@ void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml)
     cluster_node.append_attribute("name").set_value(cluster.name.c_str());
     cluster_node.append_attribute("revision").set_value(cluster.revision);
 
-    if (cluster.conformance.has_value())
-        SerializeConformance(cluster.conformance.value(), cluster_node);
-
     if (cluster.access.has_value())
         SerializeAccess(cluster.access.value(), cluster_node);
 
