@@ -932,7 +932,6 @@ void SerializeDataTypes(const Cluster& cluster, pugi::xml_node& cluster_xml) {
         pugi::xml_node bitmap_node = data_type_node.append_child("bitmap");
         bitmap_node.append_attribute("name").set_value(bitmap.first.c_str());
         for (const auto &bitfield: bitmap.second) {
-            pugi::xml_node bitfield_node = bitmap_node.append_child("bitfield");
             SerializeBitfield(bitfield, bitmap_node);
         }
     }
