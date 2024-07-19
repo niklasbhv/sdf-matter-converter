@@ -480,21 +480,28 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     std::optional<matter::Command> optional_server_command;
     // Check if the sdfAction has output data qualities
     if (sdf_action_pair.second.sdf_output_data.has_value()) {
-        //TODO: According to spec, the id should be different
         // Initially, we copy the contents of the client command
         matter::Command server_command = client_command;
+        // Append "Response" to the command name to make it different
+        // This is in line with the names used by the official cluster specifications
+        server_command.name += "Response";
+        client_command.response = server_command.name;
         // If object is used as a type, the elements of the object have to be mapped individually
         if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
+            uint32_t id = 0;
             for (const auto& quality_pair : sdf_action_pair.second.sdf_input_data.value().properties) {
                 matter::DataField field = MapSdfInputOutputData(quality_pair.second);
+                field.id = id;
                 // If no label is given, set the quality name
                 if (field.name.empty())
                     field.name = quality_pair.first;
                 server_command.command_fields.push_back(field);
+                id++;
             }
         }
         else {
             matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_output_data.value());
+            field.id = 0;
             server_command.command_fields.push_back(field);
         }
         //required
@@ -509,16 +516,20 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     if (sdf_action_pair.second.sdf_input_data.has_value()) {
         // If object is used as a type, the elements of the object have to be mapped individually
         if (sdf_action_pair.second.sdf_input_data.value().type == "object") {
+            uint32_t id = 0;
             for (const auto& quality_pair : sdf_action_pair.second.sdf_input_data.value().properties) {
                 matter::DataField field = MapSdfInputOutputData(quality_pair.second);
+                field.id = id;
                 // If no label is given, set the quality name
                 if (field.name.empty())
                     field.name = quality_pair.first;
                 client_command.command_fields.push_back(field);
+                id++;
             }
             //required
         } else {
             matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_input_data.value());
+            field.id = 0;
             client_command.command_fields.push_back(field);
         }
     }
@@ -536,18 +547,17 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
 
     ImportFromMapping(sdf_property_reference->GeneratePointer(), "id", attribute.id);
     attribute.name = sdf_property_pair.second.label;
-    // sdf_property.sdf_required
     attribute.conformance = GenerateMatterConformance();
     attribute.access = ImportAccessFromMapping(sdf_property_reference->GeneratePointer());
     attribute.access->write = sdf_property_pair.second.writable;
     attribute.access->read = sdf_property_pair.second.readable;
-    // sdf_property.observable
+    attribute.quality->reportable = sdf_property_pair.second.observable;
+    attribute.quality->nullable = sdf_property_pair.second.nullable;
     attribute.summary = sdf_property_pair.second.description;
     attribute.type = MapSdfDataType(sdf_property_pair.second);
     if (sdf_property_pair.second.default_.has_value())
         attribute.default_ = MapSdfDefaultValue(sdf_property_pair.second.default_.value());
     attribute.quality = ImportOtherQualityFromMapping(sdf_property_reference->GeneratePointer());
-    //attribute.quality.nullable = sdf_property.nullable;
     //attribute.quality.fixed = !sdf_property.const_.empty();
 
     return attribute;
