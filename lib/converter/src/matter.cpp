@@ -848,7 +848,9 @@ void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
         SerializeDefaultType(command.default_.value(), "default", command_node);
 
     command_node.append_attribute("direction").set_value(command.direction.c_str());
-    command_node.append_attribute("response").set_value(command.response.c_str());
+
+    if (!command.response.empty())
+        command_node.append_attribute("response").set_value(command.response.c_str());
 
     // Serialize the command fields
     for (const auto &field: command.command_fields) {
