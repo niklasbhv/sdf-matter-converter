@@ -60,24 +60,6 @@
 #define MATTER_INT_56_MIN (-36028797018963968)
 #define MATTER_INT_56_MAX 36028797018963967
 
-// TODO: Check if this is necessary for ids
-inline u_int32_t HexToInt(const std::string& hexStr) {
-    int result = 0;
-    for (char ch : hexStr) {
-        result *= 16;
-        if (ch >= '0' && ch <= '9') {
-            result += ch - '0';
-        } else if (ch >= 'a' && ch <= 'f') {
-            result += ch - 'a' + 10;
-        } else if (ch >= 'A' && ch <= 'F') {
-            result += ch - 'A' + 10;
-        } else {
-            throw std::invalid_argument("Invalid hex character");
-        }
-    }
-    return result;
-}
-
 inline std::string IntToHex(u_int32_t num) {
     std::string hex_str;
     while (num > 0) {
