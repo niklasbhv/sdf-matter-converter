@@ -674,7 +674,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
 
     cluster.feature_map = GenerateFeatureMap();
 
-    // Iterate through all sdfProperties and parse them individually
+    // Iterate through all sdfProperties and map them individually
     auto* sdf_property_reference = new ReferenceTreeNode("sdfProperty");
     sdf_object_reference->AddChild(sdf_property_reference);
     current_quality_name_node = sdf_property_reference;
@@ -682,7 +682,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
         cluster.attributes.push_back(MapSdfProperty(sdf_property_pair));
     }
 
-    // Iterate through all sdfActions and parse them individually
+    // Iterate through all sdfActions and map them individually
     auto* sdf_action_reference = new ReferenceTreeNode("sdfAction");
     sdf_object_reference->AddChild(sdf_action_reference);
     current_quality_name_node = sdf_action_reference;
@@ -693,12 +693,59 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
             cluster.server_commands[command_pair.second.value().name] = command_pair.second.value();
     }
 
-    // Iterate through all sdfEvents and parse them individually
+    // Iterate through all sdfEvents and map them individually
     auto* sdf_event_reference = new ReferenceTreeNode("sdfEvent");
     sdf_object_reference->AddChild(sdf_event_reference);
     current_quality_name_node = sdf_event_reference;
     for (const auto& sdf_event_pair : sdf_object_pair.second.sdf_event) {
         cluster.events.push_back(MapSdfEvent(sdf_event_pair));
+    }
+
+    // Iterate through all sdfData elements and map them individually
+    auto* sdf_data_reference = new ReferenceTreeNode("sdfData");
+    sdf_object_reference->AddChild(sdf_data_reference);
+    current_quality_name_node = sdf_data_reference;
+    for (const auto& sdf_data_elem : sdf_object_pair.second.sdf_data) {
+        if (sdf_data_elem.second.type == "object") {
+            matter::Struct matter_struct;
+            uint32_t id = 0;
+            for (const auto& property : sdf_data_elem.second.properties) {
+                matter::DataField data_field;
+                data_field.id = id;
+                data_field.name = property.second.label;
+                data_field.summary = property.second.description;
+                data_field.type = MapSdfDataType(property.second);
+                matter_struct.push_back(data_field);
+                id++;
+            }
+            cluster.structs[sdf_data_elem.first] = matter_struct;
+        }
+        else if (sdf_data_elem.second.type == "array") {
+            if (sdf_data_elem.second.items.has_value()) {
+                std::list<matter::Bitfield> bitmap;
+                int bit = 0;
+                for (const auto& sdf_choice : sdf_data_elem.second.items.value().sdf_choice) {
+                    matter::Bitfield bitfield;
+                    bitfield.bit = bit;
+                    bitfield.name = sdf_choice.first;
+                    bitmap.push_back(bitfield);
+                    bit++;
+                }
+                cluster.bitmaps[sdf_data_elem.first] = bitmap;
+            }
+        } else if (!sdf_data_elem.second.sdf_choice.empty()) {
+            std::list<matter::Item> matter_enum;
+            int value = 0;
+            for (const auto& sdf_choice : sdf_data_elem.second.sdf_choice) {
+                matter::Item item;
+                item.name = sdf_choice.first;
+                item.summary = sdf_choice.second.description;
+                item.value = value;
+                matter_enum.push_back(item);
+                value++;
+            }
+            cluster.enums[sdf_data_elem.first] = matter_enum;
+        }
     }
 
     return cluster;
