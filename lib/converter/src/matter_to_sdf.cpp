@@ -169,12 +169,15 @@ std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::st
 {
     sdf::DataQuality data_quality;
     data_quality.type = "array";
+    data_quality.unique_items = true;
     for (const auto& bitfield : bitmap_pair.second) {
         sdf::DataQuality sdf_choice_data_quality;
-        sdf_choice_data_quality.const_ = bitfield.bit;
-        sdf_choice_data_quality.description = bitfield.summary;
+        //sdf_choice_data_quality.const_ = bitfield.bit;
+        //sdf_choice_data_quality.description = bitfield.summary;
         // conformance
-        data_quality.sdf_choice[bitfield.name] = sdf_choice_data_quality;
+        sdf::JsoItem item;
+        item.sdf_choice[bitfield.name] = sdf_choice_data_quality;
+        data_quality.items = item;
     }
     //required
     return {bitmap_pair.first, data_quality};
@@ -927,8 +930,8 @@ sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute)
 
     if (attribute.quality.has_value())
         MapOtherQuality(attribute.quality.value(), sdf_property);
-
-    // sdf_property.default_ = attribute.default_;
+    if (attribute.default_.has_value())
+        sdf_property.default_ = MapMatterDefaultType(attribute.default_.value());
 
     return sdf_property;
 }
@@ -1158,7 +1161,7 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device)
         if (cluster.side == "client")
             sdf_thing.sdf_object.insert({cluster.name + "_Client", sdf_object});
         else
-            sdf_thing.sdf_object.insert({cluster.name + "_Client", sdf_object});
+            sdf_thing.sdf_object.insert({cluster.name + "_Server", sdf_object});
     }
     sdf_thing.sdf_required = sdf_required_list;
 
