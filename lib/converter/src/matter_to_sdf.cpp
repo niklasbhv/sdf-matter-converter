@@ -170,15 +170,16 @@ std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::st
     sdf::DataQuality data_quality;
     data_quality.type = "array";
     data_quality.unique_items = true;
+    sdf::JsoItem item;
     for (const auto& bitfield : bitmap_pair.second) {
         sdf::DataQuality sdf_choice_data_quality;
         //sdf_choice_data_quality.const_ = bitfield.bit;
         //sdf_choice_data_quality.description = bitfield.summary;
         // conformance
-        sdf::JsoItem item;
         item.sdf_choice[bitfield.name] = sdf_choice_data_quality;
-        data_quality.items = item;
+
     }
+    data_quality.items = item;
     //required
     return {bitmap_pair.first, data_quality};
 }
