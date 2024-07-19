@@ -162,17 +162,20 @@ int main(int argc, char *argv[]) {
                     std::cout << "Saving Device XML..." << std::endl;
                     SaveXmlFile(path_output_device_xml.c_str(), device_xml);
                     std::cout << "Successfully saved Device XML!" << std::endl;
-                    if (validateMatter(path_device_xml.c_str(), program.get<std::string>("-validate").c_str()) == 0) {
-                        std::cout << "Device XML valid!..." << std::endl;
-                    } else {
-                        std::cout << "Device not valid!..." << std::endl;
+                    if (validate) {
+                        if (validateMatter(path_device_xml.c_str(), program.get<std::string>("-validate").c_str()) ==
+                            0) {
+                            std::cout << "Device XML valid!..." << std::endl;
+                        } else {
+                            std::cout << "Device not valid!..." << std::endl;
+                        }
                     }
                 }
 
                 std::cout << "Saving Cluster XML..." << std::endl;
                 int counter = 0;
                 for (const auto &cluster_xml: cluster_xml_list) {
-                    std::string path = path_cluster_xml + "_" + std::to_string(counter) + ".xml";
+                    std::string path = path_output_cluster_xml + "_" + std::to_string(counter) + ".xml";
                     SaveXmlFile(path.c_str(), cluster_xml);
                     if (validate) {
                         if (validateMatter(path.c_str(), program.get<std::string>("-validate").c_str())) {
