@@ -393,7 +393,8 @@ Attribute ParseAttribute(const pugi::xml_node& attribute_node) {
     if (!attribute_node.child("quality").empty())
         attribute.quality = ParseOtherQuality(attribute_node);
 
-    attribute.default_ = attribute_node.attribute("default").value();
+    if (!attribute_node.attribute("default").empty())
+        attribute.default_ = ParseDefaultType(attribute_node.attribute("default").value());
 
     return attribute;
 
