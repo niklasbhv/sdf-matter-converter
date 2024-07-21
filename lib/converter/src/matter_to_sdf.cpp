@@ -230,6 +230,8 @@ sdf::VariableType MapMatterDefaultType(const matter::DefaultType& default_type)
         variable_type = std::get<std::string>(default_type);
     else if (std::holds_alternative<bool>(default_type))
         variable_type = std::get<bool>(default_type);
+    else if (std::holds_alternative<std::optional<std::monostate>>(default_type))
+        variable_type = std::nullopt;
     return variable_type;
 }
 
@@ -398,28 +400,28 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         year_qualities.minimum = 0; // Year 1900
         year_qualities.maximum = MATTER_U_INT_8_MAX; // Year 2155
         year_qualities.nullable = true;
-        // year_qualities.default_ = null;
+        year_qualities.default_ = std::nullopt;
         properties["Year"] = year_qualities;
         sdf::DataQuality month_qualities;
         month_qualities.type = "integer";
         month_qualities.minimum = 1;
         month_qualities.maximum = 12;
         month_qualities.nullable = true;
-        //month_qualities.default_ = null;
+        month_qualities.default_ = std::nullopt;
         properties["Month"] = month_qualities;
         sdf::DataQuality day_qualities;
         day_qualities.type = "integer";
         day_qualities.minimum = 1;
         day_qualities.maximum = 31;
         day_qualities.nullable = true;
-        //day_qualities.default_ = null
+        day_qualities.default_ = std::nullopt;
         properties["Day"] = day_qualities;
         sdf::DataQuality day_of_week_qualities;
         day_of_week_qualities.type = "integer";
         day_of_week_qualities.minimum = 1;
         day_of_week_qualities.maximum = 7;
         day_of_week_qualities.nullable = true;
-        //day_of_week_qualities.default_ = null;
+        day_of_week_qualities.default_ = std::nullopt;
         properties["DayOfWeek"] = day_of_week_qualities;
         data_quality.properties = properties;
         data_quality.required = {"Year", "Month", "Day", "DayOfWeek"};
@@ -774,7 +776,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         mfg_code.minimum = 0;
         mfg_code.maximum = MATTER_U_INT_16_MAX;
         mfg_code.nullable = true;
-        // mfg_code.default_ = null;
+        mfg_code.default_ = std::nullopt;
         sdf::DataQuality namespace_id;
         namespace_id.type = "integer";
         namespace_id.minimum = 0;
@@ -787,7 +789,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         label.type = "string";
         label.max_length = 64;
         label.nullable = true;
-        //label.default_ = null;
+        label.default_ = std::nullopt;
         data_quality.required = {"MfgCode", "NamespaceID", "Tag", "Label"};
     }
     // Namespace data type

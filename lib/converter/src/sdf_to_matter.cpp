@@ -84,6 +84,11 @@ std::optional<matter::DefaultType> MapSdfDefaultValue(const sdf::VariableType& v
         //default_type = to_string(std::get<std::list<sdf::ArrayItem>>(variable_type));
         return default_type;
     }
+    else if (std::holds_alternative<std::optional<std::monostate>>(variable_type)) {
+        matter::DefaultType default_type;
+        default_type = std::nullopt;
+        return default_type;
+    }
     return std::nullopt;
 }
 

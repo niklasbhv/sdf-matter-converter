@@ -37,6 +37,27 @@ using json = nlohmann::ordered_json;
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
 
+//! Template used to add to_json and from_json for the std::optional type in combination with std::monostate.
+//! This type is used to represent null values.
+template <> struct adl_serializer<std::optional<std::monostate>> {
+    // Define to_json function for std::optional<std::monostate>
+    static void to_json(ordered_json &j, const std::optional<std::monostate> &opt) {
+        if (opt.has_value()) {
+            j = nullptr;  // Serialize std::monostate as JSON null
+        } else {
+            j = nullptr;  // Serialize empty optional as JSON null
+        }
+    }
+
+    // Define from_json function for std::optional<std::monostate>
+    static void from_json(const ordered_json &j, std::optional<std::monostate> &opt) {
+        if (!j.is_null()) {
+
+        }
+        opt = std::monostate{};
+    }
+};
+
 //! Template used to add to_json and from_json for the std::variant type.
 // Try to set the value of type T into the variant data
 // if it fails, do nothing
@@ -137,7 +158,7 @@ struct JsoItem {
 typedef std::variant<uint64_t, int64_t , double, std::string, bool> ArrayItem;
 
 //! Type definition for const and default fields.
-typedef std::variant<uint64_t, int64_t , double, std::string, bool, std::list<ArrayItem>> VariableType;
+typedef std::variant<uint64_t, int64_t , double, std::string, bool, std::list<ArrayItem>, std::optional<std::monostate>> VariableType;
 
 //! Struct which contains data quality information.
 struct DataQuality : CommonQuality {

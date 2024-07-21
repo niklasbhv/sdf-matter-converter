@@ -82,7 +82,7 @@ inline std::string IntToHex(u_int32_t num) {
 namespace matter {
 
 //!Type definition for the default type.
-typedef std::variant<double, int64_t, uint64_t, std::string, bool> DefaultType;
+typedef std::variant<double, int64_t, uint64_t, std::string, bool, std::optional<std::monostate>> DefaultType;
 
 //! Type definition for the numeric type.
 typedef std::variant<double, int64_t, uint64_t> NumericType;

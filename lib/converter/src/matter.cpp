@@ -46,6 +46,10 @@ DefaultType ParseDefaultType(const std::string& value)
         return false;
     }
 
+    // Try to parse as null
+    if (value == "null")
+        return std::nullopt;
+
     // Fallback to string
     return value;
 }
@@ -609,6 +613,11 @@ void SerializeDefaultType(const DefaultType& value, const char* attribute_name, 
     else if (std::holds_alternative<std::string>(value))
         target_node.append_attribute(attribute_name).set_value(std::get<std::string>(value).c_str());
 
+    else if (std::holds_alternative<bool>(value))
+        target_node.append_attribute(attribute_name).set_value(std::get<bool>(value));
+
+    else if (std::holds_alternative<std::optional<std::monostate>>(value))
+        target_node.append_attribute(attribute_name).set_value("null");
 }
 
 //! Serializes the given numeric value into its actual contained datatype
