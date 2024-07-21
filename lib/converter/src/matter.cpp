@@ -890,7 +890,8 @@ void SerializeAttribute(const Attribute& attribute, pugi::xml_node& attributes_n
     if (attribute.quality.has_value())
         SerializeOtherQuality(attribute.quality.value(), attribute_node);
 
-    attribute_node.attribute("type").set_value(attribute.type.c_str());
+    if (!attribute.type.empty())
+        attribute_node.append_attribute("type").set_value(attribute.type.c_str());
 
     if (attribute.default_.has_value())
         SerializeDefaultType(attribute.default_.value(), "default", attribute_node);
