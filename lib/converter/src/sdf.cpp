@@ -41,9 +41,12 @@ int ResolveSdfRef(json& sdf_ref_qualities_json)
 //! Parse common qualities from json into a CommonQuality object.
 void ParseCommonQualities(json& common_quality_json, CommonQuality& common_quality)
 {
-    // If a sdf_ref-Element exists, resolve it
-    if (common_quality_json.contains("sdfRef"))
+    // If a sdfRef-Element exists, resolve it
+    // Furthermore, set the fill the sdfRef field for later processing
+    if (common_quality_json.contains("sdfRef")) {
+        common_quality_json.at("sdfRef").get_to(common_quality.sdf_ref);
         ResolveSdfRef(common_quality_json);
+    }
 
     if (common_quality_json.contains("description"))
         common_quality_json.at("description").get_to(common_quality.description);
