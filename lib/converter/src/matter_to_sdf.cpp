@@ -779,43 +779,59 @@ sdf::JsoItem MapMatterEntryConstraint(const matter::Constraint& entry_constraint
 //! Matter Constraint -> Data Quality
 void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality& data_quality)
 {
-    // We ignore the "desc" constraint type as its dependent on the implementation of the cluster
-    if (data_quality.type == "number" or data_quality.type == "integer") {
-        if (constraint.value.has_value())
-            data_quality.const_ = MapMatterDefaultType(constraint.value.value());
-        if (constraint.min.has_value())
-            data_quality.minimum = constraint.min.value();
-        if (constraint.max.has_value())
-            data_quality.maximum = constraint.max.value();
-    }
-    else if (data_quality.type == "string") {
-        if (constraint.value.has_value())
-            data_quality.const_ = MapMatterDefaultType(constraint.value.value());
-        if (constraint.min.has_value()) {
-            if (std::holds_alternative<uint64_t>(constraint.min.value()))
-                data_quality.min_length = std::get<uint64_t>(constraint.min.value());
-        }
-
-        if (constraint.max.has_value()) {
-            if (std::holds_alternative<uint64_t>(constraint.max.value()))
-                data_quality.max_length = std::get<uint64_t>(constraint.max.value());
-        }
-    }
-    else if (data_quality.type == "array") {
-        if (constraint.value.has_value())
-            data_quality.const_ = MapMatterDefaultType(constraint.value.value());
-        if (constraint.min.has_value()) {
-            if (std::holds_alternative<uint64_t>(constraint.min.value()))
-                data_quality.min_items = std::get<uint64_t>(constraint.min.value());
-        }
-        if (constraint.max.has_value()) {
-            if (std::holds_alternative<uint64_t>(constraint.min.value()))
-                data_quality.max_items = std::get<uint64_t>(constraint.min.value());
-        }
-        if (!constraint.entry_constraint_type.empty())
-            data_quality.items = MapMatterEntryConstraint(constraint);
-    }
-    else if (data_quality.type == "object") {}
+    if (constraint.type == "desc") {
+        json constraint_json;
+        constraint_json["type"] = "desc";
+        current_given_name_node->AddAttribute("constraint", constraint_json);
+    } else if (constraint.type == "allowed") {
+        data_quality.const_ = MapMatterDefaultType(constraint.value.value());
+    } else if (constraint.type == "between") {
+        data_quality.minimum = constraint.min.value();
+        data_quality.maximum = constraint.max.value();
+    } else if (constraint.type == "min") {
+        data_quality.minimum = constraint.min.value();
+    } else if (constraint.type == "max") {
+        data_quality.maximum = constraint.max.value();
+    } else if (constraint.type == "lengthBetween") {
+        if (std::holds_alternative<int64_t>(constraint.min.value()))
+            data_quality.min_length = std::get<int64_t>(constraint.min.value());
+        if (std::holds_alternative<uint64_t>(constraint.min.value()))
+            data_quality.min_length = std::get<uint64_t>(constraint.min.value());
+        if (std::holds_alternative<int64_t>(constraint.max.value()))
+            data_quality.max_length = std::get<int64_t>(constraint.max.value());
+        if (std::holds_alternative<uint64_t>(constraint.max.value()))
+            data_quality.max_length = std::get<uint64_t>(constraint.max.value());
+    } else if (constraint.type == "minLength") {
+        if (std::holds_alternative<int64_t>(constraint.min.value()))
+            data_quality.min_length = std::get<int64_t>(constraint.min.value());
+        if (std::holds_alternative<uint64_t>(constraint.min.value()))
+            data_quality.min_length = std::get<uint64_t>(constraint.min.value());
+    } else if (constraint.type == "maxLength") {
+        if (std::holds_alternative<int64_t>(constraint.max.value()))
+            data_quality.max_length = std::get<int64_t>(constraint.max.value());
+        if (std::holds_alternative<uint64_t>(constraint.max.value()))
+            data_quality.max_length = std::get<uint64_t>(constraint.max.value());
+    } else if (constraint.type == "countBetween") {
+        if (std::holds_alternative<int64_t>(constraint.min.value()))
+            data_quality.min_items = std::get<int64_t>(constraint.min.value());
+        if (std::holds_alternative<uint64_t>(constraint.min.value()))
+            data_quality.min_items = std::get<uint64_t>(constraint.min.value());
+        if (std::holds_alternative<int64_t>(constraint.max.value()))
+            data_quality.max_items = std::get<int64_t>(constraint.max.value());
+        if (std::holds_alternative<uint64_t>(constraint.max.value()))
+            data_quality.max_items = std::get<uint64_t>(constraint.max.value());
+    } else if (constraint.type == "minCount") {
+        if (std::holds_alternative<int64_t>(constraint.min.value()))
+            data_quality.min_items = std::get<int64_t>(constraint.min.value());
+        if (std::holds_alternative<uint64_t>(constraint.min.value()))
+            data_quality.min_items = std::get<uint64_t>(constraint.min.value());
+    } else if (constraint.type == "maxCount") {
+        if (std::holds_alternative<int64_t>(constraint.max.value()))
+            data_quality.max_items = std::get<int64_t>(constraint.max.value());
+        if (std::holds_alternative<uint64_t>(constraint.max.value()))
+            data_quality.max_items = std::get<uint64_t>(constraint.max.value());
+    } else if (constraint.type == "entry") {}
+    // char constraints
 }
 
 //! Matter Access Type -> SDF Mapping
@@ -925,7 +941,7 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
             if (field.quality.has_value())
                 MapOtherQuality(field.quality.value(), data_quality_properties);
             if (field.constraint.has_value())
-                MapMatterConstraint(field.constraint.value(), data_quality);
+                MapMatterConstraint(field.constraint.value(), data_quality_properties);
             data_quality.properties[field.name] = data_quality_properties;
         }
         //required
