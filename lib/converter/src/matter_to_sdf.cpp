@@ -165,36 +165,66 @@ bool EvaluateConformanceCondition(const json& condition)
     return false;
 }
 
+void to_json(json& j, const matter::Conformance& conformance) {
+    if (conformance.mandatory) {
+        j = json {{"mandatoryConform", conformance.condition}};
+    }
+    else if (conformance.optional) {
+        j = json {{"optionalConform", conformance.condition}};
+    }
+    else if (conformance.provisional) {
+        j = json {{"provisionalConform", conformance.condition}};
+    }
+    else if (conformance.deprecated) {
+        j = json {{"deprecateConform", conformance.condition}};
+    }
+    else if (conformance.disallowed) {
+        j = json {{"disallowConform", conformance.condition}};
+    }
+}
+
 std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair)
 {
+    auto* bitmap_reference = new ReferenceTreeNode(bitmap_pair.first);
+    current_quality_name_node->AddChild(bitmap_reference);
+    current_given_name_node = bitmap_reference;
+
     sdf::DataQuality data_quality;
+    json bitmap_json;
     data_quality.type = "array";
     data_quality.unique_items = true;
     sdf::JsoItem item;
     for (const auto& bitfield : bitmap_pair.second) {
         sdf::DataQuality sdf_choice_data_quality;
-        //sdf_choice_data_quality.const_ = bitfield.bit;
-        //sdf_choice_data_quality.description = bitfield.summary;
-        // conformance
+        bitmap_json["sdfChoice"][bitfield.name]["bit"] = bitfield.bit;
+        bitmap_json["sdfChoice"][bitfield.name]["summary"] = bitfield.summary;
+        if (bitfield.conformance.has_value())
+            to_json(bitmap_json["sdfChoice"][bitfield.name], bitfield.conformance.value());
         item.sdf_choice[bitfield.name] = sdf_choice_data_quality;
-
     }
     data_quality.items = item;
-    //required
+    current_given_name_node->AddAttribute("items", bitmap_json);
     return {bitmap_pair.first, data_quality};
 }
 
 std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::string, std::list<matter::Item>>& enum_pair)
 {
+    auto* enum_reference = new ReferenceTreeNode(enum_pair.first);
+    current_quality_name_node->AddChild(enum_reference);
+    current_given_name_node = enum_reference;
+
     sdf::DataQuality data_quality;
+    json enum_json;
     for (const auto& item : enum_pair.second) {
         sdf::DataQuality sdf_choice_data_quality;
         sdf_choice_data_quality.const_ = item.value;
         sdf_choice_data_quality.description = item.summary;
-        // conformance
+        if (item.conformance.has_value())
+            to_json(enum_json[item.name], item.conformance.value());
         data_quality.sdf_choice[item.name] = sdf_choice_data_quality;
     }
-    //required
+    current_given_name_node->AddAttribute("sdfChoice", enum_json);
+
     return {enum_pair.first, data_quality};
 }
 
@@ -1187,6 +1217,10 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster)
         sdf_object.sdf_event.insert({event.name, sdf_event});
     }
 
+    // Iterate through the data types and map them
+    auto* sdf_data_node = new ReferenceTreeNode("sdfData");
+    cluster_reference->AddChild(sdf_data_node);
+    current_quality_name_node = sdf_data_node;
     for (const auto& struct_pair : cluster.structs) {
         sdf_object.sdf_data.insert(MapMatterStruct(struct_pair));
     }
