@@ -640,56 +640,56 @@ void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_no
         auto constraint_node = parent_node.append_child("entry");
         constraint_node.append_attribute("type").set_value(constraint.entry_constraint_type.c_str());
     }
-    else {
-            auto constraint_node = parent_node.append_child("constraint");
-            // Constraint is defined in the description section
-            if (constraint.type == "desc")
-                constraint_node.append_attribute("type").set_value("desc");
+    else if (!constraint.type.empty()) {
+        auto constraint_node = parent_node.append_child("constraint");
+        // Constraint is defined in the description section
+        if (constraint.type == "desc")
+            constraint_node.append_attribute("type").set_value("desc");
 
-            // Numeric constraints
-            else if (constraint.type == "allowed") {
-                constraint_node.append_attribute("type").set_value("allowed");
-                SerializeDefaultType(constraint.value.value(), "value", constraint_node);
-            } else if (constraint.type == "between") {
-                constraint_node.append_attribute("type").set_value("between");
-                SerializeNumericType(constraint.min.value(), "from", constraint_node);
-                SerializeNumericType(constraint.max.value(), "to", constraint_node);
-            } else if (constraint.type == "min") {
-                constraint_node.append_attribute("type").set_value("min");
-                SerializeNumericType(constraint.min.value(), "value", constraint_node);
-            } else if (constraint.type == "max") {
-                constraint_node.append_attribute("type").set_value("max");
-                SerializeNumericType(constraint.max.value(), "value", constraint_node);
-            }
-
-            // Octet string constraints
-            else if (constraint.type == "lengthBetween") {
-                constraint_node.append_attribute("type").set_value("lengthBetween");
-                SerializeNumericType(constraint.min.value(), "from", constraint_node);
-                SerializeNumericType(constraint.max.value(), "to", constraint_node);
-            } else if (constraint.type == "minLength") {
-                constraint_node.append_attribute("type").set_value("minLength");
-                SerializeNumericType(constraint.min.value(), "value", constraint_node);
-            } else if (constraint.type == "maxLength") {
-                constraint_node.append_attribute("type").set_value("maxLength");
-                SerializeNumericType(constraint.max.value(), "value", constraint_node);
-            }
-
-            // List constraints
-            else if (constraint.type == "countBetween") {
-                constraint_node.append_attribute("type").set_value("countBetween");
-                SerializeNumericType(constraint.min.value(), "from", constraint_node);
-                SerializeNumericType(constraint.max.value(), "to", constraint_node);
-            } else if (constraint.type == "minCount") {
-                constraint_node.append_attribute("type").set_value("minCount");
-
-                SerializeNumericType(constraint.min.value(), "value", constraint_node);
-            } else if (constraint.type == "maxCount") {
-                constraint_node.append_attribute("type").set_value("maxCount");
-                SerializeNumericType(constraint.max.value(), "value", constraint_node);
-            }
-            // Character string constraints
+        // Numeric constraints
+        else if (constraint.type == "allowed") {
+            constraint_node.append_attribute("type").set_value("allowed");
+            SerializeDefaultType(constraint.value.value(), "value", constraint_node);
+        } else if (constraint.type == "between") {
+            constraint_node.append_attribute("type").set_value("between");
+            SerializeNumericType(constraint.min.value(), "from", constraint_node);
+            SerializeNumericType(constraint.max.value(), "to", constraint_node);
+        } else if (constraint.type == "min") {
+            constraint_node.append_attribute("type").set_value("min");
+            SerializeNumericType(constraint.min.value(), "value", constraint_node);
+        } else if (constraint.type == "max") {
+            constraint_node.append_attribute("type").set_value("max");
+            SerializeNumericType(constraint.max.value(), "value", constraint_node);
         }
+
+        // Octet string constraints
+        else if (constraint.type == "lengthBetween") {
+            constraint_node.append_attribute("type").set_value("lengthBetween");
+            SerializeNumericType(constraint.min.value(), "from", constraint_node);
+            SerializeNumericType(constraint.max.value(), "to", constraint_node);
+        } else if (constraint.type == "minLength") {
+            constraint_node.append_attribute("type").set_value("minLength");
+            SerializeNumericType(constraint.min.value(), "value", constraint_node);
+        } else if (constraint.type == "maxLength") {
+            constraint_node.append_attribute("type").set_value("maxLength");
+            SerializeNumericType(constraint.max.value(), "value", constraint_node);
+        }
+
+        // List constraints
+        else if (constraint.type == "countBetween") {
+            constraint_node.append_attribute("type").set_value("countBetween");
+            SerializeNumericType(constraint.min.value(), "from", constraint_node);
+            SerializeNumericType(constraint.max.value(), "to", constraint_node);
+        } else if (constraint.type == "minCount") {
+            constraint_node.append_attribute("type").set_value("minCount");
+
+            SerializeNumericType(constraint.min.value(), "value", constraint_node);
+        } else if (constraint.type == "maxCount") {
+            constraint_node.append_attribute("type").set_value("maxCount");
+            SerializeNumericType(constraint.max.value(), "value", constraint_node);
+        }
+        // Character string constraints
+    }
 }
 
 //! Serialize a matter conformance logical term into nested xml nodes
