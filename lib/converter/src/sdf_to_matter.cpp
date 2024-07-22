@@ -855,18 +855,40 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     ImportFromMapping(sdf_property_reference->GeneratePointer(), "id", attribute.id);
     attribute.name = sdf_property_pair.first;
     attribute.conformance = GenerateMatterConformance();
+
     attribute.access = ImportAccessFromMapping(sdf_property_reference->GeneratePointer());
-    attribute.access->write = sdf_property_pair.second.writable;
-    attribute.access->read = sdf_property_pair.second.readable;
-    attribute.quality->reportable = sdf_property_pair.second.observable;
-    attribute.quality->nullable = sdf_property_pair.second.nullable;
+    if (attribute.access.has_value()) {
+        attribute.access.value().read = sdf_property_pair.second.readable;
+        attribute.access.value().write = sdf_property_pair.second.writable;
+    } else {
+        if (sdf_property_pair.second.readable.has_value() or sdf_property_pair.second.writable.has_value()) {
+            matter::Access access;
+            access.read = sdf_property_pair.second.readable;
+            access.write = sdf_property_pair.second.writable;
+            attribute.access = access;
+        }
+    }
+
+    attribute.quality = ImportOtherQualityFromMapping(sdf_property_reference->GeneratePointer());
+    if (attribute.quality.has_value()) {
+        attribute.quality.value().nullable = sdf_property_pair.second.nullable;
+        attribute.quality.value().reportable = sdf_property_pair.second.observable;
+    } else {
+        if (sdf_property_pair.second.observable.has_value() or sdf_property_pair.second.nullable.has_value()) {
+            matter::OtherQuality quality;
+            quality.nullable = sdf_property_pair.second.nullable;
+            quality.reportable = sdf_property_pair.second.observable;
+            attribute.quality = quality;
+        }
+    }
+
     attribute.summary = sdf_property_pair.second.description;
     matter::Constraint constraint;
     attribute.type = MapSdfDataType(sdf_property_pair.second, constraint);
     attribute.constraint = constraint;
     if (sdf_property_pair.second.default_.has_value())
         attribute.default_ = MapSdfDefaultValue(sdf_property_pair.second.default_.value());
-    attribute.quality = ImportOtherQualityFromMapping(sdf_property_reference->GeneratePointer());
+
 
     return attribute;
 }
