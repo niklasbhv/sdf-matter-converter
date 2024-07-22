@@ -26,16 +26,22 @@ namespace sdf {
 json global_sdf_model = {};
 
 //! Function used to resolve sdf_ref qualities.
-int ResolveSdfRef(json& sdf_ref_qualities_json)
+void ResolveSdfRef(json& sdf_ref_qualities_json)
 {
-    std::string sdfRef;
-    json sdf_ref_qualities_json_copy = sdf_ref_qualities_json;
-    sdf_ref_qualities_json.at("sdfRef").get_to(sdfRef);
-    json patch = global_sdf_model[json::json_pointer(sdfRef.substr(1))];
-    patch.merge_patch(sdf_ref_qualities_json_copy);
-    sdf_ref_qualities_json = patch;
-
-    return 0;
+    std::string sdfRef = sdf_ref_qualities_json.at("sdfRef");
+    // Create the patch variable
+    json patch = sdf_ref_qualities_json;
+    // Remove the sdfRef member in patch
+    patch.erase("sdfRef");
+    // Check if the model contains the target structure
+    if (global_sdf_model.contains(json::json_pointer(sdfRef.substr(1)))) {
+        // Dereference the pointer
+        json original = global_sdf_model.at(json::json_pointer(sdfRef.substr(1)));
+        // Apply the Merge Patch Algorithm [RFC7396]
+        original.merge_patch(patch);
+        // Use the result in place of the original JSON map
+        sdf_ref_qualities_json = original;
+    }
 }
 
 //! Parse common qualities from json into a CommonQuality object.
@@ -238,7 +244,7 @@ SdfEvent ParseSdfEvent(json& sdf_event_json)
     // Iterate through all items inside sdf_data and parse them individually
     if (sdf_event_json.contains("sdfData")){
         for (const auto& sdf_data_json : sdf_event_json.at("sdfData").items()) {
-            sdf_event.sdf_data.insert({sdf_data_json.key(), ParseDataQualities(sdf_data_json.value())});
+            sdf_event.sdf_data[sdf_data_json.key()] = ParseDataQualities(sdf_data_json.value());
         }
     }
 
@@ -324,7 +330,7 @@ SdfObject ParseSdfObject(json& sdf_object_json)
     // Iterate through all items inside sdf_data and parse them individually
     if (sdf_object_json.contains("sdfData")){
         for (const auto& data_quality_json : sdf_object_json.at("sdfData").items()) {
-            sdf_object.sdf_data.insert({data_quality_json.key(), ParseDataQualities(data_quality_json.value())});
+            sdf_object.sdf_data[data_quality_json.key()] = ParseDataQualities(data_quality_json.value());
         }
     }
 
@@ -383,7 +389,7 @@ SdfThing ParseSdfThing(json& sdf_thing_json)
     // Iterate through all items inside sdf_data and parse them individually
     if (sdf_thing_json.contains("sdfData")){
         for (const auto& data_quality_json : sdf_thing_json.at("sdfData").items()) {
-            sdf_thing.sdf_data.insert({data_quality_json.key(), ParseDataQualities(data_quality_json.value())});
+            sdf_thing.sdf_data[data_quality_json.key()] = ParseDataQualities(data_quality_json.value());
         }
     }
 
