@@ -82,7 +82,7 @@ SdfChoice ParseSdfChoice(json& sdf_choice_json)
     SdfChoice sdf_choice;
     // Iterate through all sdf_choice items and parse them individually
     for (const auto& data_quality_json : sdf_choice_json.items()){
-        sdf_choice.insert({data_quality_json.key(), ParseDataQualities(data_quality_json.value())});
+        sdf_choice[data_quality_json.key()] = ParseDataQualities(data_quality_json.value());
     }
 
     return sdf_choice;
@@ -133,7 +133,7 @@ JsoItem ParseJsoItem(json& jso_item_json)
     // Iterate through all items inside properties and parse them individually
     if (jso_item_json.contains("properties")){
         for (const auto& data_qualities_json : jso_item_json.at("properties").items()) {
-            jso_item.properties.insert({data_qualities_json.key(), ParseDataQualities(data_qualities_json.value())});
+            jso_item.properties[data_qualities_json.key()] = ParseDataQualities(data_qualities_json.value());
         }
     }
     if (jso_item_json.contains("required"))
@@ -210,7 +210,7 @@ void ParseDataQualities(json& data_qualities_json, DataQuality& data_quality)
     // Iterate through all items inside properties and parse them individually
     if (data_qualities_json.contains("properties")){
         for (const auto& data_quality_json : data_qualities_json.at("properties").items()) {
-            data_quality.properties.insert({data_quality_json.key(), ParseDataQualities(data_quality_json.value())});
+            data_quality.properties[data_quality_json.key()] = ParseDataQualities(data_quality_json.value());
         }
     }
     if (data_qualities_json.contains("required"))
@@ -269,11 +269,9 @@ SdfAction ParseSdfAction(json& sdf_action_json)
 
     // Iterate through all items inside sdf_data and parse them individually
     if (sdf_action_json.contains("sdfData")){
-        SdfData sdfData;
         for (const auto& sdf_data_json : sdf_action_json.at("sdfData").items()) {
-            sdfData.insert({sdf_data_json.key(), ParseDataQualities(sdf_data_json.value())});
+            sdf_action.sdf_data[sdf_data_json.key()] = ParseDataQualities(sdf_data_json.value());
         }
-        sdf_action.sdf_data = sdfData;
     }
 
     return sdf_action;
@@ -309,21 +307,21 @@ SdfObject ParseSdfObject(json& sdf_object_json)
     // Iterate through all sdfProperties and parse them individually
     if (sdf_object_json.contains("sdfProperty")){
         for (const auto& sdf_property_json : sdf_object_json.at("sdfProperty").items()) {
-            sdf_object.sdf_property.insert({sdf_property_json.key(), ParseSdfProperty(sdf_property_json.value())});
+            sdf_object.sdf_property[sdf_property_json.key()] = ParseSdfProperty(sdf_property_json.value());
         }
     }
 
     // Iterate through all sdfActions and parse them individually
     if (sdf_object_json.contains("sdfAction")){
         for (const auto& sdf_action_json : sdf_object_json.at("sdfAction").items()) {
-            sdf_object.sdf_action.insert({sdf_action_json.key(), ParseSdfAction(sdf_action_json.value())});
+            sdf_object.sdf_action[sdf_action_json.key()] = ParseSdfAction(sdf_action_json.value());
         }
     }
 
     // Iterate through all sdfEvents and parse them individually
     if (sdf_object_json.contains("sdfEvent")){
         for (const auto& sdf_event_node : sdf_object_json.at("sdfEvent").items()) {
-            sdf_object.sdf_event.insert({sdf_event_node.key(), ParseSdfEvent(sdf_event_node.value())});
+            sdf_object.sdf_event[sdf_event_node.key()] = ParseSdfEvent(sdf_event_node.value());
         }
     }
 
@@ -354,35 +352,35 @@ SdfThing ParseSdfThing(json& sdf_thing_json)
     // Iterate through all sdfThings and parse them individually
     if (sdf_thing_json.contains("sdfThing")){
         for (const auto& nested_sdf_thing_json : sdf_thing_json.at("sdfThing").items()) {
-            sdf_thing.sdf_thing.insert({nested_sdf_thing_json.key(), ParseSdfThing(nested_sdf_thing_json.value())});
+            sdf_thing.sdf_thing[nested_sdf_thing_json.key()] = ParseSdfThing(nested_sdf_thing_json.value());
         }
     }
 
     // Iterate through all sdfObjects and parse them individually
     if (sdf_thing_json.contains("sdfObject")){
         for (const auto& sdf_object_json : sdf_thing_json.at("sdfObject").items()) {
-            sdf_thing.sdf_object.insert({sdf_object_json.key(), ParseSdfObject(sdf_object_json.value())});
+            sdf_thing.sdf_object[sdf_object_json.key()] = ParseSdfObject(sdf_object_json.value());
         }
     }
 
     // Iterate through all sdfProperties and parse them individually
     if (sdf_thing_json.contains("sdfProperty")){
         for (const auto& sdf_property_json : sdf_thing_json.at("sdfProperty").items()) {
-            sdf_thing.sdf_property.insert({sdf_property_json.key(), ParseSdfProperty(sdf_property_json.value())});
+            sdf_thing.sdf_property[sdf_property_json.key()] = ParseSdfProperty(sdf_property_json.value());
         }
     }
 
     // Iterate through all sdfActions and parse them individually
     if (sdf_thing_json.contains("sdfAction")){
         for (const auto& sdf_action_json : sdf_thing_json.at("sdfAction").items()) {
-            sdf_thing.sdf_action.insert({sdf_action_json.key(), ParseSdfAction(sdf_action_json.value())});
+            sdf_thing.sdf_action[sdf_action_json.key()] = ParseSdfAction(sdf_action_json.value());
         }
     }
 
     // Iterate through all sdfEvents and parse them individually
     if (sdf_thing_json.contains("sdfEvent")){
         for (const auto& sdf_event_json : sdf_thing_json.at("sdfEvent").items()) {
-            sdf_thing.sdf_event.insert({sdf_event_json.key(), ParseSdfEvent(sdf_event_json.value())});
+            sdf_thing.sdf_event[sdf_event_json.key()] = ParseSdfEvent(sdf_event_json.value());
         }
     }
 
@@ -410,7 +408,7 @@ NamespaceBlock ParseNamespaceBlock(json& namespace_block_json)
 
     // Iterate through all namespace items and parse them individually
     for (const auto& namespace_item_json : namespace_block_json.at("namespace").items()) {
-        namespace_block.namespaces.insert({namespace_item_json.key(), namespace_item_json.value()});
+        namespace_block.namespaces[namespace_item_json.key()] = namespace_item_json.value();
     }
     namespace_block_json.at("defaultNamespace").get_to(namespace_block.default_namespace);
 
@@ -503,7 +501,7 @@ SdfMapping ParseSdfMapping(json& sdf_mapping_json)
     if (sdf_mapping_json.contains("map")) {
         for (const auto& reference : sdf_mapping_json.at("map").items()) {
             for (const auto& field : reference.value().items()) {
-                sdf_mapping.map[reference.key()].insert({field.key(), field.value()});
+                sdf_mapping.map[reference.key()][field.key()] = field.value();
             }
         }
     }
