@@ -380,6 +380,9 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality)
 std::string MapSdfDataType(const sdf::DataQuality& data_quality)
 {
     std::string result;
+    if (!data_quality.sdf_ref.empty()) {
+        return data_quality.label;
+    }
     if (data_quality.type == "number") {
         result = "double";
     } else if (data_quality.type == "string") {
@@ -551,7 +554,7 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     current_given_name_node = sdf_property_reference;
 
     ImportFromMapping(sdf_property_reference->GeneratePointer(), "id", attribute.id);
-    attribute.name = sdf_property_pair.second.label;
+    attribute.name = sdf_property_pair.first;
     attribute.conformance = GenerateMatterConformance();
     attribute.access = ImportAccessFromMapping(sdf_property_reference->GeneratePointer());
     attribute.access->write = sdf_property_pair.second.writable;
