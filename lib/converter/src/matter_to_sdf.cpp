@@ -985,14 +985,15 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
     current_given_name_node = command_reference;
     // If the command does not have a response
     if (client_command.response == "N") {}
-        // If the client_command only returns a simple status
+    // If the client_command only returns a simple status
     else if (client_command.response == "Y") {
         sdf::DataQuality sdf_output_data;
+        sdf_output_data.label = "status";
         sdf_output_data.type = "integer";
-        sdf_output_data.minimum = MATTER_INT_16_MIN;
+        sdf_output_data.minimum = 0;
         sdf_output_data.maximum = MATTER_U_INT_16_MAX;
     }
-        // Otherwise, the client client_command has a reference to a server client_command
+    // Otherwise, the client client_command has a reference to a server client_command
     else {
         sdf_action.sdf_output_data = MapMatterDataField(server_commands.at(client_command.response).command_fields);
     }
