@@ -274,19 +274,20 @@ matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
 }
 
 // Function to check if the variant's integer value is within borders
-bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant, int64_t lowerBound, uint64_t upperBound) {
-    return std::visit([&](auto&& value) -> bool {
-        using T = std::decay_t<decltype(value)>;
-        if constexpr (std::is_same_v<T, int>) {
-            if (value >= lowerBound && value <= upperBound) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }, variant);
+bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant, int64_t lower_bound, uint64_t upper_bound) {
+    if (std::holds_alternative<double>(variant)) {
+        if (lower_bound <= std::get<double>(variant) and std::get<double>(variant) <= upper_bound)
+            return true;
+    }
+    else if (std::holds_alternative<int64_t>(variant)) {
+        if (lower_bound <= std::get<int64_t>(variant) and std::get<int64_t>(variant) <= upper_bound)
+            return true;
+    }
+    else if (std::holds_alternative<uint64_t>(variant)) {
+        if (lower_bound <= std::get<uint64_t>(variant) and  std::get<uint64_t>(variant) <= upper_bound)
+            return true;
+    }
+    return false;
 }
 
 std::string MapIntegerType(const sdf::DataQuality& data_quality)
