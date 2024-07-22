@@ -634,10 +634,13 @@ std::string GetLastPartAfterSlash(const std::string& str) {
 //! Determine a Matter type from the information's of a given data quality
 std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint)
 {
+    json desc_json;
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "constraint", desc_json);
+    if (desc_json.contains("type"))
+        desc_json.at("type").get_to(constraint.type);
     std::string result;
-    if (!data_quality.sdf_ref.empty()) {
+    if (!data_quality.sdf_ref.empty())
         return GetLastPartAfterSlash(data_quality.sdf_ref);
-    }
     if (data_quality.type == "number") {
         result = "double";
     } else if (data_quality.type == "string") {
