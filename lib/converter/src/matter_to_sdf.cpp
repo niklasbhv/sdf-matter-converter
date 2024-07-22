@@ -341,7 +341,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Percent data type
     // Base: uint8
     else if (matter_type == "percent") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.unit = "%";
         data_quality.minimum = 0;
@@ -350,7 +349,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Percent 100th data type
     // Base: uint16
     else if (matter_type == "percent100ths") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.unit = "%";
         data_quality.minimum = 0;
@@ -359,7 +357,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Time of day data type
     // Base: struct
     else if (matter_type == "tod") {
-        data_quality.label = matter_type;
         data_quality.type = "object";
         sdf::SdfData properties;
         sdf::DataQuality hours_qualities;
@@ -392,7 +389,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Data data type
     // Base: struct
     else if (matter_type == "date") {
-        data_quality.label = matter_type;
         data_quality.type = "object";
         sdf::SdfData properties;
         sdf::DataQuality year_qualities;
@@ -429,7 +425,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Epoch time in microseconds data type
     // Base: uint64
     else if (matter_type == "epoch-us") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = std::numeric_limits<u_int64_t>::max();
@@ -438,7 +433,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Epoch time in seconds data type
     // Base: uint32
     else if (matter_type == "epoch-s") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_32_MAX;
@@ -448,7 +442,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Base: uint32
     // DEPRECATED
     else if (matter_type == "utc") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_32_MAX;
@@ -457,7 +450,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // POSIX time in milliseconds
     // Base: uint64
     else if (matter_type == "posix-ms") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = std::numeric_limits<u_int64_t>::max();
@@ -467,7 +459,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // System time in microseconds
     // Base: uint64
     else if (matter_type == "systime-us") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = std::numeric_limits<u_int64_t>::max();
@@ -476,7 +467,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // System time in milliseconds
     // Base: uint64
     else if (matter_type == "systime-ms") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = std::numeric_limits<u_int64_t>::max();
@@ -485,7 +475,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Elapsed time in seconds data type
     // Base: uint32
     else if (matter_type == "elapsed-s"){
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_32_MAX;
@@ -494,7 +483,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Temperature data type
     // Base: int16
     else if (matter_type == "temperature") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = -27315;
         data_quality.maximum = 32767;
@@ -502,7 +490,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Power data type
     // Base: int64
     else if (matter_type == "power-mW") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.unit = "mW";
         data_quality.minimum = std::numeric_limits<int64_t>::min();
@@ -511,7 +498,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Amperage data type
     // Base: int64
     else if (matter_type == "amperage-mA") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.unit = "mA";
         data_quality.minimum = std::numeric_limits<int64_t>::min();
@@ -520,7 +506,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Voltage data type
     // Base: int64
     else if (matter_type == "voltage-mW") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.unit = "mV";
         data_quality.minimum = std::numeric_limits<int64_t>::min();
@@ -529,7 +514,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Energy data type
     // Base: int64
     else if (matter_type == "energy-mWh") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.unit = "mWh";
         data_quality.minimum = std::numeric_limits<int64_t>::min();
@@ -538,19 +522,16 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // 8-bit enumeration data type
     // Base: uint8
     else if (matter_type == "enum8") {
-        data_quality.label = matter_type;
         data_quality.nullable = true;
     }
     // 16-bit enumeration data type
     // Base: uint16
     else if (matter_type == "enum16") {
-        data_quality.label = matter_type;
         data_quality.nullable = true;
     }
     // Priority data type
     // Base: enum8
     else if (matter_type == "priority") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_8_MAX;
@@ -573,12 +554,10 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Status code data type
     // Base: enum8
     else if (matter_type == "status") {
-        data_quality.label = matter_type;
     }
     // Group id data type
     // Base: uint16
     else if (matter_type == "group-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_16_MAX;
@@ -586,7 +565,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Endpoint number data type
     // Base: uint16
     else if (matter_type == "endpoint-no") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_16_MAX;
@@ -594,7 +572,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Vendor id data type
     // Base: uint16
     else if (matter_type == "vendor-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_16_MAX;
@@ -602,7 +579,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Device type id data type
     // Base: uint32
     else if (matter_type == "devtype-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_32_MAX;
@@ -610,7 +586,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Fabric id data type
     // Base: uint64
     else if (matter_type == "fabric-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = std::numeric_limits<uint64_t>::min();
@@ -618,7 +593,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Fabric index data type
     // Base: uint8
     else if (matter_type == "fabric-idx") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_8_MAX;
@@ -626,7 +600,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Cluster id data type
     // Base: uint32
     else if (matter_type == "cluster-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_32_MAX;
@@ -634,7 +607,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Attribute id data type
     // Base: uint32
     else if (matter_type == "attrib-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_32_MAX;
@@ -642,7 +614,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Field id data type
     // Base: uint32
     else if (matter_type == "field-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_32_MAX;
@@ -650,7 +621,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Event id data type
     // Base: uint32
     else if (matter_type == "event-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_32_MAX;
@@ -658,7 +628,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Command id data type
     // Base: uint32
     else if (matter_type == "command-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_32_MAX;
@@ -666,7 +635,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Action id data type
     // Base: uint8
     else if (matter_type == "action-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_8_MAX;
@@ -674,7 +642,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Transaction id data type
     // Base: uint32
     else if (matter_type == "trans-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_32_MAX;
@@ -682,7 +649,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Node id data type
     // Base: uint64
     else if (matter_type == "node-id") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = std::numeric_limits<uint64_t>::min();
@@ -691,7 +657,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Base: uint64
     // DEPRECATED
     else if (matter_type == "EUI64") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = std::numeric_limits<uint64_t>::min();
@@ -699,7 +664,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Entry index data type
     // Base: uint16
     else if (matter_type == "entry-idx") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_16_MAX;
@@ -707,7 +671,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Data version data type
     // Base: uint32
     else if (matter_type == "data-ver") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_32_MAX;
@@ -715,7 +678,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Event number data type
     // Base: uint64
     else if (matter_type == "event-no") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = std::numeric_limits<uint64_t>::min();
@@ -723,20 +685,17 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Character string data type
     // Base: octstr
     else if (matter_type == "string") {
-        data_quality.label = matter_type;
         data_quality.type = "string";
     }
     // IP address data type
     // Base: ocstr
     else if (matter_type == "ipadr") {
-        data_quality.label = matter_type;
         data_quality.type = "string";
         data_quality.sdf_type = "byte-string";
     }
     // IPv4 address data type
     // Base: octstr
     else if (matter_type == "ipv4adr") {
-        data_quality.label = matter_type;
         data_quality.type = "string";
         data_quality.sdf_type = "byte-string";
         data_quality.min_length = 8;
@@ -745,7 +704,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // IPv6 address data type
     // Base: octstr
     else if (matter_type == "ipv6adr") {
-        data_quality.label = matter_type;
         data_quality.type = "string";
         data_quality.sdf_type = "byte-string";
         data_quality.min_length = 32;
@@ -754,14 +712,12 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // IPv6 prefix data type
     // Base: octstr
     else if (matter_type == "ipv6pre") {
-        data_quality.label = matter_type;
         data_quality.type = "string";
         data_quality.sdf_type = "byte-string";
     }
     // Hardware address data type
     // Base: octstr
     else if (matter_type == "hwadr") {
-        data_quality.label = matter_type;
         data_quality.type = "string";
         data_quality.min_length = 12;
         data_quality.max_length = 16;
@@ -769,7 +725,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Semantic tag data type
     // Base: struct
     else if (matter_type == "semtag") {
-        data_quality.label = matter_type;
         data_quality.type = "object";
         sdf::DataQuality mfg_code;
         mfg_code.type = "integer";
@@ -795,7 +750,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Namespace data type
     // Base: enum8
     else if (matter_type == "namespace") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_16_MAX;
@@ -803,14 +757,12 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Tag data type
     // Base: enum8
     else if (matter_type == "tag") {
-        data_quality.label = matter_type;
         data_quality.type = "integer";
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_16_MAX;
     }
     // Otherwise, the type is a custom type defined in the data type section
     else {
-        data_quality.label = matter_type;
         data_quality.sdf_ref = sdf_data_location + matter_type;
         std::cout << "Found: " << matter_type << std::endl;
     }
