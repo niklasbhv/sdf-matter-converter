@@ -973,8 +973,12 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
             if (field.constraint.has_value())
                 MapMatterConstraint(field.constraint.value(), data_quality_properties);
             data_quality.properties[field.name] = data_quality_properties;
+            if (field.conformance.has_value()) {
+                if (field.conformance.value().mandatory and EvaluateConformanceCondition(field.conformance.value().condition)) {
+                    data_quality.required.push_back(field.name);
+                }
+            }
         }
-        //required
     }
     return data_quality;
 }
