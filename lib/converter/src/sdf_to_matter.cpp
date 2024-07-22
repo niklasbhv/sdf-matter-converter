@@ -212,59 +212,59 @@ matter::Conformance GenerateMatterConformance()
 }
 
 //! Generates a Matter constraint with the information given by the data qualities
-matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
+matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& data_quality)
 {
     matter::Constraint constraint;
-    //constraint.value = dataQuality.default_;
-    if (dataQuality.type == "number" or dataQuality.type == "integer") {
-        if (dataQuality.const_.has_value()) {
+    //constraint.value = data_quality.default_;
+    if (data_quality.type == "number" or data_quality.type == "integer") {
+        if (data_quality.const_.has_value()) {
             //constraint.type = "allowed";
         }
-        if (dataQuality.minimum.has_value()) {
-            if (dataQuality.maximum.has_value()) {
+        if (data_quality.minimum.has_value()) {
+            if (data_quality.maximum.has_value()) {
                 constraint.type = "between";
-                constraint.min = dataQuality.minimum.value();
-                constraint.max = dataQuality.maximum.value();
+                constraint.min = data_quality.minimum.value();
+                constraint.max = data_quality.maximum.value();
             } else {
                 constraint.type = "min";
-                constraint.min = dataQuality.minimum.value();
+                constraint.min = data_quality.minimum.value();
             }
         }
-        else if (dataQuality.maximum.has_value()) {
+        else if (data_quality.maximum.has_value()) {
             constraint.type = "max";
-            constraint.max = dataQuality.maximum.value();
+            constraint.max = data_quality.maximum.value();
         }
-    } else if (dataQuality.type == "string") {
-        if (dataQuality.min_length.has_value()) {
-            if (dataQuality.max_length.has_value()) {
+    } else if (data_quality.type == "string") {
+        if (data_quality.min_length.has_value()) {
+            if (data_quality.max_length.has_value()) {
                 constraint.type = "lengthBetween";
-                constraint.min = dataQuality.min_length.value();
-                constraint.max = dataQuality.max_length.value();
+                constraint.min = data_quality.min_length.value();
+                constraint.max = data_quality.max_length.value();
             } else {
                 constraint.type = "minLength";
-                constraint.min = dataQuality.min_length.value();
+                constraint.min = data_quality.min_length.value();
             }
         }
-        else if (dataQuality.max_length.has_value()) {
+        else if (data_quality.max_length.has_value()) {
             constraint.type = "maxLength";
-            constraint.max = dataQuality.max_length.value();
+            constraint.max = data_quality.max_length.value();
         }
-    } else if (dataQuality.type == "array") {
-        if (dataQuality.min_items.has_value()) {
-            if (dataQuality.max_items.has_value()) {
+    } else if (data_quality.type == "array") {
+        if (data_quality.min_items.has_value()) {
+            if (data_quality.max_items.has_value()) {
                 constraint.type = "countBetween";
-                constraint.min = dataQuality.min_items.value();
-                constraint.max = dataQuality.max_items.value();
+                constraint.min = data_quality.min_items.value();
+                constraint.max = data_quality.max_items.value();
             } else {
                 constraint.type = "minCount";
-                constraint.min = dataQuality.min_items.value();
+                constraint.min = data_quality.min_items.value();
             }
-        } else if (dataQuality.max_items.has_value()) {
+        } else if (data_quality.max_items.has_value()) {
             constraint.type = "maxCount";
-            constraint.max = dataQuality.max_items.value();
+            constraint.max = data_quality.max_items.value();
         }
 
-        if (dataQuality.items.has_value()) {
+        if (data_quality.items.has_value()) {
 
         }
         // unique_items
@@ -273,13 +273,35 @@ matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& dataQuality)
     return constraint;
 }
 
-// Function to check if the variant's integer value is within borders
-bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant, int64_t lower_bound, uint64_t upper_bound) {
-    if (std::holds_alternative<double>(variant)) {
-        if (lower_bound <= std::get<double>(variant) and std::get<double>(variant) <= upper_bound)
-            return true;
+bool CheckVariantEquals(const std::variant<double, int64_t, uint64_t>& variant, std::variant<int64_t, uint64_t> value)
+{
+    if (std::holds_alternative<int64_t>(variant)) {
+        if (std::holds_alternative<int64_t>(value)) {
+            if (std::get<int64_t>(value) == std::get<int64_t>(variant))
+                return true;
+        }
+        else if (std::holds_alternative<u_int64_t>(value)) {
+            if (std::get<uint64_t>(value) == std::get<int64_t>(variant))
+                return true;
+        }
     }
-    else if (std::holds_alternative<int64_t>(variant)) {
+    else if (std::holds_alternative<uint64_t>(variant)) {
+        if (std::holds_alternative<int64_t>(value)) {
+            if (std::get<int64_t>(value) == std::get<uint64_t>(variant))
+                return true;
+        }
+        else if (std::holds_alternative<uint64_t>(value)) {
+            if (std::get<uint64_t>(value) == std::get<uint64_t>(variant))
+                return true;
+        }
+    }
+    return false;
+}
+
+//! Function to check if the variant's integer value is within borders
+bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant, int64_t lower_bound, uint64_t upper_bound) {
+    // The double type is currently ignored as it is not used for the MapIntegerType function
+    if (std::holds_alternative<int64_t>(variant)) {
         if (lower_bound <= std::get<int64_t>(variant) and std::get<int64_t>(variant) <= upper_bound)
             return true;
     }
@@ -290,34 +312,146 @@ bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant,
     return false;
 }
 
-std::string MapIntegerType(const sdf::DataQuality& data_quality)
+std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constraint& constraint)
 {
     if (data_quality.minimum.has_value()) {
         // Check if the minimum value is positive or negative
         if (CheckVariantBorders(data_quality.minimum.value(), 0, std::numeric_limits<uint64_t>::max())) {
             if (data_quality.maximum.has_value()) {
                 if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_U_INT_8_MAX)) {
+                    if (!CheckVariantEquals(data_quality.minimum.value(), 0)) {
+                        if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_8_MAX)) {
+                            constraint.type = "between";
+                            constraint.min = data_quality.minimum.value();
+                            constraint.max = data_quality.maximum.value();
+                        }
+                        else {
+                            constraint.type = "min";
+                            constraint.min = data_quality.minimum.value();
+                        }
+                    } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_8_MAX)) {
+                        constraint.type = "max";
+                        constraint.max = data_quality.maximum.value();
+                    }
                     return "uint8";
                 }
                 else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_U_INT_16_MAX)) {
+                    if (!CheckVariantEquals(data_quality.minimum.value(), 0)) {
+                        if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_16_MAX)) {
+                            constraint.type = "between";
+                            constraint.min = data_quality.minimum.value();
+                            constraint.max = data_quality.maximum.value();
+                        }
+                        else {
+                            constraint.type = "min";
+                            constraint.min = data_quality.minimum.value();
+                        }
+                    } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_16_MAX)) {
+                        constraint.type = "max";
+                        constraint.max = data_quality.maximum.value();
+                    }
                     return "uint16";
                 }
                 else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_U_INT_24_MAX)) {
+                    if (!CheckVariantEquals(data_quality.minimum.value(), 0)) {
+                        if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_24_MAX)) {
+                            constraint.type = "between";
+                            constraint.min = data_quality.minimum.value();
+                            constraint.max = data_quality.maximum.value();
+                        }
+                        else {
+                            constraint.type = "min";
+                            constraint.min = data_quality.minimum.value();
+                        }
+                    } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_24_MAX)) {
+                        constraint.type = "max";
+                        constraint.max = data_quality.maximum.value();
+                    }
                     return "uint24";
                 }
                 else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_U_INT_32_MAX)) {
+                    if (!CheckVariantEquals(data_quality.minimum.value(), 0)) {
+                        if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_32_MAX)) {
+                            constraint.type = "between";
+                            constraint.min = data_quality.minimum.value();
+                            constraint.max = data_quality.maximum.value();
+                        }
+                        else {
+                            constraint.type = "min";
+                            constraint.min = data_quality.minimum.value();
+                        }
+                    } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_32_MAX)) {
+                        constraint.type = "max";
+                        constraint.max = data_quality.maximum.value();
+                    }
                     return "uint32";
                 }
                 else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_U_INT_40_MAX)) {
+                    if (!CheckVariantEquals(data_quality.minimum.value(), 0)) {
+                        if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_40_MAX)) {
+                            constraint.type = "between";
+                            constraint.min = data_quality.minimum.value();
+                            constraint.max = data_quality.maximum.value();
+                        }
+                        else {
+                            constraint.type = "min";
+                            constraint.min = data_quality.minimum.value();
+                        }
+                    } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_40_MAX)) {
+                        constraint.type = "max";
+                        constraint.max = data_quality.maximum.value();
+                    }
                     return "uint40";
                 }
                 else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_U_INT_48_MAX)) {
+                    if (!CheckVariantEquals(data_quality.minimum.value(), 0)) {
+                        if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_48_MAX)) {
+                            constraint.type = "between";
+                            constraint.min = data_quality.minimum.value();
+                            constraint.max = data_quality.maximum.value();
+                        }
+                        else {
+                            constraint.type = "min";
+                            constraint.min = data_quality.minimum.value();
+                        }
+                    } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_48_MAX)) {
+                        constraint.type = "max";
+                        constraint.max = data_quality.maximum.value();
+                    }
                     return "uint48";
                 }
                 else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_U_INT_56_MAX)) {
+                    if (!CheckVariantEquals(data_quality.minimum.value(), 0)) {
+                        if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_56_MAX)) {
+                            constraint.type = "between";
+                            constraint.min = data_quality.minimum.value();
+                            constraint.max = data_quality.maximum.value();
+                        }
+                        else {
+                            constraint.type = "min";
+                            constraint.min = data_quality.minimum.value();
+                        }
+                    } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_U_INT_56_MAX)) {
+                        constraint.type = "max";
+                        constraint.max = data_quality.maximum.value();
+                    }
                     return "uint56";
                 }
                 else if (CheckVariantBorders(data_quality.maximum.value(), 0, std::numeric_limits<uint64_t>::max())) {
+                    if (!CheckVariantEquals(data_quality.minimum.value(), 0)) {
+                        if (!CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<uint64_t>::max())) {
+                            constraint.type = "between";
+                            constraint.min = data_quality.minimum.value();
+                            constraint.max = data_quality.maximum.value();
+                        }
+                        else {
+                            constraint.type = "min";
+                            constraint.min = data_quality.minimum.value();
+                        }
+                    } else if (!CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<uint64_t>::max())) {
+                        constraint.type = "max";
+                        constraint.max = data_quality.maximum.value();
+                    }
                     return "uint64";
                 }
             }
@@ -329,42 +463,154 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality)
             if (data_quality.maximum.has_value()) {
                 if (CheckVariantBorders(data_quality.minimum.value(), MATTER_INT_8_MIN, 0)) {
                     if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_8_MIN, MATTER_INT_8_MAX)) {
+                        if (!CheckVariantEquals(data_quality.minimum.value(), MATTER_INT_8_MIN)) {
+                            if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_8_MAX)) {
+                                constraint.type = "between";
+                                constraint.min = data_quality.minimum.value();
+                                constraint.max = data_quality.maximum.value();
+                            }
+                            else {
+                                constraint.type = "min";
+                                constraint.min = data_quality.minimum.value();
+                            }
+                        } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_8_MAX)) {
+                            constraint.type = "max";
+                            constraint.max = data_quality.maximum.value();
+                        }
                         return "int8";
                     }
                 }
                 else if (CheckVariantBorders(data_quality.minimum.value(), MATTER_INT_16_MIN, 0)) {
                     if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_16_MIN, MATTER_INT_16_MAX)) {
+                        if (!CheckVariantEquals(data_quality.minimum.value(), MATTER_INT_16_MIN)) {
+                            if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_16_MAX)) {
+                                constraint.type = "between";
+                                constraint.min = data_quality.minimum.value();
+                                constraint.max = data_quality.maximum.value();
+                            }
+                            else {
+                                constraint.type = "min";
+                                constraint.min = data_quality.minimum.value();
+                            }
+                        } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_16_MAX)) {
+                            constraint.type = "max";
+                            constraint.max = data_quality.maximum.value();
+                        }
                         return "int16";
                     }
                 }
                 else if (CheckVariantBorders(data_quality.minimum.value(), MATTER_INT_24_MIN, 0)) {
                     if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_24_MIN, MATTER_INT_24_MAX)) {
+                        if (!CheckVariantEquals(data_quality.minimum.value(), MATTER_INT_24_MIN)) {
+                            if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_24_MAX)) {
+                                constraint.type = "between";
+                                constraint.min = data_quality.minimum.value();
+                                constraint.max = data_quality.maximum.value();
+                            }
+                            else {
+                                constraint.type = "min";
+                                constraint.min = data_quality.minimum.value();
+                            }
+                        } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_24_MAX)) {
+                            constraint.type = "max";
+                            constraint.max = data_quality.maximum.value();
+                        }
                         return "int24";
                     }
                 }
                 else if (CheckVariantBorders(data_quality.minimum.value(), MATTER_INT_32_MIN, 0)) {
                     if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_32_MIN, MATTER_INT_32_MAX)) {
+                        if (!CheckVariantEquals(data_quality.minimum.value(), MATTER_INT_32_MIN)) {
+                            if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_32_MAX)) {
+                                constraint.type = "between";
+                                constraint.min = data_quality.minimum.value();
+                                constraint.max = data_quality.maximum.value();
+                            }
+                            else {
+                                constraint.type = "min";
+                                constraint.min = data_quality.minimum.value();
+                            }
+                        } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_32_MAX)) {
+                            constraint.type = "max";
+                            constraint.max = data_quality.maximum.value();
+                        }
                         return "int32";
                     }
                 }
                 else if (CheckVariantBorders(data_quality.minimum.value(), MATTER_INT_40_MIN, 0)) {
                     if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_40_MIN, MATTER_INT_40_MAX)) {
+                        if (!CheckVariantEquals(data_quality.minimum.value(), MATTER_INT_40_MIN)) {
+                            if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_40_MAX)) {
+                                constraint.type = "between";
+                                constraint.min = data_quality.minimum.value();
+                                constraint.max = data_quality.maximum.value();
+                            }
+                            else {
+                                constraint.type = "min";
+                                constraint.min = data_quality.minimum.value();
+                            }
+                        } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_40_MAX)) {
+                            constraint.type = "max";
+                            constraint.max = data_quality.maximum.value();
+                        }
                         return "int40";
                     }
                 }
                 else if (CheckVariantBorders(data_quality.minimum.value(), MATTER_INT_48_MIN, 0)) {
                     if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_48_MIN, MATTER_INT_48_MAX)) {
+                        if (!CheckVariantEquals(data_quality.minimum.value(), MATTER_INT_48_MIN)) {
+                            if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_48_MAX)) {
+                                constraint.type = "between";
+                                constraint.min = data_quality.minimum.value();
+                                constraint.max = data_quality.maximum.value();
+                            }
+                            else {
+                                constraint.type = "min";
+                                constraint.min = data_quality.minimum.value();
+                            }
+                        } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_48_MAX)) {
+                            constraint.type = "max";
+                            constraint.max = data_quality.maximum.value();
+                        }
                         return "int48";
                     }
                 }
                 else if (CheckVariantBorders(data_quality.minimum.value(), MATTER_INT_56_MIN, 0)) {
                     if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_56_MIN, MATTER_INT_56_MAX)) {
+                        if (!CheckVariantEquals(data_quality.minimum.value(), MATTER_INT_56_MIN)) {
+                            if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_56_MAX)) {
+                                constraint.type = "between";
+                                constraint.min = data_quality.minimum.value();
+                                constraint.max = data_quality.maximum.value();
+                            }
+                            else {
+                                constraint.type = "min";
+                                constraint.min = data_quality.minimum.value();
+                            }
+                        } else if (!CheckVariantEquals(data_quality.maximum.value(), MATTER_INT_56_MAX)) {
+                            constraint.type = "max";
+                            constraint.max = data_quality.maximum.value();
+                        }
                         return "int56";
                     }
                 }
                 else if (CheckVariantBorders(data_quality.minimum.value(), std::numeric_limits<int64_t>::max(), 0)) {
                     if (CheckVariantBorders(data_quality.maximum.value(), std::numeric_limits<int64_t>::min(),
                                             std::numeric_limits<int64_t>::max())) {
+                        if (!CheckVariantEquals(data_quality.minimum.value(), std::numeric_limits<int64_t>::min())) {
+                            if (!CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<int64_t>::max())) {
+                                constraint.type = "between";
+                                constraint.min = data_quality.minimum.value();
+                                constraint.max = data_quality.maximum.value();
+                            }
+                            else {
+                                constraint.type = "min";
+                                constraint.min = data_quality.minimum.value();
+                            }
+                        } else if (!CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<int64_t>::max())) {
+                            constraint.type = "max";
+                            constraint.max = data_quality.maximum.value();
+                        }
                         return "int64";
                     }
                 }
@@ -378,7 +624,7 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality)
 }
 
 //! Determine a Matter type from the information's of a given data quality
-std::string MapSdfDataType(const sdf::DataQuality& data_quality)
+std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint)
 {
     std::string result;
     if (!data_quality.sdf_ref.empty()) {
@@ -391,9 +637,9 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality)
     } else if (data_quality.type == "boolean") {
         result = "bool";
     } else if (data_quality.type == "integer") {
-        result = MapIntegerType(data_quality);
+        result = MapIntegerType(data_quality, constraint);
     } else if (data_quality.type == "array") {
-
+        result = "list";
     } else if (data_quality.type == "object") {
         result = "struct";
     } else if (data_quality.sdf_type == "byte-string") {
@@ -413,8 +659,10 @@ matter::DataField MapSdfData(sdf::DataQuality& data_quality)
     //data_field.conformance = GenerateMatterConformance();
     // data_field.access
     data_field.summary = data_quality.description;
-    data_field.type = MapSdfDataType(data_quality);
-    data_field.constraint = GenerateMatterConstraint(data_quality);
+    matter::Constraint constraint;
+    data_field.type = MapSdfDataType(data_quality, constraint);
+    data_field.constraint = constraint;
+    //data_field.constraint = GenerateMatterConstraint(data_quality);
     // data_field.quality;
     if (data_quality.default_.has_value())
         data_field.default_ = MapSdfDefaultValue(data_quality.default_.value());
@@ -429,13 +677,15 @@ matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality)
     data_field.name = data_quality.label;
     //comment
     //sdf_required
-    data_field.type = MapSdfDataType(data_quality);
+    matter::Constraint constraint;
+    data_field.type = MapSdfDataType(data_quality, constraint);
+    data_field.constraint = constraint;
     //sdf_choice
     //enum
     //const
     if (data_quality.default_.has_value())
         data_field.default_ = MapSdfDefaultValue(data_quality.default_.value());
-    data_field.constraint = GenerateMatterConstraint(data_quality);
+    //data_field.constraint = GenerateMatterConstraint(data_quality);
     //exclusive_minimum
     //exclusive_maximum
     //multiple_of
@@ -563,7 +813,9 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     attribute.quality->reportable = sdf_property_pair.second.observable;
     attribute.quality->nullable = sdf_property_pair.second.nullable;
     attribute.summary = sdf_property_pair.second.description;
-    attribute.type = MapSdfDataType(sdf_property_pair.second);
+    matter::Constraint constraint;
+    attribute.type = MapSdfDataType(sdf_property_pair.second, constraint);
+    attribute.constraint = constraint;
     if (sdf_property_pair.second.default_.has_value())
         attribute.default_ = MapSdfDefaultValue(sdf_property_pair.second.default_.value());
     attribute.quality = ImportOtherQualityFromMapping(sdf_property_reference->GeneratePointer());
@@ -723,7 +975,9 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 data_field.id = id;
                 data_field.name = property.second.label;
                 data_field.summary = property.second.description;
-                data_field.type = MapSdfDataType(property.second);
+                matter::Constraint constraint;
+                data_field.type = MapSdfDataType(property.second, constraint);
+                data_field.constraint = constraint;
                 matter_struct.push_back(data_field);
                 id++;
             }
