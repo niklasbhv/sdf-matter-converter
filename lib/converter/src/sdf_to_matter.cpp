@@ -623,17 +623,38 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
     return "";
 }
 
+std::string GetLastPartAfterSlash(const std::string& str) {
+    size_t pos = str.find_last_of('/');
+    if (pos != std::string::npos) {
+        return str.substr(pos + 1);
+    }
+    return str;  // If no slash is found, return the original string
+}
+
 //! Determine a Matter type from the information's of a given data quality
 std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint)
 {
     std::string result;
     if (!data_quality.sdf_ref.empty()) {
-        return data_quality.label;
+        return GetLastPartAfterSlash(data_quality.sdf_ref);
     }
     if (data_quality.type == "number") {
         result = "double";
     } else if (data_quality.type == "string") {
         result = "string";
+        if (data_quality.min_length.has_value()) {
+            if (data_quality.max_length.has_value()) {
+                constraint.type = "lengthBetween";
+                constraint.min = data_quality.min_length.value();
+                constraint.max = data_quality.max_length.value();
+            } else {
+                constraint.type = "minLength";
+                constraint.min = data_quality.min_length.value();
+            }
+        } else if (data_quality.max_length.has_value()) {
+            constraint.type = "maxLength";
+            constraint.max = data_quality.max_length.value();
+        }
     } else if (data_quality.type == "boolean") {
         result = "bool";
     } else if (data_quality.type == "integer") {
@@ -819,7 +840,6 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     if (sdf_property_pair.second.default_.has_value())
         attribute.default_ = MapSdfDefaultValue(sdf_property_pair.second.default_.value());
     attribute.quality = ImportOtherQualityFromMapping(sdf_property_reference->GeneratePointer());
-    //attribute.quality.fixed = !sdf_property.const_.empty();
 
     return attribute;
 }
