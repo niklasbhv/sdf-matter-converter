@@ -262,7 +262,7 @@ Item ParseItem(const pugi::xml_node& enum_item_node) {
 
     item.value = enum_item_node.attribute("value").as_int();
     item.name = enum_item_node.attribute("name").value();
-    item.summary = enum_item_node.attribute("summary").value();
+    item.summary = FilterMultipleSpaces(enum_item_node.attribute("summary").value());
     item.conformance = ParseConformance(enum_item_node);
 
     return item;
@@ -274,7 +274,7 @@ Bitfield ParseBitfield(const pugi::xml_node& bitfield_node) {
 
     bitfield.bit = bitfield_node.attribute("bit").as_int();
     bitfield.name = bitfield_node.attribute("name").value();
-    bitfield.summary = bitfield_node.attribute("summary").value();
+    bitfield.summary = FilterMultipleSpaces(bitfield_node.attribute("summary").value());
     bitfield.conformance = ParseConformance(bitfield_node);
 
     return bitfield;
@@ -293,7 +293,7 @@ DataField ParseDataField(const pugi::xml_node& data_field_node) {
     data_field.conformance = ParseConformance(data_field_node);
 
     if (!data_field_node.attribute("summary").empty())
-        data_field.summary = data_field_node.attribute("summary").value();
+        data_field.summary = FilterMultipleSpaces(data_field_node.attribute("summary").value());
 
     if (!data_field_node.attribute("type").empty())
         data_field.type = data_field_node.attribute("type").value();
@@ -321,7 +321,7 @@ Feature ParseFeature(const pugi::xml_node& feature_node) {
     feature.conformance = ParseConformance(feature_node);
     feature.code = feature_node.attribute("code").value();
     feature.name = feature_node.attribute("name").value();
-    feature.summary = feature_node.attribute("summary").value();
+    feature.summary = FilterMultipleSpaces(feature_node.attribute("summary").value());
 
     return feature;
 }
@@ -337,7 +337,7 @@ Event ParseEvent(const pugi::xml_node& event_node) {
     if (!event_node.child("access").empty())
         event.access = ParseAccess(event_node.child("access"));
 
-    event.summary = event_node.attribute("summary").value();
+    event.summary = FilterMultipleSpaces(event_node.attribute("summary").value());
     event.priority = event_node.attribute("priority").value();
     if (!event_node.child("quality").empty())
         event.quality = ParseOtherQuality(event_node);
@@ -360,7 +360,7 @@ Command ParseCommand(const pugi::xml_node& command_node) {
     if (!command_node.child("access").empty())
         command.access = ParseAccess(command_node.child("access"));
 
-    command.summary = command_node.attribute("summary").value();
+    command.summary = FilterMultipleSpaces(command_node.attribute("summary").value());
     if (!command_node.attribute("default").empty())
         command.default_ = ParseDefaultType(command_node.attribute("default").value());
     command.direction = command_node.attribute("direction").value();
@@ -384,7 +384,7 @@ Attribute ParseAttribute(const pugi::xml_node& attribute_node) {
     if (!attribute_node.child("access").empty())
         attribute.access = ParseAccess(attribute_node.child("access"));
 
-    attribute.summary = attribute_node.attribute("summary").value();
+    attribute.summary = FilterMultipleSpaces(attribute_node.attribute("summary").value());
     attribute.type = attribute_node.attribute("type").value();
 
     if (!attribute_node.child("constraint").empty())
@@ -460,7 +460,7 @@ Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
     cluster.id = cluster_xml.attribute("id").as_int();
     cluster.name = cluster_xml.attribute("name").value();
     cluster.conformance = ParseConformance(cluster_xml);
-    cluster.summary = cluster_xml.attribute("summary").value();
+    cluster.summary = FilterMultipleSpaces(cluster_xml.attribute("summary").value());
     if (!cluster_xml.attribute("side").empty())
         cluster.side = cluster_xml.attribute("side").value();
     cluster.revision = cluster_xml.attribute("revision").as_int();
@@ -468,7 +468,7 @@ Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
     // Iterate through all revisions and parse them individually
     for (const auto &revision_node: cluster_xml.child("revisionHistory").children()) {
         cluster.revision_history.insert(
-                {revision_node.attribute("revision").as_int(), revision_node.attribute("summary").value()});
+                {revision_node.attribute("revision").as_int(), FilterMultipleSpaces(revision_node.attribute("summary").value())});
     }
 
     // Iterate through all cluster aliases and parse them individually
@@ -547,7 +547,7 @@ Device ParseDevice(const pugi::xml_node& device_xml) {
     // Iterate through all revisions and parse them individually
     for (const auto &revision_node: device_xml.child("revisionHistory").children()) {
         device.revision_history.insert(
-                {revision_node.attribute("revision").as_int(), revision_node.attribute("summary").value()});
+                {revision_node.attribute("revision").as_int(), FilterMultipleSpaces(revision_node.attribute("summary").value())});
     }
 
     if (!device_xml.child("classification").empty())

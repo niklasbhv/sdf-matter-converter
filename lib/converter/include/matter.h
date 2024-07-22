@@ -60,6 +60,27 @@
 #define MATTER_INT_56_MIN (-36028797018963968)
 #define MATTER_INT_56_MAX 36028797018963967
 
+//! Function used to filter multiple spaces from a string
+//! This is meant for summary fields as these often contain linebreaks that result in multiple spaces between words
+inline std::string FilterMultipleSpaces(const std::string& input) {
+    std::string result;
+    bool in_spaces = false;
+
+    for (char ch : input) {
+        if (ch == ' ') {
+            if (!in_spaces) {
+                result += ch;
+                in_spaces = true;
+            }
+        } else {
+            result += ch;
+            in_spaces = false;
+        }
+    }
+
+    return result;
+}
+
 inline std::string IntToHex(u_int32_t num) {
     std::string hex_str;
     while (num > 0) {
