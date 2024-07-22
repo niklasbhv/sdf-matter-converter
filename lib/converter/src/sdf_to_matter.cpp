@@ -693,6 +693,10 @@ matter::DataField MapSdfData(sdf::DataQuality& data_quality)
     return data_field;
 }
 
+bool contains(const std::list<std::string>& list, const std::string& str) {
+    return std::find(list.begin(), list.end(), str) != list.end();
+}
+
 //! Maps either a sdfInputData or sdfOutputData element onto a Matter data field
 matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality)
 {
@@ -709,7 +713,6 @@ matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality)
     //const
     if (data_quality.default_.has_value())
         data_field.default_ = MapSdfDefaultValue(data_quality.default_.value());
-    //data_field.constraint = GenerateMatterConstraint(data_quality);
     //exclusive_minimum
     //exclusive_maximum
     //multiple_of
@@ -772,12 +775,22 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
         // If object is used as a type, the elements of the object have to be mapped individually
         if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
             uint32_t id = 0;
-            for (const auto& quality_pair : sdf_action_pair.second.sdf_input_data.value().properties) {
+            for (const auto& quality_pair : sdf_action_pair.second.sdf_output_data.value().properties) {
                 matter::DataField field = MapSdfInputOutputData(quality_pair.second);
                 field.id = id;
                 // If no label is given, set the quality name
                 if (field.name.empty())
                     field.name = quality_pair.first;
+                if (contains(sdf_action_pair.second.sdf_input_data.value().required, quality_pair.second.label)) {
+                    matter::Conformance conformance;
+                    conformance.mandatory = true;
+                    field.conformance = conformance;
+                }
+                else {
+                    matter::Conformance conformance;
+                    conformance.optional = true;
+                    field.conformance = conformance;
+                }
                 server_command.command_fields.push_back(field);
                 id++;
             }
@@ -806,6 +819,17 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
                 // If no label is given, set the quality name
                 if (field.name.empty())
                     field.name = quality_pair.first;
+                if (contains(sdf_action_pair.second.sdf_input_data.value().required, quality_pair.second.label)) {
+                    matter::Conformance conformance;
+                    conformance.mandatory = true;
+                    field.conformance = conformance;
+                }
+                else {
+                    matter::Conformance conformance;
+                    conformance.optional = true;
+                    field.conformance = conformance;
+                }
+
                 client_command.command_fields.push_back(field);
                 id++;
             }
