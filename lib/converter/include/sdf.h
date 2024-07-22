@@ -52,7 +52,7 @@ template <> struct adl_serializer<std::optional<std::monostate>> {
     // Define from_json function for std::optional<std::monostate>
     static void from_json(const ordered_json &j, std::optional<std::monostate> &opt) {
         if (!j.is_null()) {
-
+            throw ordered_json::type_error::create(302, "type error: expected null", &j);
         }
         opt = std::monostate{};
     }
