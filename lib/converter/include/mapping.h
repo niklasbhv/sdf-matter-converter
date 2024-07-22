@@ -39,11 +39,7 @@ inline std::string UnescapeJsonPointer(const std::string& input) {
         result.replace(pos, 2, "~");
         pos += 1;
     }
-    pos = 0;
-    while ((pos = result.find("%20", pos)) != std::string::npos) {
-        result.replace(pos, 3, " ");
-        pos += 1;
-    }
+
     return result;
 }
 
@@ -60,11 +56,7 @@ inline std::string EscapeJsonPointer(const std::string& input) {
         result.replace(pos, 1, "~1");
         pos += 2;
     }
-    pos = 0;
-    while ((pos = result.find(' ', pos)) != std::string::npos) {
-        result.replace(pos, 1, "%20");
-        pos += 3;
-    }
+
     return result;
 }
 
