@@ -205,28 +205,30 @@ matter::Conformance GenerateMatterConformance()
         conformance.disallowed = true;
         conformance.condition = conformance_json;
     }
-    else if (ImportFromMapping(current_given_name_node->GeneratePointer(), "otherwiseConformance", conformance_json)) {
+    else if (ImportFromMapping(current_given_name_node->GeneratePointer(), "otherwiseConform", conformance_json)) {
         for (const auto& otherwise_json : conformance_json.items()) {
+            matter::Conformance otherwise_conformance;
             if (otherwise_json.key() == "mandatoryConform") {
-                conformance.mandatory = true;
-                conformance.condition = otherwise_json.value();
+                otherwise_conformance.mandatory = true;
+                otherwise_conformance.condition = otherwise_json.value();
             }
             else if (otherwise_json.key() == "optionalConform") {
-                conformance.optional = true;
-                conformance.condition = otherwise_json.value();
+                otherwise_conformance.optional = true;
+                otherwise_conformance.condition = otherwise_json.value();
             }
             else if (otherwise_json.key() == "provisionalConform") {
-                conformance.provisional = true;
-                conformance.condition = otherwise_json.value();
+                otherwise_conformance.provisional = true;
+                otherwise_conformance.condition = otherwise_json.value();
             }
             else if (otherwise_json.key() == "deprecateConform") {
-                conformance.deprecated = true;
-                conformance.condition = otherwise_json.value();
+                otherwise_conformance.deprecated = true;
+                otherwise_conformance.condition = otherwise_json.value();
             }
             else if (otherwise_json.key() == "disallowConform") {
-                conformance.disallowed = true;
-                conformance.condition = otherwise_json.value();
+                otherwise_conformance.disallowed = true;
+                otherwise_conformance.condition = otherwise_json.value();
             }
+            conformance.otherwise.push_back(otherwise_conformance);
         }
     }
     // If no conformance can be imported from the mapping, it will be generated based on the sdfRequired quality

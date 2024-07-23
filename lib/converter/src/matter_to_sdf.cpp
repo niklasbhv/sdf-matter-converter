@@ -938,6 +938,22 @@ bool MapMatterConformance(const matter::Conformance& conformance) {
         current_given_name_node->AddAttribute("deprecateConform", conformance.condition);
     else if (conformance.disallowed)
         current_given_name_node->AddAttribute("disallowConform", conformance.condition);
+    else if (!conformance.otherwise.empty()) {
+        json otherwise_json;
+        for (const auto& otherwise : conformance.otherwise) {
+            if (otherwise.mandatory)
+                otherwise_json["mandatoryConform"] = otherwise.condition;
+            else if (otherwise.optional)
+                otherwise_json["optionalConform"] = otherwise.condition;
+            else if (otherwise.provisional)
+                otherwise_json["provisionalConform"] = otherwise.condition;
+            else if (otherwise.deprecated)
+                otherwise_json["deprecateConform"] = otherwise.condition;
+            else if (otherwise.disallowed)
+                otherwise_json["disallowConform"] = otherwise.condition;
+        }
+        current_given_name_node->AddAttribute("otherwiseConform", otherwise_json);
+    }
 
     return EvaluateConformanceCondition(conformance.condition);
 }
@@ -1017,6 +1033,20 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
     auto* command_reference = new ReferenceTreeNode(client_command.name);
     current_quality_name_node->AddChild(command_reference);
     current_given_name_node = command_reference;
+
+    // Export the id to the mapping
+    command_reference->AddAttribute("id", (uint64_t) client_command.id);
+    sdf_action.label = client_command.name;
+    if (client_command.conformance.has_value())
+        MapMatterConformance(client_command.conformance.value());
+    if (client_command.access.has_value())
+        MapMatterAccess(client_command.access.value());
+    sdf_action.description = client_command.summary;
+    // client_command.default_
+
+    if (!client_command.command_fields.empty())
+        sdf_action.sdf_input_data = MapMatterDataField(client_command.command_fields);
+
     // If the command does not have a response
     if (client_command.response == "N") {}
     // If the client_command only returns a simple status
@@ -1028,21 +1058,9 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
         sdf_output_data.maximum = MATTER_U_INT_16_MAX;
     }
     // Otherwise, the client client_command has a reference to a server client_command
-    else {
+    else
         sdf_action.sdf_output_data = MapMatterDataField(server_commands.at(client_command.response).command_fields);
-    }
 
-    // Export the id to the mapping
-    command_reference->AddAttribute("id", (uint64_t) client_command.id);
-    sdf_action.label = client_command.name;
-    if (client_command.conformance.has_value())
-        MapMatterConformance(client_command.conformance.value());
-    if (client_command.access.has_value())
-        MapMatterAccess(client_command.access.value());
-    sdf_action.description = client_command.summary;
-    // client_command.default_
-    if (!client_command.command_fields.empty())
-        sdf_action.sdf_input_data = MapMatterDataField(client_command.command_fields);
 
     return sdf_action;
 }
