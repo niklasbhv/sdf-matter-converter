@@ -223,28 +223,28 @@ Conformance ParseConformance(const pugi::xml_node& conformance_node) {
             Conformance otherwise_conformance;
             if (child_name == "mandatoryConform") {
                 otherwise_conformance.mandatory = true;
-                if (!otherwise_child.child("mandatoryConform").children().empty())
-                    otherwise_conformance.condition = ParseLogicalTerm(otherwise_child.child("mandatoryConform").first_child());
+                if (!otherwise_child.children().empty())
+                    otherwise_conformance.condition = ParseLogicalTerm(otherwise_child.first_child());
             }
             else if (child_name == "optionalConform") {
                 otherwise_conformance.optional = true;
-                if (!otherwise_child.child("optionalConform").children().empty())
-                    otherwise_conformance.condition = ParseLogicalTerm(otherwise_child.child("optionalConform").first_child());
+                if (!otherwise_child.children().empty())
+                    otherwise_conformance.condition = ParseLogicalTerm(otherwise_child.first_child());
             }
             else if (child_name == "provisionalConform") {
                 otherwise_conformance.provisional = true;
-                if (!otherwise_child.child("provisionalConform").children().empty())
-                    otherwise_conformance.condition = ParseLogicalTerm(otherwise_child.child("provisionalConform").first_child());
+                if (!otherwise_child.children().empty())
+                    otherwise_conformance.condition = ParseLogicalTerm(otherwise_child.first_child());
             }
             else if (child_name == "deprecateConform") {
                 otherwise_conformance.deprecated = true;
-                if (!otherwise_child.child("deprecateConform").children().empty())
-                    otherwise_conformance.condition = ParseLogicalTerm(otherwise_child.child("deprecateConform").first_child());
+                if (!otherwise_child.children().empty())
+                    otherwise_conformance.condition = ParseLogicalTerm(otherwise_child.first_child());
             }
             else if (child_name == "disallowConform") {
                 otherwise_conformance.disallowed = true;
-                if (!otherwise_child.child("disallowConform").children().empty())
-                    otherwise_conformance.condition = ParseLogicalTerm(otherwise_child.child("disallowConform").first_child());
+                if (!otherwise_child.children().empty())
+                    otherwise_conformance.condition = ParseLogicalTerm(otherwise_child.first_child());
             }
             // Recursively process the child nodes
             conformance.otherwise.push_back(otherwise_conformance);
