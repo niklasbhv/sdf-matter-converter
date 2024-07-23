@@ -196,10 +196,10 @@ std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::st
     sdf::JsoItem item;
     for (const auto& bitfield : bitmap_pair.second) {
         sdf::DataQuality sdf_choice_data_quality;
-        bitmap_json["sdfChoice"][bitfield.name]["bit"] = bitfield.bit;
-        bitmap_json["sdfChoice"][bitfield.name]["summary"] = bitfield.summary;
         if (bitfield.conformance.has_value())
             to_json(bitmap_json["sdfChoice"][bitfield.name], bitfield.conformance.value());
+        bitmap_json["sdfChoice"][bitfield.name]["bit"] = bitfield.bit;
+        bitmap_json["sdfChoice"][bitfield.name]["summary"] = bitfield.summary;
         item.sdf_choice[bitfield.name] = sdf_choice_data_quality;
     }
     data_quality.items = item;
