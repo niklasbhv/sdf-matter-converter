@@ -120,4 +120,8 @@ public:
     }
 };
 
+static bool contains(const std::list<std::string>& list, const std::string& str) {
+    return std::find(list.begin(), list.end(), str) != list.end();
+}
+
 #endif //MAPPING_H
