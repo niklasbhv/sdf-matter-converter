@@ -241,6 +241,67 @@ matter::Conformance GenerateMatterConformance()
     return conformance;
 }
 
+//! @brief Generates a Matter conformance.
+//! The resulting conformance depends on the following factors:
+//! - required quality for the object type
+//! - being part of a sdfRequired quality
+//! If the referred element mentioned in either of these factors,
+//! a mandatory conformance will be created.
+//! Otherwise a optional conformance will be created.
+matter::Conformance GenerateMatterConformance(json& conformance_json)
+{
+    matter::Conformance conformance;
+
+    if (conformance_json.contains("mandatoryConform")) {
+        conformance.mandatory = true;
+        conformance.condition = conformance_json;
+    }
+    else if (conformance_json.contains("optionalConform")) {
+        conformance.optional = true;
+        conformance.condition = conformance_json;
+    }
+    else if (conformance_json.contains("provisionalConform")) {
+        conformance.provisional = true;
+        conformance.condition = conformance_json;
+    }
+    else if (conformance_json.contains("deprecateConform")) {
+        conformance.deprecated = true;
+        conformance.condition = conformance_json;
+    }
+    else if (conformance_json.contains("disallowConform")) {
+        conformance.disallowed = true;
+        conformance.condition = conformance_json;
+    }
+    else if (conformance_json.contains("otherwiseConform")) {
+        for (const auto& otherwise_json : conformance_json.items()) {
+            matter::Conformance otherwise_conformance;
+            if (otherwise_json.key() == "mandatoryConform") {
+                otherwise_conformance.mandatory = true;
+                otherwise_conformance.condition = otherwise_json.value();
+            }
+            else if (otherwise_json.key() == "optionalConform") {
+                otherwise_conformance.optional = true;
+                otherwise_conformance.condition = otherwise_json.value();
+            }
+            else if (otherwise_json.key() == "provisionalConform") {
+                otherwise_conformance.provisional = true;
+                otherwise_conformance.condition = otherwise_json.value();
+            }
+            else if (otherwise_json.key() == "deprecateConform") {
+                otherwise_conformance.deprecated = true;
+                otherwise_conformance.condition = otherwise_json.value();
+            }
+            else if (otherwise_json.key() == "disallowConform") {
+                otherwise_conformance.disallowed = true;
+                otherwise_conformance.condition = otherwise_json.value();
+            }
+            conformance.otherwise.push_back(otherwise_conformance);
+        }
+    }
+
+    return conformance;
+}
+
 //! Generates a Matter constraint with the information given by the data qualities
 matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& data_quality)
 {
@@ -1066,7 +1127,12 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     auto* sdf_data_reference = new ReferenceTreeNode("sdfData");
     sdf_object_reference->AddChild(sdf_data_reference);
     current_quality_name_node = sdf_data_reference;
+
     for (const auto& sdf_data_elem : sdf_object_pair.second.sdf_data) {
+        auto* given_sdf_data_reference = new ReferenceTreeNode(sdf_data_elem.first);
+        sdf_data_reference->AddChild(given_sdf_data_reference);
+        current_given_name_node = given_sdf_data_reference;
+
         if (sdf_data_elem.second.type == "object") {
             matter::Struct matter_struct;
             uint32_t id = 0;
@@ -1075,6 +1141,20 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 data_field.id = id;
                 data_field.name = property.second.label;
                 data_field.summary = property.second.description;
+                json conformance_json;
+                if (ImportFromMapping(current_given_name_node->GeneratePointer(), "properties", conformance_json)) {
+                    if (conformance_json.contains(property.first)) {
+                        data_field.conformance = GenerateMatterConformance(conformance_json.at(property.first));
+                    }
+                } else {
+                    matter::Conformance conformance;
+                    if (contains(sdf_data_elem.second.required, property.first)) {
+                        conformance.mandatory = true;
+                    } else {
+                        conformance.optional = true;
+                    }
+                    data_field.conformance = conformance;
+                }
                 matter::Constraint constraint;
                 data_field.type = MapSdfDataType(property.second, constraint);
                 data_field.constraint = constraint;
@@ -1082,8 +1162,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 id++;
             }
             cluster.structs[sdf_data_elem.first] = matter_struct;
-        }
-        else if (sdf_data_elem.second.type == "array") {
+        } else if (sdf_data_elem.second.type == "array") {
             if (sdf_data_elem.second.items.has_value()) {
                 std::list<matter::Bitfield> bitmap;
                 int bit = 0;
@@ -1091,6 +1170,14 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                     matter::Bitfield bitfield;
                     bitfield.bit = bit;
                     bitfield.name = sdf_choice.first;
+                    json conformance_json;
+                    if (ImportFromMapping(current_given_name_node->GeneratePointer(), "items", conformance_json)) {
+                        if (conformance_json.contains("sdfChoice")) {
+                            if (conformance_json.at("sdfChoice").contains(bitfield.name)) {
+                                bitfield.conformance = GenerateMatterConformance(conformance_json.at("sdfChoice").at(bitfield.name));
+                            }
+                        }
+                    }
                     bitmap.push_back(bitfield);
                     bit++;
                 }
@@ -1103,6 +1190,12 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 matter::Item item;
                 item.name = sdf_choice.first;
                 item.summary = sdf_choice.second.description;
+                json conformance_json;
+                if (ImportFromMapping(current_given_name_node->GeneratePointer(), "sdfChoice", conformance_json)) {
+                    if (conformance_json.contains(item.name)) {
+                        item.conformance = GenerateMatterConformance(conformance_json.at(item.name));
+                    }
+                }
                 item.value = value;
                 matter_enum.push_back(item);
                 value++;
