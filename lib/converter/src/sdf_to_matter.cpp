@@ -703,6 +703,11 @@ matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality)
     matter::DataField data_field;
     data_field.summary = data_quality.description;
     data_field.name = data_quality.label;
+    if (data_quality.nullable.has_value()) {
+        matter::OtherQuality quality;
+        quality.nullable = data_quality.nullable;
+        data_field.quality = quality;
+    }
     //comment
     //sdf_required
     matter::Constraint constraint;
