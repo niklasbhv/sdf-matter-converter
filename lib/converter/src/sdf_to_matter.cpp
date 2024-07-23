@@ -1168,12 +1168,19 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 int bit = 0;
                 for (const auto& sdf_choice : sdf_data_elem.second.items.value().sdf_choice) {
                     matter::Bitfield bitfield;
-                    bitfield.bit = bit;
                     bitfield.name = sdf_choice.first;
                     json conformance_json;
                     if (ImportFromMapping(current_given_name_node->GeneratePointer(), "items", conformance_json)) {
                         if (conformance_json.contains("sdfChoice")) {
                             if (conformance_json.at("sdfChoice").contains(bitfield.name)) {
+                                if (conformance_json.at("sdfChoice").at(bitfield.name).contains("summary")) {
+                                    conformance_json.at("sdfChoice").at(bitfield.name).at("summary").get_to(bitfield.summary);
+                                }
+                                if (conformance_json.at("sdfChoice").at(bitfield.name).contains("bit")) {
+                                    conformance_json.at("sdfChoice").at(bitfield.name).at("bit").get_to(bitfield.bit);
+                                } else {
+                                    bitfield.bit = bit;
+                                }
                                 bitfield.conformance = GenerateMatterConformance(conformance_json.at("sdfChoice").at(bitfield.name));
                             }
                         }
