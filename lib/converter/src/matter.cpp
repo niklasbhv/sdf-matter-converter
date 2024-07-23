@@ -571,11 +571,13 @@ void SerializeOtherQuality(const OtherQuality& other_quality, pugi::xml_node& pa
         quality_node.append_attribute("nullable").set_value(other_quality.nullable.value());
 
     if (other_quality.non_volatile.has_value()) {
-        quality_node.append_attribute("persistence").set_value("nonVolatile");
-    } else if (other_quality.fixed.has_value()) {
+        if (other_quality.non_volatile.value())
+            quality_node.append_attribute("persistence").set_value("nonVolatile");
+        else
+            quality_node.append_attribute("persistence").set_value("volatile");
+    }
+    else if (other_quality.fixed.has_value()) {
         quality_node.append_attribute("persistence").set_value("fixed");
-    } else {
-        quality_node.append_attribute("persistence").set_value("volatile");
     }
 
     if (other_quality.scene.has_value())
