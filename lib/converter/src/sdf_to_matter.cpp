@@ -28,27 +28,33 @@ static ReferenceTreeNode* current_quality_name_node = nullptr;
 //! for example the `OnOff` node, not a top level sdf element
 static ReferenceTreeNode* current_given_name_node = nullptr;
 
+//! List containing required sdf elements
+//! This list gets filled while mapping and afterward appended to the corresponding sdfModel
+static std::list<std::string> sdf_required_list;
+
 //! Map containing the elements of the sdf mapping
 //! This map is used to resolve the elements outsourced into the map
 json reference_map;
 
+//! Function used to check, if the given pointer is part of a sdfRequired element
 bool CheckForRequired(const std::string& json_pointer)
 {
-
-    //if (sdf_required_list.)
-    return true;
+    return contains(sdf_required_list, json_pointer);
 }
 
 //! Generically typed for now as the mapping will later contain different types
 //! @brief Imports given key value combination from the SDF Mapping file
 //! @param name Name of the target field.
-template <typename T> void ImportFromMapping(const std::string& json_pointer, const std::string& field, T& input)
+//! @return true if the mapping contained the key, false otherwise
+template <typename T> bool ImportFromMapping(const std::string& json_pointer, const std::string& field, T& input)
 {
     if (reference_map.contains(json_pointer)) {
         if (reference_map.at(json_pointer).contains(field)) {
             reference_map.at(json_pointer).at(field).get_to(input);
+            return true;
         }
     }
+    return false;
 }
 
 std::optional<matter::DefaultType> MapSdfDefaultValue(const sdf::VariableType& variable_type)
@@ -178,36 +184,58 @@ matter::Conformance GenerateMatterConformance()
 {
     matter::Conformance conformance;
     json conformance_json;
-    ImportFromMapping(current_given_name_node->GeneratePointer(), "mandatoryConform", conformance_json);
-    if (!conformance_json.is_null()) {
+
+    if (ImportFromMapping(current_given_name_node->GeneratePointer(), "mandatoryConform", conformance_json)) {
         conformance.mandatory = true;
         conformance.condition = conformance_json;
     }
-    ImportFromMapping(current_given_name_node->GeneratePointer(), "optionalConform", conformance_json);
-    if (!conformance_json.is_null()) {
+    else if (ImportFromMapping(current_given_name_node->GeneratePointer(), "optionalConform", conformance_json)) {
         conformance.optional = true;
         conformance.condition = conformance_json;
     }
-    ImportFromMapping(current_given_name_node->GeneratePointer(), "provisionalConform", conformance_json);
-    if (!conformance_json.is_null()) {
+    else if (ImportFromMapping(current_given_name_node->GeneratePointer(), "provisionalConform", conformance_json)) {
         conformance.provisional = true;
+        conformance.condition = conformance_json;
     }
-    ImportFromMapping(current_given_name_node->GeneratePointer(), "deprecateConform", conformance_json);
-    if (!conformance_json.is_null()) {
+    else if (ImportFromMapping(current_given_name_node->GeneratePointer(), "deprecateConform", conformance_json)) {
         conformance.deprecated = true;
+        conformance.condition = conformance_json;
     }
-    ImportFromMapping(current_given_name_node->GeneratePointer(), "disallowConform", conformance_json);
-    if (!conformance_json.is_null()) {
+    else if (ImportFromMapping(current_given_name_node->GeneratePointer(), "disallowConform", conformance_json)) {
         conformance.disallowed = true;
+        conformance.condition = conformance_json;
     }
-    ImportFromMapping(current_given_name_node->GeneratePointer(), "otherwiseConformance", conformance_json);
-    if (!conformance_json.is_null()) {}
-
-    //if (CheckForRequired(""))
-    //    conformance.mandatory = true;
-    //else
-    //    conformance.optional = true;
-
+    else if (ImportFromMapping(current_given_name_node->GeneratePointer(), "otherwiseConformance", conformance_json)) {
+        for (const auto& otherwise_json : conformance_json.items()) {
+            if (otherwise_json.key() == "mandatoryConform") {
+                conformance.mandatory = true;
+                conformance.condition = otherwise_json.value();
+            }
+            else if (otherwise_json.key() == "optionalConform") {
+                conformance.optional = true;
+                conformance.condition = otherwise_json.value();
+            }
+            else if (otherwise_json.key() == "provisionalConform") {
+                conformance.provisional = true;
+                conformance.condition = otherwise_json.value();
+            }
+            else if (otherwise_json.key() == "deprecateConform") {
+                conformance.deprecated = true;
+                conformance.condition = otherwise_json.value();
+            }
+            else if (otherwise_json.key() == "disallowConform") {
+                conformance.disallowed = true;
+                conformance.condition = otherwise_json.value();
+            }
+        }
+    }
+    // If no conformance can be imported from the mapping, it will be generated based on the sdfRequired quality
+    else {
+        if (CheckForRequired(current_given_name_node->GeneratePointer()))
+            conformance.mandatory = true;
+        else
+            conformance.optional = true;
+    }
     return conformance;
 }
 
@@ -691,10 +719,6 @@ matter::DataField MapSdfData(sdf::DataQuality& data_quality)
     if (data_quality.default_.has_value())
         data_field.default_ = MapSdfDefaultValue(data_quality.default_.value());
     return data_field;
-}
-
-bool contains(const std::list<std::string>& list, const std::string& str) {
-    return std::find(list.begin(), list.end(), str) != list.end();
 }
 
 //! Maps either a sdfInputData or sdfOutputData element onto a Matter data field
