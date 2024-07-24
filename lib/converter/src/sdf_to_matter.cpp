@@ -1043,8 +1043,8 @@ matter::ClusterClassification GenerateClusterClassification()
         cluster_classification_json.at("hierarchy").get_to(cluster_classification.hierarchy);
     if (cluster_classification_json.contains("role"))
         cluster_classification_json.at("role").get_to(cluster_classification.role);
-    if (cluster_classification_json.contains("pics_code"))
-        cluster_classification_json.at("pics_code").get_to(cluster_classification.pics_code);
+    if (cluster_classification_json.contains("picsCode"))
+        cluster_classification_json.at("picsCode").get_to(cluster_classification.pics_code);
     if (cluster_classification_json.contains("scope"))
         cluster_classification_json.at("scope").get_to(cluster_classification.scope);
     if (cluster_classification_json.contains("baseCluster"))
