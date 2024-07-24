@@ -905,26 +905,26 @@ void SerializeAttribute(const Attribute& attribute, pugi::xml_node& attributes_n
     attribute_node.append_attribute("id").set_value(IntToHex(attribute.id).c_str());
     attribute_node.append_attribute("name").set_value(attribute.name.c_str());
 
-    if (attribute.conformance.has_value())
-        SerializeConformance(attribute.conformance.value(), attribute_node);
-
-    if (attribute.access.has_value())
-        SerializeAccess(attribute.access.value(), attribute_node);
-
     if (!attribute.summary.empty())
         attribute_node.append_attribute("summary").set_value(attribute.summary.c_str());
-
-    if (attribute.constraint.has_value())
-        SerializeConstraint(attribute.constraint.value(), attribute_node);
-
-    if (attribute.quality.has_value())
-        SerializeOtherQuality(attribute.quality.value(), attribute_node);
 
     if (!attribute.type.empty())
         attribute_node.append_attribute("type").set_value(attribute.type.c_str());
 
     if (attribute.default_.has_value())
         SerializeDefaultType(attribute.default_.value(), "default", attribute_node);
+
+    if (attribute.access.has_value())
+        SerializeAccess(attribute.access.value(), attribute_node);
+
+    if (attribute.quality.has_value())
+        SerializeOtherQuality(attribute.quality.value(), attribute_node);
+
+    if (attribute.conformance.has_value())
+        SerializeConformance(attribute.conformance.value(), attribute_node);
+
+    if (attribute.constraint.has_value())
+        SerializeConstraint(attribute.constraint.value(), attribute_node);
 }
 
 //! Serialize a enum item into a xml node
