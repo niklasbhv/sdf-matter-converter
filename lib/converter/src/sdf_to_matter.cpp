@@ -850,7 +850,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
 
     ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", client_command.id);
     client_command.name = sdf_action_pair.second.label;
-    // conformance
+    client_command.conformance = GenerateMatterConformance();
     client_command.access = ImportAccessFromMapping(sdf_action_reference->GeneratePointer());
     client_command.summary = sdf_action_pair.second.description;
     // default
