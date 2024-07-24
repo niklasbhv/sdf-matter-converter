@@ -1203,9 +1203,19 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                         item.conformance = GenerateMatterConformance(conformance_json.at(item.name));
                     }
                 }
-                item.value = value;
+                if (sdf_choice.second.const_.has_value()) {
+                    if (std::holds_alternative<double>(sdf_choice.second.const_.value())) {
+                        item.value = static_cast<int>(std::get<double>(sdf_choice.second.const_.value()));
+                    } else if (std::holds_alternative<uint64_t>(sdf_choice.second.const_.value())) {
+                        item.value = static_cast<int>(std::get<uint64_t>(sdf_choice.second.const_.value()));
+                    } else if (std::holds_alternative<int64_t>(sdf_choice.second.const_.value())) {
+                        item.value = static_cast<int>(std::get<int64_t>(sdf_choice.second.const_.value()));
+                    }
+                } else {
+                    item.value = value;
+                    value++;
+                }
                 matter_enum.push_back(item);
-                value++;
             }
             cluster.enums[sdf_data_elem.first] = matter_enum;
         }
