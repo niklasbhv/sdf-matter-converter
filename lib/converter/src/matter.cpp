@@ -467,8 +467,8 @@ ClusterClassification ParseClusterClassification(const pugi::xml_node& classific
     if (!classification_xml.attribute("role").empty())
         cluster_classification.role = classification_xml.attribute("role").value();
 
-    if (!classification_xml.attribute("pics_code").empty())
-        cluster_classification.pics_code = classification_xml.attribute("pics_code").value();
+    if (!classification_xml.attribute("picsCode").empty())
+        cluster_classification.pics_code = classification_xml.attribute("picsCode").value();
 
     if (!classification_xml.attribute("scope").empty())
         cluster_classification.scope = classification_xml.attribute("scope").value();
@@ -1003,13 +1003,13 @@ void SerializeClusterClassification(const ClusterClassification& cluster_classif
         classification_node.append_attribute("role").set_value(cluster_classification.role.c_str());
 
     if (!cluster_classification.pics_code.empty())
-        classification_node.append_attribute("pics_code").set_value(cluster_classification.pics_code.c_str());
+        classification_node.append_attribute("picsCode").set_value(cluster_classification.pics_code.c_str());
 
     if (!cluster_classification.scope.empty())
         classification_node.append_attribute("scope").set_value(cluster_classification.scope.c_str());
 
     if (!cluster_classification.base_cluster.empty())
-        classification_node.append_attribute("base_cluster").set_value(cluster_classification.base_cluster.c_str());
+        classification_node.append_attribute("baseCluster").set_value(cluster_classification.base_cluster.c_str());
 
     if (!cluster_classification.primary_transaction.empty())
         classification_node.append_attribute("primary_transaction").set_value(
