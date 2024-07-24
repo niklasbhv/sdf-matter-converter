@@ -27,6 +27,7 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <list>
 #include <pugixml.hpp>
 #include <optional>
@@ -327,15 +328,15 @@ struct Cluster : CommonQuality {
     std::list<Command> client_commands;
     //! Map of command names to their respective commands
     //! Improves the searching for server commands when matching them to their client commands
-    std::map<std::string, Command> server_commands;
+    std::unordered_map<std::string, Command> server_commands;
     //! List of events
     std::list<Event> events;
     //! Map for globally defined enums
-    std::map<std::string, std::list<Item>> enums;
+    std::unordered_map<std::string, std::list<Item>> enums;
     //! Map for globally defined bitmaps
-    std::map<std::string, std::list<Bitfield>> bitmaps;
+    std::unordered_map<std::string, std::list<Bitfield>> bitmaps;
     //! Map for globally defined bitmaps
-    std::map<std::string, Struct> structs;
+    std::unordered_map<std::string, Struct> structs;
 };
 
 //! Struct which contains device classification information.

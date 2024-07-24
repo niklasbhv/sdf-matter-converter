@@ -28,6 +28,7 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <list>
 #include <variant>
 #include <optional>
@@ -126,10 +127,10 @@ struct CommonQuality {
 struct DataQuality;
 
 //! Type definition for sdfChoice.
-typedef std::map<std::string, DataQuality> SdfChoice;
+typedef std::unordered_map<std::string, DataQuality> SdfChoice;
 
 //! Type definition for sdfData.
-typedef std::map<std::string, DataQuality> SdfData;
+typedef std::unordered_map<std::string, DataQuality> SdfData;
 
 //! JSO-Item Type definition.
 struct JsoItem {
@@ -150,15 +151,15 @@ struct JsoItem {
     //! Either date-time, date, time, uri, uri-reference or uuid
     std::string format;
     //! Object qualities
-    SdfData properties;
+    std::unordered_map<std::string, DataQuality> properties;
     std::list<std::string> required;
 };
 
 //! Type definition for array items.
-typedef std::variant<uint64_t, int64_t , double, std::string, bool> ArrayItem;
+    typedef std::variant<uint64_t, int64_t , double, std::string, bool> ArrayItem;
 
 //! Type definition for const and default fields.
-typedef std::variant<uint64_t, int64_t , double, std::string, bool, std::list<ArrayItem>, std::optional<std::monostate>> VariableType;
+    typedef std::variant<uint64_t, int64_t , double, std::string, bool, std::list<ArrayItem>, std::optional<std::monostate>> VariableType;
 
 //! Struct which contains data quality information.
 struct DataQuality : CommonQuality {
@@ -219,9 +220,9 @@ struct SdfProperty : DataQuality {
 
 //! Struct which contains sdfObject information.
 struct SdfObject : CommonQuality {
-    std::map<std::string, SdfProperty> sdf_property;
-    std::map<std::string, SdfAction> sdf_action;
-    std::map<std::string, SdfEvent> sdf_event;
+    std::unordered_map<std::string, SdfProperty> sdf_property;
+    std::unordered_map<std::string, SdfAction> sdf_action;
+    std::unordered_map<std::string, SdfEvent> sdf_event;
     SdfData sdf_data;
     //! Array definition qualities
     std::optional<uint> min_items;
@@ -230,11 +231,11 @@ struct SdfObject : CommonQuality {
 
 //! Struct which contains sdfThing information.
 struct SdfThing : CommonQuality{
-    std::map<std::string, SdfThing> sdf_thing;
-    std::map<std::string, SdfObject> sdf_object;
-    std::map<std::string, SdfProperty> sdf_property;
-    std::map<std::string, SdfAction> sdf_action;
-    std::map<std::string, SdfEvent> sdf_event;
+    std::unordered_map<std::string, SdfThing> sdf_thing;
+    std::unordered_map<std::string, SdfObject> sdf_object;
+    std::unordered_map<std::string, SdfProperty> sdf_property;
+    std::unordered_map<std::string, SdfAction> sdf_action;
+    std::unordered_map<std::string, SdfEvent> sdf_event;
     SdfData sdf_data;
     //! Array definition qualities
     std::optional<uint> min_items;
@@ -243,7 +244,7 @@ struct SdfThing : CommonQuality{
 
 //! Struct which contains namespace block information.
 struct NamespaceBlock {
-    std::map<std::string, std::string> namespaces;
+    std::unordered_map<std::string, std::string> namespaces;
     std::string default_namespace;
 };
 
@@ -263,15 +264,15 @@ struct InformationBlock {
 struct SdfModel {
     std::optional<InformationBlock> information_block;
     std::optional<NamespaceBlock> namespace_block;
-    std::map<std::string, SdfThing> sdf_thing;
-    std::map<std::string, SdfObject> sdf_object;
+    std::unordered_map<std::string, SdfThing> sdf_thing;
+    std::unordered_map<std::string, SdfObject> sdf_object;
 };
 
 //! Struct which contains sdf-mapping information.
 struct SdfMapping {
     std::optional<InformationBlock> information_block;
     std::optional<NamespaceBlock> namespace_block;
-    std::map<std::string, std::map<std::string, MappingValue>> map;
+    std::unordered_map<std::string, std::unordered_map<std::string, MappingValue>> map;
 };
 
 //! @brief Parse a sdf-model.

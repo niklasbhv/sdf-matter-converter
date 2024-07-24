@@ -63,7 +63,7 @@ inline std::string EscapeJsonPointer(const std::string& input) {
 class ReferenceTreeNode {
 public:
     std::string name;
-    std::map<std::string, sdf::MappingValue> attributes;
+    std::unordered_map<std::string, sdf::MappingValue> attributes;
     ReferenceTreeNode* parent;
     std::vector<ReferenceTreeNode*> children;
 
@@ -97,8 +97,8 @@ public:
         root = new ReferenceTreeNode("#");
     }
 
-    std::map<std::string, std::map<std::string, sdf::MappingValue>> GenerateMapping(ReferenceTreeNode* node) {
-        std::map<std::string, std::map<std::string, sdf::MappingValue>> map;
+    std::unordered_map<std::string, std::unordered_map<std::string, sdf::MappingValue>> GenerateMapping(ReferenceTreeNode* node) {
+        std::unordered_map<std::string, std::unordered_map<std::string, sdf::MappingValue>> map;
         ReferenceTreeNode* current = node;
         for (const auto& child : current->children) {
             if (!child->attributes.empty()) {

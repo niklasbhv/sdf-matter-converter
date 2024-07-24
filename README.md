@@ -5,6 +5,14 @@ The project is usable as a library or as a command line tool.
 
 This tool is currently work in progress, hence it may or may not work in its current state.
 
+## Prerequisites
+
+As this software uses the `sdt::unordered_map` data type in combination with incomplete types, it has certain requirements for the compiler version.
+
+- GCC >= 12.1
+- Clang >= 15
+- ESP-IDF >= 5.1
+
 ## Installation
 
 Using CMake:

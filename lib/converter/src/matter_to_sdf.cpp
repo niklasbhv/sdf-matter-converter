@@ -1030,7 +1030,7 @@ sdf::SdfEvent MapMatterEvent(const matter::Event& event)
     return sdf_event;
 }
 
-sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std::map<std::string, matter::Command>& server_commands)
+sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std::unordered_map<std::string, matter::Command>& server_commands)
 {
     sdf::SdfAction sdf_action;
     // Append the client_command node to the tree
