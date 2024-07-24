@@ -159,7 +159,7 @@ void ParseDataQualities(json& data_qualities_json, DataQuality& data_quality)
         data_qualities_json.at("enum").get_to(data_quality.enum_);
 
     if (data_qualities_json.contains("const"))
-        data_qualities_json.at("const").get_to(data_quality.default_);
+        data_qualities_json.at("const").get_to(data_quality.const_);
 
     if (data_qualities_json.contains("default"))
         data_qualities_json.at("default").get_to(data_quality.default_);
