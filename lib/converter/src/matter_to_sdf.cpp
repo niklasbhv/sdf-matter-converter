@@ -256,8 +256,12 @@ sdf::VariableType MapMatterDefaultType(const matter::DefaultType& default_type)
         variable_type = std::get<int64_t>(default_type);
     else if (std::holds_alternative<uint64_t>(default_type))
         variable_type = std::get<uint64_t>(default_type);
-    else if (std::holds_alternative<std::string>(default_type))
-        variable_type = std::get<std::string>(default_type);
+    else if (std::holds_alternative<std::string>(default_type)) {
+        if (std::get<std::string>(default_type) == "MS")
+            current_given_name_node->AddAttribute("default", std::get<std::string>(default_type));
+        else
+            variable_type = std::get<std::string>(default_type);
+    }
     else if (std::holds_alternative<bool>(default_type))
         variable_type = std::get<bool>(default_type);
     else if (std::holds_alternative<std::optional<std::monostate>>(default_type))
