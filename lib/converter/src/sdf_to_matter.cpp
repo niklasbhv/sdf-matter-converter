@@ -302,68 +302,6 @@ matter::Conformance GenerateMatterConformance(json& conformance_json)
     return conformance;
 }
 
-//! Generates a Matter constraint with the information given by the data qualities
-matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& data_quality)
-{
-    matter::Constraint constraint;
-    //constraint.value = data_quality.default_;
-    if (data_quality.type == "number" or data_quality.type == "integer") {
-        if (data_quality.const_.has_value()) {
-            //constraint.type = "allowed";
-        }
-        if (data_quality.minimum.has_value()) {
-            if (data_quality.maximum.has_value()) {
-                constraint.type = "between";
-                constraint.min = data_quality.minimum.value();
-                constraint.max = data_quality.maximum.value();
-            } else {
-                constraint.type = "min";
-                constraint.min = data_quality.minimum.value();
-            }
-        }
-        else if (data_quality.maximum.has_value()) {
-            constraint.type = "max";
-            constraint.max = data_quality.maximum.value();
-        }
-    } else if (data_quality.type == "string") {
-        if (data_quality.min_length.has_value()) {
-            if (data_quality.max_length.has_value()) {
-                constraint.type = "lengthBetween";
-                constraint.min = data_quality.min_length.value();
-                constraint.max = data_quality.max_length.value();
-            } else {
-                constraint.type = "minLength";
-                constraint.min = data_quality.min_length.value();
-            }
-        }
-        else if (data_quality.max_length.has_value()) {
-            constraint.type = "maxLength";
-            constraint.max = data_quality.max_length.value();
-        }
-    } else if (data_quality.type == "array") {
-        if (data_quality.min_items.has_value()) {
-            if (data_quality.max_items.has_value()) {
-                constraint.type = "countBetween";
-                constraint.min = data_quality.min_items.value();
-                constraint.max = data_quality.max_items.value();
-            } else {
-                constraint.type = "minCount";
-                constraint.min = data_quality.min_items.value();
-            }
-        } else if (data_quality.max_items.has_value()) {
-            constraint.type = "maxCount";
-            constraint.max = data_quality.max_items.value();
-        }
-
-        if (data_quality.items.has_value()) {
-
-        }
-        // unique_items
-        // items -> Translate these into entry constraints
-    }
-    return constraint;
-}
-
 bool CheckVariantEquals(const std::variant<double, int64_t, uint64_t>& variant, std::variant<int64_t, uint64_t> value)
 {
     if (std::holds_alternative<int64_t>(variant)) {
@@ -546,10 +484,10 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
                     return "uint64";
                 }
             }
-            // If no maximum value exists
+                // If no maximum value exists
             else {}
         }
-        // If minimum is negative (or larger than an uint64_t)
+            // If minimum is negative (or larger than an uint64_t)
         else {
             if (data_quality.maximum.has_value()) {
                 if (CheckVariantBorders(data_quality.minimum.value(), MATTER_INT_8_MIN, 0)) {
@@ -706,7 +644,7 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
                     }
                 }
             }
-            // If maximum does not have a value
+                // If maximum does not have a value
             else {}
         }
     }
@@ -720,6 +658,24 @@ std::string GetLastPartAfterSlash(const std::string& str) {
         return str.substr(pos + 1);
     }
     return str;  // If no slash is found, return the original string
+}
+
+sdf::DataQuality MapJsoItemToSdfDataQuality(const sdf::JsoItem& jso_item) {
+    sdf::DataQuality data_quality;
+    data_quality.sdf_ref = jso_item.sdf_ref;
+    data_quality.description = jso_item.description;
+    data_quality.comment = jso_item.comment;
+    data_quality.type = jso_item.type;
+    data_quality.sdf_choice = jso_item.sdf_choice;
+    data_quality.enum_ = jso_item.enum_;
+    data_quality.minimum = jso_item.minimum;
+    data_quality.maximum = jso_item.maximum;
+    data_quality.min_length = jso_item.min_length;
+    data_quality.max_length = jso_item.max_length;
+    data_quality.format = jso_item.format;
+    data_quality.properties = jso_item.properties;
+    data_quality.required = jso_item.required;
+    return data_quality;
 }
 
 //! Determine a Matter type from the information's of a given data quality
@@ -754,6 +710,12 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
     } else if (data_quality.type == "integer") {
         result = MapIntegerType(data_quality, constraint);
     } else if (data_quality.type == "array") {
+        if (data_quality.items.has_value()) {
+            matter::Constraint entry_constraint;
+            constraint.type = "entry";
+            constraint.entry_type = MapSdfDataType(MapJsoItemToSdfDataQuality(data_quality.items.value()), entry_constraint);
+            //constraint.entry_constraint = constraint.;
+        }
         result = "list";
     } else if (data_quality.type == "object") {
         result = "struct";
@@ -763,6 +725,71 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
 
     }
     return result;
+}
+
+//! Generates a Matter constraint with the information given by the data qualities
+matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& data_quality)
+{
+    matter::Constraint constraint;
+    //constraint.value = data_quality.default_;
+    if (data_quality.type == "number" or data_quality.type == "integer") {
+        if (data_quality.const_.has_value()) {
+            //constraint.type = "allowed";
+        }
+        if (data_quality.minimum.has_value()) {
+            if (data_quality.maximum.has_value()) {
+                constraint.type = "between";
+                constraint.min = data_quality.minimum.value();
+                constraint.max = data_quality.maximum.value();
+            } else {
+                constraint.type = "min";
+                constraint.min = data_quality.minimum.value();
+            }
+        }
+        else if (data_quality.maximum.has_value()) {
+            constraint.type = "max";
+            constraint.max = data_quality.maximum.value();
+        }
+    } else if (data_quality.type == "string") {
+        if (data_quality.min_length.has_value()) {
+            if (data_quality.max_length.has_value()) {
+                constraint.type = "lengthBetween";
+                constraint.min = data_quality.min_length.value();
+                constraint.max = data_quality.max_length.value();
+            } else {
+                constraint.type = "minLength";
+                constraint.min = data_quality.min_length.value();
+            }
+        }
+        else if (data_quality.max_length.has_value()) {
+            constraint.type = "maxLength";
+            constraint.max = data_quality.max_length.value();
+        }
+    } else if (data_quality.type == "array") {
+        if (data_quality.min_items.has_value()) {
+            if (data_quality.max_items.has_value()) {
+                constraint.type = "countBetween";
+                constraint.min = data_quality.min_items.value();
+                constraint.max = data_quality.max_items.value();
+            } else {
+                constraint.type = "minCount";
+                constraint.min = data_quality.min_items.value();
+            }
+        } else if (data_quality.max_items.has_value()) {
+            constraint.type = "maxCount";
+            constraint.max = data_quality.max_items.value();
+        }
+
+        if (data_quality.items.has_value()) {
+            matter::Constraint entry_constraint;
+            constraint.type = "entry";
+            constraint.entry_type = MapSdfDataType(MapJsoItemToSdfDataQuality(data_quality.items.value()), entry_constraint);
+            //constraint.entry_constraint = constraint.;
+        }
+        // unique_items
+        // items -> Translate these into entry constraints
+    }
+    return constraint;
 }
 
 //! Maps a data quality onto a data field.

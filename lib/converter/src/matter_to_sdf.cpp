@@ -556,12 +556,12 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // 8-bit enumeration data type
     // Base: uint8
     else if (matter_type == "enum8") {
-        data_quality.nullable = true;
+        //data_quality.nullable = true;
     }
     // 16-bit enumeration data type
     // Base: uint16
     else if (matter_type == "enum16") {
-        data_quality.nullable = true;
+        //data_quality.nullable = true;
     }
     // Priority data type
     // Base: enum8
@@ -802,11 +802,30 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     }
 }
 
+//! Function used to map data qualities onto an JsoItem object
+sdf::JsoItem DataQualityToJsoItem(const sdf::DataQuality& data_quality) {
+    sdf::JsoItem jso_item;
+    jso_item.sdf_ref = data_quality.sdf_ref;
+    jso_item.description = data_quality.description;
+    jso_item.comment = data_quality.comment;
+    jso_item.type = data_quality.type;
+    jso_item.sdf_choice = data_quality.sdf_choice;
+    jso_item.enum_ = data_quality.enum_;
+    jso_item.minimum = data_quality.minimum;
+    jso_item.maximum = data_quality.maximum;
+    jso_item.min_length = data_quality.max_length;
+    jso_item.max_length = data_quality.max_length;
+    jso_item.format = data_quality.format;
+    jso_item.properties = data_quality.properties;
+    jso_item.required = data_quality.required;
+    return jso_item;
+}
+
 //! Maps a Matter entry constraint onto a Jso Item object
 sdf::JsoItem MapMatterEntryConstraint(const matter::Constraint& entry_constraint)
 {
     sdf::JsoItem jso_item;
-    jso_item.sdf_ref = sdf_data_location + entry_constraint.entry_constraint_type;
+    jso_item.sdf_ref = sdf_data_location + entry_constraint.entry_type;
     return jso_item;
 }
 
@@ -864,7 +883,11 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
             data_quality.max_items = std::get<int64_t>(constraint.max.value());
         if (std::holds_alternative<uint64_t>(constraint.max.value()))
             data_quality.max_items = std::get<uint64_t>(constraint.max.value());
-    } else if (constraint.type == "entry") {}
+    } else if (constraint.type == "entry") {
+        sdf::DataQuality entry_quality;
+        MapMatterType(constraint.entry_type, entry_quality);
+        data_quality.items = DataQualityToJsoItem(entry_quality);
+    }
     // char constraints
 }
 

@@ -149,8 +149,10 @@ struct Constraint {
     std::optional<NumericType> min;
     //! Maximum value.
     std::optional<NumericType> max;
-    //! Used for the entry constraint type.
-    std::string entry_constraint_type;
+    //! Type of the entries
+    std::string entry_type;
+    //! Constraint applied to the entries
+    Constraint* entry_constraint = nullptr;
     //! Used for the number of bytes for a character string
     std::optional<uint64_t> byte_size;
 };

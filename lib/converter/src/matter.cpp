@@ -134,10 +134,16 @@ Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
         constraint.min = constraint_node.attribute("value").as_int();
     } else if (constraint.type == "maxCount") {
         constraint.max = constraint_node.attribute("value").as_int();
-    } else if (constraint.type == "entry") {
-        constraint.entry_constraint_type = constraint_node.attribute("type").value();
     }
     // Character string constraints
+
+    return constraint;
+}
+
+Constraint ParseEntryConstraint(const pugi::xml_node& constraint_node) {
+    Constraint constraint;
+    constraint.type = "entry";
+    constraint.entry_type = constraint_node.attribute("type").value();
 
     return constraint;
 }
@@ -330,7 +336,7 @@ DataField ParseDataField(const pugi::xml_node& data_field_node) {
         data_field.constraint = ParseConstraint(data_field_node.child("constraint"));
 
     if (!data_field_node.child("entry").empty())
-        data_field.constraint = ParseConstraint(data_field_node.child("entry"));
+        data_field.constraint = ParseEntryConstraint(data_field_node.child("entry"));
 
     if (!data_field_node.child("quality").empty())
         data_field.quality = ParseOtherQuality(data_field_node);
@@ -668,7 +674,7 @@ void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_no
     // If the constraint is an entry constraint
     if (constraint.type == "entry") {
         auto constraint_node = parent_node.append_child("entry");
-        constraint_node.append_attribute("type").set_value(constraint.entry_constraint_type.c_str());
+        constraint_node.append_attribute("type").set_value(constraint.entry_type.c_str());
     }
     else if (!constraint.type.empty()) {
         auto constraint_node = parent_node.append_child("constraint");
