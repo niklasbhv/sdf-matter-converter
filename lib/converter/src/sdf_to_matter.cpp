@@ -711,10 +711,10 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
         result = MapIntegerType(data_quality, constraint);
     } else if (data_quality.type == "array") {
         if (data_quality.items.has_value()) {
-            matter::Constraint entry_constraint;
+            auto* entry_constraint = new matter::Constraint();
             constraint.type = "entry";
-            constraint.entry_type = MapSdfDataType(MapJsoItemToSdfDataQuality(data_quality.items.value()), entry_constraint);
-            //constraint.entry_constraint = constraint.;
+            constraint.entry_type = MapSdfDataType(MapJsoItemToSdfDataQuality(data_quality.items.value()), *entry_constraint);
+            constraint.entry_constraint = entry_constraint;
         }
         result = "list";
     } else if (data_quality.type == "object") {
@@ -781,13 +781,11 @@ matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& data_quality
         }
 
         if (data_quality.items.has_value()) {
-            matter::Constraint entry_constraint;
+            auto* entry_constraint = new matter::Constraint();
             constraint.type = "entry";
-            constraint.entry_type = MapSdfDataType(MapJsoItemToSdfDataQuality(data_quality.items.value()), entry_constraint);
-            //constraint.entry_constraint = constraint.;
+            constraint.entry_type = MapSdfDataType(MapJsoItemToSdfDataQuality(data_quality.items.value()), *entry_constraint);
+            constraint.entry_constraint = entry_constraint;
         }
-        // unique_items
-        // items -> Translate these into entry constraints
     }
     return constraint;
 }

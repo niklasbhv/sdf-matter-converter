@@ -144,6 +144,10 @@ Constraint ParseEntryConstraint(const pugi::xml_node& constraint_node) {
     Constraint constraint;
     constraint.type = "entry";
     constraint.entry_type = constraint_node.attribute("type").value();
+    if (!constraint_node.child("constraint").empty()) {
+        static Constraint entry_constraint = ParseConstraint(constraint_node.child("constraint"));
+        constraint.entry_constraint = &entry_constraint;
+    }
 
     return constraint;
 }
@@ -675,6 +679,9 @@ void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_no
     if (constraint.type == "entry") {
         auto constraint_node = parent_node.append_child("entry");
         constraint_node.append_attribute("type").set_value(constraint.entry_type.c_str());
+        if (constraint.entry_constraint != nullptr) {
+            SerializeConstraint(*constraint.entry_constraint, constraint_node);
+        }
     }
     else if (!constraint.type.empty()) {
         auto constraint_node = parent_node.append_child("constraint");

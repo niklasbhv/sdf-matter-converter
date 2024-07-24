@@ -886,6 +886,9 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
     } else if (constraint.type == "entry") {
         sdf::DataQuality entry_quality;
         MapMatterType(constraint.entry_type, entry_quality);
+        if (constraint.entry_constraint != nullptr) {
+            MapMatterConstraint(*constraint.entry_constraint, entry_quality);
+        }
         data_quality.items = DataQualityToJsoItem(entry_quality);
     }
     // char constraints
