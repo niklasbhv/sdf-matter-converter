@@ -228,25 +228,6 @@ std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::stri
     return {enum_pair.first, data_quality};
 }
 
-std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::string, matter::Struct>& struct_pair)
-{
-    sdf::DataQuality data_quality;
-    data_quality.type = "object";
-    for (const auto& struct_field : struct_pair.second) {
-        sdf::DataQuality struct_field_data_quality;
-        struct_field_data_quality.label = struct_field.name;
-        struct_field_data_quality.description = struct_field.summary;
-        data_quality.properties[struct_field.name] = struct_field_data_quality;
-        if (struct_field.conformance.has_value()) {
-            if (struct_field.conformance.value().mandatory) {
-                if (EvaluateConformanceCondition(struct_field.conformance.value().condition))
-                    data_quality.required.push_back(struct_field.name);
-            }
-        }
-    }
-    return {struct_pair.first, data_quality};
-}
-
 sdf::VariableType MapMatterDefaultType(const matter::DefaultType& default_type)
 {
     sdf::VariableType variable_type;
@@ -800,6 +781,26 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         data_quality.sdf_ref = sdf_data_location + matter_type;
         std::cout << "Found: " << matter_type << std::endl;
     }
+}
+
+std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::string, matter::Struct>& struct_pair)
+{
+    sdf::DataQuality data_quality;
+    data_quality.type = "object";
+    for (const auto& struct_field : struct_pair.second) {
+        sdf::DataQuality struct_field_data_quality;
+        struct_field_data_quality.label = struct_field.name;
+        struct_field_data_quality.description = struct_field.summary;
+        MapMatterType(struct_field.type, struct_field_data_quality);
+        data_quality.properties[struct_field.name] = struct_field_data_quality;
+        if (struct_field.conformance.has_value()) {
+            if (struct_field.conformance.value().mandatory) {
+                if (EvaluateConformanceCondition(struct_field.conformance.value().condition))
+                    data_quality.required.push_back(struct_field.name);
+            }
+        }
+    }
+    return {struct_pair.first, data_quality};
 }
 
 //! Function used to map data qualities onto an JsoItem object
