@@ -858,11 +858,13 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     std::optional<matter::Command> optional_server_command;
     // Check if the sdfAction has output data qualities
     if (sdf_action_pair.second.sdf_output_data.has_value()) {
-        // Initially, we copy the contents of the client command
-        matter::Command server_command = client_command;
-        // Append "Response" to the command name to make it different
-        // This is in line with the names used by the official cluster specifications
-        server_command.name += "Response";
+        matter::Command server_command;
+        ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", server_command.id);
+        server_command.name = sdf_action_pair.second.label + "Response";
+        server_command.conformance = GenerateMatterConformance();
+        server_command.summary = sdf_action_pair.second.sdf_output_data.value().description;
+        server_command.direction = "responseFromServer";
+
         client_command.response = server_command.name;
         // If object is used as a type, the elements of the object have to be mapped individually
         if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
