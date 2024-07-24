@@ -932,7 +932,8 @@ void SerializeItem(const Item& item, pugi::xml_node& enum_node) {
     auto item_node = enum_node.append_child("item");
     item_node.append_attribute("value").set_value(IntToHex(item.value).c_str());
     item_node.append_attribute("name").set_value(item.name.c_str());
-    item_node.append_attribute("summary").set_value(item.summary.c_str());
+    if (!item.summary.empty())
+        item_node.append_attribute("summary").set_value(item.summary.c_str());
     if (item.conformance.has_value())
         SerializeConformance(item.conformance.value(), item_node);
 }
