@@ -875,7 +875,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
                 // If no label is given, set the quality name
                 if (field.name.empty())
                     field.name = quality_pair.first;
-                if (contains(sdf_action_pair.second.sdf_input_data.value().required, quality_pair.second.label)) {
+                if (contains(sdf_action_pair.second.sdf_output_data.value().required, quality_pair.first)) {
                     matter::Conformance conformance;
                     conformance.mandatory = true;
                     field.conformance = conformance;
