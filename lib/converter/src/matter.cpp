@@ -875,12 +875,6 @@ void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
     command_node.append_attribute("id").set_value(IntToHex(command.id).c_str());
     command_node.append_attribute("name").set_value(command.name.c_str());
 
-    if (command.conformance.has_value())
-       SerializeConformance(command.conformance.value(), command_node);
-
-    if (command.access.has_value())
-        SerializeAccess(command.access.value(), command_node);
-
     if (!command.summary.empty())
         command_node.append_attribute("summary").set_value(command.summary.c_str());
 
@@ -891,6 +885,12 @@ void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
 
     if (!command.response.empty())
         command_node.append_attribute("response").set_value(command.response.c_str());
+
+    if (command.access.has_value())
+        SerializeAccess(command.access.value(), command_node);
+
+    if (command.conformance.has_value())
+       SerializeConformance(command.conformance.value(), command_node);
 
     // Serialize the command fields
     for (const auto &field: command.command_fields) {
