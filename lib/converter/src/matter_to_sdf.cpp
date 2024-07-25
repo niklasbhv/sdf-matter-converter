@@ -1013,6 +1013,8 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
             MapMatterAccess(data_field_list.front().access.value());
         data_quality.description = data_field_list.front().summary;
         MapMatterType(data_field_list.front().type, data_quality);
+        if (data_field_list.front().default_.has_value())
+            data_quality.default_ = MapMatterDefaultType(data_field_list.front().default_.value());
         if (data_field_list.front().quality.has_value())
             MapOtherQuality(data_field_list.front().quality.value(), data_quality);
         if (data_field_list.front().constraint.has_value())
@@ -1026,6 +1028,8 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
                 MapMatterAccess(field.access.value());
             data_quality_properties.description = field.summary;
             MapMatterType(field.type, data_quality_properties);
+            if (field.default_.has_value())
+                data_quality_properties.default_ = MapMatterDefaultType(field.default_.value());
             if (field.quality.has_value())
                 MapOtherQuality(field.quality.value(), data_quality_properties);
             if (field.constraint.has_value())
