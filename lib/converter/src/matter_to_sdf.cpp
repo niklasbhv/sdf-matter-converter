@@ -1427,12 +1427,39 @@ void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>
                     }
                 }
                 // Overwrite certain commands
-                for (auto &client_command: device_cluster.client_commands) {
-
-                }
-                // Overwrite certain commands
-                for (auto &server_command: device_cluster.server_commands) {
-
+                for (auto &device_command: device_cluster.server_commands) {
+                    for (auto& cluster_client_command : temp_cluster.client_commands) {
+                        if (device_command.second.name == cluster_client_command.name) {
+                            if (device_command.second.access.has_value()) {
+                                cluster_client_command.access = device_command.second.access;
+                            }
+                            if (device_command.second.conformance.has_value()) {
+                                cluster_client_command.conformance = device_command.second.conformance;
+                            }
+                            if (device_command.second.default_.has_value()) {
+                                cluster_client_command.default_ = device_command.second.default_;
+                            }
+                            if (!device_command.second.response.empty()) {
+                                cluster_client_command.response = device_command.second.response;
+                            }
+                        }
+                    }
+                    for (auto& cluster_server_command : temp_cluster.server_commands) {
+                        if (device_command.second.name == cluster_server_command.second.name) {
+                            if (device_command.second.access.has_value()) {
+                                cluster_server_command.second.access = device_command.second.access;
+                            }
+                            if (device_command.second.conformance.has_value()) {
+                                cluster_server_command.second.conformance = device_command.second.conformance;
+                            }
+                            if (device_command.second.default_.has_value()) {
+                                cluster_server_command.second.default_ = device_command.second.default_;
+                            }
+                            if (!device_command.second.response.empty()) {
+                                cluster_server_command.second.response = device_command.second.response;
+                            }
+                        }
+                    }
                 }
                 // Overwrite certain events
                 for (auto &device_event: device_cluster.events) {
