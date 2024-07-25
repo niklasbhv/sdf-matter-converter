@@ -316,16 +316,74 @@ bool CheckVariantEquals(const std::variant<double, int64_t, uint64_t>& variant, 
     return false;
 }
 
+//template <typename T> bool Test();
+
+bool compare(int64_t a, uint64_t b) {
+    // Check if the int64_t value is negative
+    if (a < 0) {
+        // A negative int64_t is always less than any uint64_t
+        return true;
+    }
+    // At this point, a is non-negative, so we can safely cast to uint64_t
+    auto ua = static_cast<uint64_t>(a);
+    return ua <= b;
+}
+
+bool compare(uint64_t a, int64_t b) {
+    // Check if the int64_t value is negative
+    if (b < 0) {
+        // A negative int64_t is always less than any uint64_t
+        return false;
+    }
+    // At this point, b is non-negative, so we can safely cast to uint64_t
+    auto ub = static_cast<uint64_t>(b);
+    return a <= ub;
+}
+
 //! Function to check if the variant's integer value is within borders
-bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant, int64_t lower_bound, uint64_t upper_bound) {
+bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant,
+                         std::variant<int64_t, uint64_t> lower_bound,
+                         std::variant<int64_t, uint64_t> upper_bound) {
     // The double type is currently ignored as it is not used for the MapIntegerType function
     if (std::holds_alternative<int64_t>(variant)) {
-        if (lower_bound <= std::get<int64_t>(variant) and std::get<int64_t>(variant) <= upper_bound)
-            return true;
+        if (std::holds_alternative<int64_t>(lower_bound)) {
+            if (std::holds_alternative<int64_t>(upper_bound)) {
+                if (std::get<int64_t>(lower_bound) <= std::get<int64_t>(variant) and std::get<int64_t>(variant) <= std::get<int64_t>(upper_bound))
+                    return true;
+            } else if (std::holds_alternative<uint64_t>(upper_bound)) {
+                if (std::get<int64_t>(lower_bound) <= std::get<int64_t>(variant) and compare(std::get<int64_t>(variant),std::get<uint64_t>(upper_bound)))
+                    return true;
+            }
+        }
+        else if (std::holds_alternative<uint64_t>(lower_bound)) {
+            if (std::holds_alternative<int64_t>(upper_bound)) {
+                if (compare(std::get<uint64_t>(lower_bound), std::get<int64_t>(variant)) and std::get<int64_t>(variant) <= std::get<int64_t>(upper_bound))
+                    return true;
+            } else if (std::holds_alternative<uint64_t>(upper_bound)) {
+                if (compare(std::get<uint64_t>(lower_bound), std::get<int64_t>(variant)) and compare(std::get<int64_t>(variant), std::get<uint64_t>(upper_bound)))
+                    return true;
+            }
+        }
     }
     else if (std::holds_alternative<uint64_t>(variant)) {
-        if (lower_bound <= std::get<uint64_t>(variant) and  std::get<uint64_t>(variant) <= upper_bound)
-            return true;
+        if (std::holds_alternative<int64_t>(lower_bound)) {
+            if (std::holds_alternative<int64_t>(upper_bound)) {
+                if (compare(std::get<int64_t>(lower_bound), std::get<uint64_t>(variant)) and compare(std::get<uint64_t>(variant), std::get<int64_t>(upper_bound)))
+                    return true;
+            } else if (std::holds_alternative<uint64_t>(upper_bound)) {
+                if (compare(std::get<int64_t>(lower_bound), std::get<uint64_t>(variant)) and std::get<uint64_t>(variant) <= std::get<uint64_t>(upper_bound))
+                    return true;
+            }
+        }
+        else if (std::holds_alternative<uint64_t>(lower_bound)) {
+            if (std::holds_alternative<int64_t>(upper_bound)) {
+                if (std::get<uint64_t>(lower_bound) <= std::get<uint64_t>(variant) and compare(std::get<uint64_t>(variant), std::get<int64_t>(upper_bound)))
+                    return true;
+            } else if (std::holds_alternative<uint64_t>(upper_bound)) {
+                if (std::get<uint64_t>(lower_bound) <= std::get<uint64_t>(variant) and std::get<uint64_t>(variant) <= std::get<uint64_t>(upper_bound))
+                    return true;
+            }
+        }
     }
     return false;
 }
