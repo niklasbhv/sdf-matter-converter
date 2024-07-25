@@ -1405,7 +1405,24 @@ void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>
                 for (auto &device_attribute: device_cluster.attributes) {
                     for (auto &cluster_attribute: temp_cluster.attributes) {
                         if (device_attribute.name == cluster_attribute.name) {
-
+                            if (device_attribute.access.has_value()) {
+                                cluster_attribute.access = device_attribute.access;
+                            }
+                            if (device_attribute.constraint.has_value()) {
+                                cluster_attribute.constraint = device_attribute.constraint;
+                            }
+                            if (device_attribute.conformance.has_value()) {
+                                cluster_attribute.conformance = device_attribute.conformance;
+                            }
+                            if (device_attribute.quality.has_value()) {
+                                cluster_attribute.quality = device_attribute.quality;
+                            }
+                            if (device_attribute.default_.has_value()) {
+                                cluster_attribute.default_ = device_attribute.default_;
+                            }
+                            if (!device_attribute.type.empty()) {
+                                cluster_attribute.type = device_attribute.type;
+                            }
                         }
                     }
                 }
