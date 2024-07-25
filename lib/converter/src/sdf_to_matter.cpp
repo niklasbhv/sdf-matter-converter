@@ -989,8 +989,12 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     matter::Constraint constraint;
     attribute.type = MapSdfDataType(sdf_property_pair.second, constraint);
     attribute.constraint = constraint;
-    if (sdf_property_pair.second.default_.has_value())
+    if (sdf_property_pair.second.default_.has_value()) {
         attribute.default_ = MapSdfDefaultValue(sdf_property_pair.second.default_.value());
+    } else {
+        ImportFromMapping(current_given_name_node->GeneratePointer(), "default", attribute.default_);
+    }
+
 
 
     return attribute;
