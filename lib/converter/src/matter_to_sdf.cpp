@@ -228,7 +228,7 @@ std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::stri
     return {enum_pair.first, data_quality};
 }
 
-sdf::VariableType MapMatterDefaultType(const matter::DefaultType& default_type)
+std::optional<sdf::VariableType> MapMatterDefaultType(const matter::DefaultType& default_type)
 {
     sdf::VariableType variable_type;
     if (std::holds_alternative<double>(default_type))
@@ -238,9 +238,10 @@ sdf::VariableType MapMatterDefaultType(const matter::DefaultType& default_type)
     else if (std::holds_alternative<uint64_t>(default_type))
         variable_type = std::get<uint64_t>(default_type);
     else if (std::holds_alternative<std::string>(default_type)) {
-        if (std::get<std::string>(default_type) == "MS")
+        if (std::get<std::string>(default_type) == "MS") {
             current_given_name_node->AddAttribute("default", std::get<std::string>(default_type));
-        else
+            return std::nullopt;
+        } else
             variable_type = std::get<std::string>(default_type);
     }
     else if (std::holds_alternative<bool>(default_type))
