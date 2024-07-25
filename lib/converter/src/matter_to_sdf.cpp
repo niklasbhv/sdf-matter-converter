@@ -1438,7 +1438,18 @@ void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>
                 for (auto &device_event: device_cluster.events) {
                     for (auto &cluster_event: temp_cluster.events) {
                         if (device_event.name == cluster_event.name) {
-
+                            if (device_event.access.has_value()) {
+                                cluster_event.access = device_event.access;
+                            }
+                            if (device_event.conformance.has_value()) {
+                                cluster_event.conformance = device_event.conformance;
+                            }
+                            if (device_event.quality.has_value()) {
+                                cluster_event.quality = device_event.quality;
+                            }
+                            if (!device_event.priority.empty()) {
+                                cluster_event.priority = device_event.priority;
+                            }
                         }
                     }
                 }
