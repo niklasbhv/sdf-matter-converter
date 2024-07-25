@@ -67,9 +67,10 @@ void variant_from_json(const ordered_json& j, std::variant<Types...> &data)
 {
     try {
         data = j.get<T>();
-        if (j.is_number()) {
-            if (j < 0)
+        if (j.is_number() and !j.is_number_float()) {
+            if (j < (uint64_t ) 0) {
                 data = j.get<int64_t>();
+            }
         }
     } catch (...) {
 
