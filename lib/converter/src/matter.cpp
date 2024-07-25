@@ -199,6 +199,10 @@ Conformance ParseConformance(const pugi::xml_node& conformance_node) {
     // Optional conform
     else if (!conformance_node.child("optionalConform").empty()) {
         conformance.optional = true;
+        if (!conformance_node.child("optionalConform").attribute("choice").empty())
+            conformance.choice = conformance_node.child("optionalConform").attribute("choice").as_string();
+        if (!conformance_node.child("optionalConform").attribute("more").empty())
+            conformance.choice_more = conformance_node.child("optionalConform").attribute("more").as_bool();
         // If the conformance has a child it is bound to a condition
         if (!conformance_node.child("optionalConform").children().empty())
             conformance.condition = ParseLogicalTerm(conformance_node.child("optionalConform").first_child());
@@ -788,8 +792,13 @@ void SerializeConformance(const Conformance& conformance, pugi::xml_node& parent
     pugi::xml_node conformance_node;
     if (conformance.mandatory)
         conformance_node = parent_node.append_child("mandatoryConform");
-    else if (conformance.optional)
+    else if (conformance.optional) {
         conformance_node = parent_node.append_child("optionalConform");
+        if (!conformance.choice.empty())
+            conformance_node.append_attribute("choice").set_value(conformance.choice.c_str());
+        if (conformance.choice_more.has_value())
+            conformance_node.append_attribute("more").set_value(conformance.choice_more.value());
+    }
     else if (conformance.provisional)
         conformance_node = parent_node.append_child("provisionalConform");
     else if (conformance.deprecated)

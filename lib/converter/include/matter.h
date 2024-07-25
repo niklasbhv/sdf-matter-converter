@@ -85,7 +85,7 @@ inline std::string FilterMultipleSpaces(const std::string& input) {
 inline std::string IntToHex(u_int32_t num) {
     std::string hex_str;
     while (num > 0) {
-        int remainder = num % 16;
+        uint32_t remainder = num % 16;
         if (remainder < 10) {
             hex_str = static_cast<char>('0' + remainder) + hex_str;
         } else {
@@ -172,8 +172,10 @@ struct Conformance {
     //! List representing the otherwise conformance
     //! Note that the first true conformance in this list will be chosen
     std::list<Conformance> otherwise;
-    //! List representing the choice element
-    std::list<Conformance> choice;
+    //! String representing the choice group
+    std::string choice;
+    //! If more than one choice element is allowed in the same group
+    std::optional<bool> choice_more;
     //! Represents the entire logical term as nested json objects
     nlohmann::json condition = nlohmann::json::object();
 };

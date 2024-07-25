@@ -961,8 +961,18 @@ bool MapMatterConformance(const matter::Conformance& conformance) {
 
     if (conformance.mandatory)
         current_given_name_node->AddAttribute("mandatoryConform", conformance.condition);
-    else if (conformance.optional)
+    else if (conformance.optional) {
+        if (!conformance.choice.empty()) {
+            json choice_conformance_json;
+            choice_conformance_json.merge_patch(conformance.condition);
+            choice_conformance_json["choice"] = conformance.choice;
+            if (conformance.choice_more.has_value());
+                choice_conformance_json["more"] = conformance.choice_more.value();
+            current_given_name_node->AddAttribute("optionalConform", choice_conformance_json);
+        }
         current_given_name_node->AddAttribute("optionalConform", conformance.condition);
+    }
+
     else if (conformance.provisional)
         current_given_name_node->AddAttribute("provisionalConform", conformance.condition);
     else if (conformance.deprecated)
