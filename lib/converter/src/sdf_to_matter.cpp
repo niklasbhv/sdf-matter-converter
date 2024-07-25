@@ -670,7 +670,7 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
                         return "int56";
                     }
                 }
-                else if (CheckVariantBorders(data_quality.minimum.value(), std::numeric_limits<int64_t>::max(), 0)) {
+                else if (CheckVariantBorders(data_quality.minimum.value(), std::numeric_limits<int64_t>::min(), 0)) {
                     if (CheckVariantBorders(data_quality.maximum.value(), std::numeric_limits<int64_t>::min(),
                                             std::numeric_limits<int64_t>::max())) {
                         if (!CheckVariantEquals(data_quality.minimum.value(), std::numeric_limits<int64_t>::min())) {
