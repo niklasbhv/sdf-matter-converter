@@ -162,17 +162,6 @@ std::optional<matter::OtherQuality> ImportOtherQualityFromMapping(const std::str
     return other_quality;
 }
 
-//! Generates a Matter access based on information of the provided sdfProperty
-matter::Access GenerateMatterAccess(sdf::SdfProperty& sdf_property)
-{
-    matter::Access access;
-    if (sdf_property.readable.has_value())
-        access.read = sdf_property.readable;
-    if (sdf_property.writable.has_value())
-        access.write = sdf_property.writable;
-    return access;
-}
-
 //! @brief Generates a Matter conformance.
 //! The resulting conformance depends on the following factors:
 //! - required quality for the object type
@@ -484,10 +473,10 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
                     return "uint64";
                 }
             }
-                // If no maximum value exists
+            // If no maximum value exists
             else {}
         }
-            // If minimum is negative (or larger than an uint64_t)
+        // If minimum is negative (or larger than an uint64_t)
         else {
             if (data_quality.maximum.has_value()) {
                 if (CheckVariantBorders(data_quality.minimum.value(), MATTER_INT_8_MIN, 0)) {
@@ -725,69 +714,6 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
 
     }
     return result;
-}
-
-//! Generates a Matter constraint with the information given by the data qualities
-matter::Constraint GenerateMatterConstraint(const sdf::DataQuality& data_quality)
-{
-    matter::Constraint constraint;
-    //constraint.value = data_quality.default_;
-    if (data_quality.type == "number" or data_quality.type == "integer") {
-        if (data_quality.const_.has_value()) {
-            //constraint.type = "allowed";
-        }
-        if (data_quality.minimum.has_value()) {
-            if (data_quality.maximum.has_value()) {
-                constraint.type = "between";
-                constraint.min = data_quality.minimum.value();
-                constraint.max = data_quality.maximum.value();
-            } else {
-                constraint.type = "min";
-                constraint.min = data_quality.minimum.value();
-            }
-        }
-        else if (data_quality.maximum.has_value()) {
-            constraint.type = "max";
-            constraint.max = data_quality.maximum.value();
-        }
-    } else if (data_quality.type == "string") {
-        if (data_quality.min_length.has_value()) {
-            if (data_quality.max_length.has_value()) {
-                constraint.type = "lengthBetween";
-                constraint.min = data_quality.min_length.value();
-                constraint.max = data_quality.max_length.value();
-            } else {
-                constraint.type = "minLength";
-                constraint.min = data_quality.min_length.value();
-            }
-        }
-        else if (data_quality.max_length.has_value()) {
-            constraint.type = "maxLength";
-            constraint.max = data_quality.max_length.value();
-        }
-    } else if (data_quality.type == "array") {
-        if (data_quality.min_items.has_value()) {
-            if (data_quality.max_items.has_value()) {
-                constraint.type = "countBetween";
-                constraint.min = data_quality.min_items.value();
-                constraint.max = data_quality.max_items.value();
-            } else {
-                constraint.type = "minCount";
-                constraint.min = data_quality.min_items.value();
-            }
-        } else if (data_quality.max_items.has_value()) {
-            constraint.type = "maxCount";
-            constraint.max = data_quality.max_items.value();
-        }
-
-        if (data_quality.items.has_value()) {
-            auto* entry_constraint = new matter::Constraint();
-            constraint.type = "entry";
-            constraint.entry_type = MapSdfDataType(MapJsoItemToSdfDataQuality(data_quality.items.value()), *entry_constraint);
-            constraint.entry_constraint = entry_constraint;
-        }
-    }
-    return constraint;
 }
 
 //! Maps a data quality onto a data field.
