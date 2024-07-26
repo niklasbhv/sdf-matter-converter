@@ -26,6 +26,9 @@
 #ifndef MAPPING_H
 #define MAPPING_H
 
+#include <list>
+#include "sdf.h"
+
 //! Function to unescape JSON Pointer according to RFC 6901
 inline std::string UnescapeJsonPointer(const std::string& input) {
     std::string result = input;
