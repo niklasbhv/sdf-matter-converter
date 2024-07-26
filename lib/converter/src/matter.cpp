@@ -1035,7 +1035,7 @@ void SerializeClusterClassification(const ClusterClassification& cluster_classif
         classification_node.append_attribute("baseCluster").set_value(cluster_classification.base_cluster.c_str());
 
     if (!cluster_classification.primary_transaction.empty())
-        classification_node.append_attribute("primary_transaction").set_value(
+        classification_node.append_attribute("primaryTransaction").set_value(
                 cluster_classification.primary_transaction.c_str());
 }
 
