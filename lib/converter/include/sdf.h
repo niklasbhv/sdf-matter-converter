@@ -23,8 +23,8 @@
  * Structs which contain parsed information for sdf and functions to parse from json files.
  */
 
-#ifndef SDF_MATTER_CONVERTER_SDF_H
-#define SDF_MATTER_CONVERTER_SDF_H
+#ifndef SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_SDF_H_
+#define SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_SDF_H_
 
 #include <string>
 #include <map>
@@ -68,7 +68,7 @@ void variant_from_json(const ordered_json& j, std::variant<Types...> &data)
     try {
         data = j.get<T>();
         if (j.is_number() and !j.is_number_float()) {
-            if (j < (uint64_t ) 0) {
+            if (j < static_cast<uint64_t>(0)) {
                 data = j.get<int64_t>();
             }
         }
@@ -162,10 +162,11 @@ struct JsoItem {
 };
 
 //! Type definition for array items.
-    typedef std::variant<uint64_t, int64_t , double, std::string, bool> ArrayItem;
+typedef std::variant<uint64_t, int64_t , double, std::string, bool> ArrayItem;
 
 //! Type definition for const and default fields.
-    typedef std::variant<uint64_t, int64_t , double, std::string, bool, std::list<ArrayItem>, std::optional<std::monostate>> VariableType;
+typedef std::variant<uint64_t, int64_t , double, std::string, bool, std::list<ArrayItem>,
+                        std::optional<std::monostate>> VariableType;
 
 //! Struct which contains data quality information.
 struct DataQuality : CommonQuality {
@@ -316,4 +317,4 @@ json SerializeSdfMapping(const SdfMapping& sdf_mapping);
 
 } // namespace sdf
 
-#endif //SDF_MATTER_CONVERTER_SDF_H
+#endif //SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_SDF_H_

@@ -23,8 +23,8 @@
  * Helper structures and functions to map matter to sdf.
  */
 
-#ifndef SDF_MATTER_CONVERTER_MATTER_TO_SDF_H
-#define SDF_MATTER_CONVERTER_MATTER_TO_SDF_H
+#ifndef SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MATTER_TO_SDF_H_
+#define SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MATTER_TO_SDF_H_
 
 #include <optional>
 #include <list>
@@ -40,8 +40,7 @@
 //! @param sdf_model The resulting sdf-model.
 //! @param sdf_mapping The resulting sdf-mapping.
 //! @return 0 on success, negative on failure.
-int MapMatterToSdf(const std::optional<matter::Device>& optional_device,
-                   const std::list<matter::Cluster>& cluster_list,
+int MapMatterToSdf(const std::optional<matter::Device>& optional_device, const std::list<matter::Cluster>& cluster_list,
                    sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping);
 
-#endif //SDF_MATTER_CONVERTER_MATTER_TO_SDF_H
+#endif //SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MATTER_TO_SDF_H_

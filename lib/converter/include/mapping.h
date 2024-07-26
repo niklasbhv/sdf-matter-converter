@@ -23,28 +23,11 @@
  * Helper structures used by both conversion directions.
  */
 
-#ifndef SDF_MATTER_CONVERTER_MAPPING_H
-#define SDF_MATTER_CONVERTER_MAPPING_H
+#ifndef SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MAPPING_H_
+#define SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MAPPING_H_
 
 #include <list>
 #include "sdf.h"
-
-//! Function to unescape JSON Pointer according to RFC 6901
-inline std::string UnescapeJsonPointer(const std::string& input) {
-    std::string result = input;
-    std::size_t pos = 0;
-    while ((pos = result.find("~1", pos)) != std::string::npos) {
-        result.replace(pos, 2, "/");
-        pos += 1;
-    }
-    pos = 0;
-    while ((pos = result.find("~0", pos)) != std::string::npos) {
-        result.replace(pos, 2, "~");
-        pos += 1;
-    }
-
-    return result;
-}
 
 //! Function to escape JSON Pointer according to RFC 6901
 inline std::string EscapeJsonPointer(const std::string& input) {
@@ -127,4 +110,4 @@ static bool contains(const std::list<std::string>& list, const std::string& str)
     return std::find(list.begin(), list.end(), str) != list.end();
 }
 
-#endif //SDF_MATTER_CONVERTER_MAPPING_H
+#endif //SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MAPPING_H_
