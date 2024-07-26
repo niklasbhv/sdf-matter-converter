@@ -23,8 +23,8 @@
  * Helper structures used by both conversion directions.
  */
 
-#ifndef MAPPING_H
-#define MAPPING_H
+#ifndef SDF_MATTER_CONVERTER_MAPPING_H
+#define SDF_MATTER_CONVERTER_MAPPING_H
 
 #include <list>
 #include "sdf.h"
@@ -127,4 +127,4 @@ static bool contains(const std::list<std::string>& list, const std::string& str)
     return std::find(list.begin(), list.end(), str) != list.end();
 }
 
-#endif //MAPPING_H
+#endif //SDF_MATTER_CONVERTER_MAPPING_H

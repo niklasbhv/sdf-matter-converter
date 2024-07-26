@@ -22,8 +22,8 @@
  *
  * Structs to contain parsed information for matter and functions to parse from xml files.
  */
-#ifndef MATTER_H
-#define MATTER_H
+#ifndef SDF_MATTER_CONVERTER_MATTER_H
+#define SDF_MATTER_CONVERTER_MATTER_H
 
 #include <string>
 #include <map>
@@ -402,4 +402,4 @@ void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml);
 
 } // namespace matter
 
-#endif //MATTER_H
+#endif //SDF_MATTER_CONVERTER_MATTER_H

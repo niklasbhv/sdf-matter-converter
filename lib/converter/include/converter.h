@@ -23,8 +23,8 @@
  * Functions to convert between sdf and matter.
  */
 
-#ifndef CONVERTER_H
-#define CONVERTER_H
+#ifndef SDF_MATTER_CONVERTER_CONVERTER_H
+#define SDF_MATTER_CONVERTER_CONVERTER_H
 
 #include <nlohmann/json.hpp>
 #include <pugixml.hpp>
@@ -60,4 +60,4 @@ int ConvertMatterToSdf(const std::optional<pugi::xml_document>& device_xml,
                        const std::list<pugi::xml_document>& cluster_xml_list,
                        nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json);
 
-#endif //CONVERTER_H
+#endif //SDF_MATTER_CONVERTER_CONVERTER_H

@@ -23,8 +23,8 @@
  * Structs which contain parsed information for sdf and functions to parse from json files.
  */
 
-#ifndef SDF_H
-#define SDF_H
+#ifndef SDF_MATTER_CONVERTER_SDF_H
+#define SDF_MATTER_CONVERTER_SDF_H
 
 #include <string>
 #include <map>
@@ -316,4 +316,4 @@ json SerializeSdfMapping(const SdfMapping& sdf_mapping);
 
 } // namespace sdf
 
-#endif //SDF_H
+#endif //SDF_MATTER_CONVERTER_SDF_H
