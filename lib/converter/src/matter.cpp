@@ -663,9 +663,6 @@ Device ParseDevice(const pugi::xml_node& device_xml) {
         device.classification = ParseDeviceClassification(device_xml.child("classification"));
     }
 
-    // Parse all data types and add them to a map
-    auto data_type_node = device_xml.child("dataTypes");
-
     // Iterate through all clusters needed by the device and parse them individually
     for (const auto &cluster_node: device_xml.child("clusters").children("cluster")) {
         device.clusters.push_back(ParseCluster(cluster_node));
