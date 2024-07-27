@@ -1121,11 +1121,11 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     // Import the cluster aliases from the mapping
     json cluster_aliases_json;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "clusterIds", cluster_aliases_json);
-    for (const auto& cluster_alias : cluster_aliases_json) {
+    for (const auto& cluster_alias : cluster_aliases_json.at("clusterId")) {
         uint32_t id;
-        cluster_alias.at("clusterId").at("id").get_to(id);
+        cluster_alias.at("id").get_to(id);
         std::string name;
-        cluster_alias.at("clusterId").at("name").get_to(name);
+        cluster_alias.at("name").get_to(name);
         cluster.cluster_aliases.emplace_back(id, name);
     }
 

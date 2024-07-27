@@ -1390,9 +1390,9 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
     json cluster_aliases_json;
     for (const auto& cluster_alias : cluster.cluster_aliases) {
         json cluster_alias_json;
-        cluster_alias_json["clusterId"]["id"] = cluster_alias.first;
-        cluster_alias_json["clusterId"]["name"] = cluster_alias.second;
-        cluster_aliases_json.push_back(cluster_alias_json);
+        cluster_alias_json["id"] = cluster_alias.first;
+        cluster_alias_json["name"] = cluster_alias.second;
+        cluster_aliases_json["clusterId"].push_back(cluster_alias_json);
     }
     cluster_reference->AddAttribute("clusterIds", cluster_aliases_json);
 
