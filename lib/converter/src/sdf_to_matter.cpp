@@ -1110,11 +1110,11 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     // Import the revision history from the mapping
     json revision_history_json;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "revisionHistory", revision_history_json);
-    for (const auto& item : revision_history_json) {
+    for (const auto& item : revision_history_json.at("revision")) {
         u_int8_t revision;
-        item.at("revision").at("revision").get_to(revision);
+        item.at("revision").get_to(revision);
         std::string summary;
-        item.at("revision").at("summary").get_to(summary);
+        item.at("summary").get_to(summary);
         cluster.revision_history[revision] = summary;
     }
 
@@ -1300,11 +1300,11 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revision", device.revision);
     json revision_history_json;
     ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revisionHistory", revision_history_json);
-    for (const auto& item : revision_history_json) {
+    for (const auto& item : revision_history_json.at("revision")) {
         u_int8_t revision;
-        item.at("revision").at("revision").get_to(revision);
+        item.at("revision").get_to(revision);
         std::string summary;
-        item.at("revision").at("summary").get_to(summary);
+        item.at("summary").get_to(summary);
         device.revision_history[revision] = summary;
     }
 
