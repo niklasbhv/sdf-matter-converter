@@ -1005,8 +1005,10 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
 std::list<matter::Feature> GenerateFeatureMap() {
     std::list<matter::Feature> feature_map;
     json feature_map_json;
-    ImportFromMapping(current_given_name_node->GeneratePointer(), "features", feature_map_json);
-    for (const auto& feature_json : feature_map_json) {
+    if (!ImportFromMapping(current_given_name_node->GeneratePointer(), "features", feature_map_json)) {
+        return feature_map;
+    }
+    for (const auto& feature_json : feature_map_json.at("feature")) {
         matter::Feature feature;
         if (feature_json.contains("bit")) {
             feature_json.at("bit").get_to(feature.bit);

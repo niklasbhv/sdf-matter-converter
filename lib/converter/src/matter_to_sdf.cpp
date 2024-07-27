@@ -1303,7 +1303,7 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map) {
                 std::cout << "Supported Feature: " << feature.code << std::endl;
             }
         }
-        feature_map_json.push_back(feature_json);
+        feature_map_json["feature"].push_back(feature_json);
     }
     if (!feature_map_json.is_null()) {
         current_given_name_node->AddAttribute("features", feature_map_json);
