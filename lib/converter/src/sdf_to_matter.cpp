@@ -1107,7 +1107,9 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     cluster.conformance = GenerateMatterConformance();
     cluster.summary = sdf_object_pair.second.description;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "side", cluster.side);
-    ImportFromMapping(sdf_object_reference->GeneratePointer(), "revision", cluster.revision);
+    if (!ImportFromMapping(sdf_object_reference->GeneratePointer(), "revision", cluster.revision)) {
+        cluster.revision = 1;
+    }
 
     // Import the revision history from the mapping
     json revision_history_json;
@@ -1304,7 +1306,9 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     device.name = sdf_thing_pair.second.label;
     device.summary = sdf_thing_pair.second.description;
     // Import the revision as well as the revision history from the mapping
-    ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revision", device.revision);
+    if (!ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revision", device.revision)) {
+        device.revision = 1;
+    }
     json revision_history_json;
     if (ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revisionHistory", revision_history_json)) {
         for (const auto& item : revision_history_json.at("revision")) {
