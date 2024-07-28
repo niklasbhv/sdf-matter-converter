@@ -196,9 +196,12 @@ bool EvaluateConformanceCondition(const json& condition) {
             }
         }
     } else if (condition.contains("condition")) {
-        std::cout << "Reached" << condition.at("condition") << std::endl;
-        // TODO: Check if the condition is satisfied
-        return true;
+        // The only condition that this converter can evaluate
+        if (condition.at("condition").at("name") == "Matter") {
+            return true;
+        } else {
+            return false;
+        }
     } else if (condition.contains("attribute")) {
         std::cout << "Reached" << condition.at("attribute") << std::endl;
         // TODO: Check if the attribute exists
