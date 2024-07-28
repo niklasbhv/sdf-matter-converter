@@ -15,7 +15,6 @@
  */
 
 #include <list>
-#include <cstring>
 #include <pugixml.hpp>
 #include <nlohmann/json.hpp>
 #include "matter.h"
@@ -174,28 +173,30 @@ nlohmann::json ParseLogicalTerm(const pugi::xml_node& logical_node) {
     nlohmann::json condition;
 
     std::string node_name = logical_node.name();
-    if (node_name == "orTerm") {
-        for (auto or_child: logical_node.children()) {
-            condition["orTerm"].push_back(ParseLogicalTerm(or_child));
+    condition[node_name] = {};
+    if (node_name == "feature" or node_name == "condition" or node_name == "attribute") {
+        condition[node_name] = {{"name", logical_node.attribute("name").value()}};
+    }
+    for (auto child_node : logical_node.children()) {
+        std::string child_node_name = child_node.name();
+        if (child_node_name == "feature" or child_node_name == "condition" or child_node_name == "attribute") {
+            if (condition.at(node_name).contains(child_node_name)) {
+                if (condition[node_name][child_node_name].is_array()) {
+                    condition[node_name][child_node_name].push_back({{"name", child_node.attribute("name").value()}});
+                } else {
+                    nlohmann::json temp_feature = condition[node_name][child_node_name];
+                    condition[node_name][child_node_name] = {temp_feature, {{"name", child_node.attribute("name").value()}}};
+                }
+            } else {
+                condition[node_name][child_node_name] = {{"name", child_node.attribute("name").value()}};
+            }
+        } else {
+            if (node_name == "notTerm") {
+                condition[node_name] = ParseLogicalTerm(child_node);
+            } else {
+                condition[node_name].push_back(ParseLogicalTerm(child_node));
+            }
         }
-    } else if (node_name == "andTerm") {
-        for (auto and_child: logical_node.children()) {
-            condition["andTerm"].push_back(ParseLogicalTerm(and_child));
-        }
-    } else if (node_name == "xorTerm") {
-        for (auto xor_child: logical_node.children()) {
-            condition["xorTerm"].push_back(ParseLogicalTerm(xor_child));
-        }
-    } else if (node_name == "notTerm") {
-        for (auto not_child: logical_node.children()) {
-            condition["notTerm"].push_back(ParseLogicalTerm(not_child));
-        }
-    } else if (node_name == "feature") {
-        condition["feature"].push_back({{"name", logical_node.attribute("name").value()}});
-    } else if (node_name == "condition") {
-        condition["condition"].push_back({{"name", logical_node.attribute("name").value()}});
-    } else if (node_name == "attribute") {
-        condition["attribute"].push_back({{"name", logical_node.attribute("name").value()}});
     }
 
     return condition;
@@ -815,40 +816,68 @@ void SerializeLogicalTerm(const nlohmann::json& condition, pugi::xml_node& paren
 {
     if (condition.contains("orTerm")) {
         auto or_node = parent_node.append_child("orTerm");
-        for (const auto& or_child : condition.at("orTerm")) {
-            SerializeLogicalTerm(or_child, or_node);
+        if (condition.at("orTerm").is_array()) {
+            for (const auto& or_child : condition.at("orTerm")) {
+                SerializeLogicalTerm(or_child, or_node);
+            }
+        } else {
+            SerializeLogicalTerm(condition.at("orTerm"), or_node);
         }
     } else if (condition.contains("andTerm")) {
         auto and_node = parent_node.append_child("andTerm");
-        for (const auto& and_child : condition.at("andTerm")) {
-            SerializeLogicalTerm(and_child, and_node);
+        if (condition.at("andTerm").is_array()) {
+            for (const auto &and_child: condition.at("andTerm")) {
+                SerializeLogicalTerm(and_child, and_node);
+            }
+        } else {
+            SerializeLogicalTerm(condition.at("andTerm"), and_node);
         }
     } else if (condition.contains("xorTerm")) {
         auto xor_node = parent_node.append_child("xorTerm");
-        for (const auto& xor_child : condition.at("xorTerm")) {
-            SerializeLogicalTerm(xor_child, xor_node);
+        if (condition.at("xorTerm").is_array()) {
+            for (const auto &xor_child: condition.at("xorTerm")) {
+                SerializeLogicalTerm(xor_child, xor_node);
+            }
+        } else {
+            SerializeLogicalTerm(condition.at("xorTerm"), xor_node);
         }
     } else if (condition.contains("notTerm")) {
         auto not_node = parent_node.append_child("notTerm");
-        for (const auto &not_child : condition.at("notTerm")) {
-            SerializeLogicalTerm(not_child, not_node);
-        }
+        SerializeLogicalTerm(condition.at("notTerm"), not_node);
     } else if (condition.contains("feature")) {
-        for (auto& feature_json : condition.at("feature")) {
+        if (condition.at("feature").is_array()) {
+            for (auto& feature_json : condition.at("feature")) {
+                std::string name;
+                feature_json.at("name").get_to(name);
+                parent_node.append_child("feature").append_attribute("name").set_value(name.c_str());
+            }
+        } else {
             std::string name;
-            feature_json.at("name").get_to(name);
+            condition.at("feature").at("name").get_to(name);
             parent_node.append_child("feature").append_attribute("name").set_value(name.c_str());
         }
     } else if (condition.contains("condition")) {
-        for (auto& condition_json : condition.at("condition")) {
+        if (condition.at("condition").is_array()) {
+            for (auto &condition_json: condition.at("condition")) {
+                std::string name;
+                condition_json.at("name").get_to(name);
+                parent_node.append_child("condition").append_attribute("name").set_value(name.c_str());
+            }
+        } else {
             std::string name;
-            condition_json.at("name").get_to(name);
+            condition.at("condition").at("name").get_to(name);
             parent_node.append_child("condition").append_attribute("name").set_value(name.c_str());
         }
     } else if (condition.contains("attribute")) {
-        for (auto& attribute_json : condition.at("attribute")) {
+        if (condition.at("attribute").is_array()) {
+            for (auto &attribute_json: condition.at("attribute")) {
+                std::string name;
+                attribute_json.at("name").get_to(name);
+                parent_node.append_child("attribute").append_attribute("name").set_value(name.c_str());
+            }
+        } else {
             std::string name;
-            attribute_json.at("name").get_to(name);
+            condition.at("attribute").at("name").get_to(name);
             parent_node.append_child("attribute").append_attribute("name").set_value(name.c_str());
         }
     }

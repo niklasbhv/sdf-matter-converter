@@ -161,7 +161,7 @@ bool EvaluateConformanceCondition(const json& condition) {
     } else if (condition.contains("orTerm")) {
         // Returns true, if any one of the contained expressions evaluate to true
         // Returns false otherwise
-        for (auto& item : condition.at("orTerm")) {
+        for (auto &item: condition.at("orTerm")) {
             if (EvaluateConformanceCondition(item)) {
                 return true;
             }
@@ -184,9 +184,14 @@ bool EvaluateConformanceCondition(const json& condition) {
     } else if (condition.contains("notTerm")) {
         return !EvaluateConformanceCondition(condition.at("notTerm"));
     } else if (condition.contains("feature")) {
-        for (auto& feature_json : condition.at("feature")) {
-            std::cout << feature_json << std::endl;
-            if (supported_features.find(feature_json.at("name")) != supported_features.end()) {
+        if (condition.at("feature").is_array()) {
+            for (auto& feature_json : condition.at("feature")) {
+                if (supported_features.find(feature_json.at("name")) != supported_features.end()) {
+                    return true;
+                }
+            }
+        } else {
+            if (supported_features.find(condition.at("feature").at("name")) != supported_features.end()) {
                 return true;
             }
         }
