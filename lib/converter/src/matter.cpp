@@ -191,11 +191,11 @@ nlohmann::json ParseLogicalTerm(const pugi::xml_node& logical_node) {
             condition["notTerm"].push_back(ParseLogicalTerm(not_child));
         }
     } else if (node_name == "feature") {
-        condition["feature"]["name"] = logical_node.attribute("name").value();
+        condition["feature"].push_back({{"name", logical_node.attribute("name").value()}});
     } else if (node_name == "condition") {
-        condition["condition"]["name"] = logical_node.attribute("name").value();
+        condition["condition"].push_back({{"name", logical_node.attribute("name").value()}});
     } else if (node_name == "attribute") {
-        condition["attribute"]["name"] = logical_node.attribute("name").value();
+        condition["attribute"].push_back({{"name", logical_node.attribute("name").value()}});
     }
 
     return condition;
@@ -834,17 +834,23 @@ void SerializeLogicalTerm(const nlohmann::json& condition, pugi::xml_node& paren
             SerializeLogicalTerm(not_child, not_node);
         }
     } else if (condition.contains("feature")) {
-        std::string name;
-        condition.at("feature").at("name").get_to(name);
-        parent_node.append_child("feature").append_attribute("name").set_value(name.c_str());
+        for (auto& feature_json : condition.at("feature")) {
+            std::string name;
+            feature_json.at("name").get_to(name);
+            parent_node.append_child("feature").append_attribute("name").set_value(name.c_str());
+        }
     } else if (condition.contains("condition")) {
-        std::string name;
-        condition.at("condition").at("name").get_to(name);
-        parent_node.append_child("condition").append_attribute("name").set_value(name.c_str());
+        for (auto& condition_json : condition.at("condition")) {
+            std::string name;
+            condition_json.at("name").get_to(name);
+            parent_node.append_child("condition").append_attribute("name").set_value(name.c_str());
+        }
     } else if (condition.contains("attribute")) {
-        std::string name;
-        condition.at("attribute").at("name").get_to(name);
-        parent_node.append_child("attribute").append_attribute("name").set_value(name.c_str());
+        for (auto& attribute_json : condition.at("attribute")) {
+            std::string name;
+            attribute_json.at("name").get_to(name);
+            parent_node.append_child("attribute").append_attribute("name").set_value(name.c_str());
+        }
     }
 }
 

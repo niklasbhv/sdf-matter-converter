@@ -184,10 +184,11 @@ bool EvaluateConformanceCondition(const json& condition) {
     } else if (condition.contains("notTerm")) {
         return !EvaluateConformanceCondition(condition.at("notTerm"));
     } else if (condition.contains("feature")) {
-        std::cout << "Reached" << condition.at("feature") << std::endl;
-        if (supported_features.find(condition.at("feature").at("name")) != supported_features.end()) {
-            std::cout << "Feature" << condition.at("feature") << "supported" << std::endl;
-            return true;
+        for (auto& feature_json : condition.at("feature")) {
+            std::cout << feature_json << std::endl;
+            if (supported_features.find(feature_json.at("name")) != supported_features.end()) {
+                return true;
+            }
         }
     } else if (condition.contains("condition")) {
         std::cout << "Reached" << condition.at("condition") << std::endl;
