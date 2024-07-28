@@ -1210,23 +1210,23 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                     matter::Bitfield bitfield;
                     bitfield.name = sdf_choice.first;
                     json conformance_json;
-                    if (ImportFromMapping(current_given_name_node->GeneratePointer(), "items", conformance_json)) {
-                        if (conformance_json.contains("sdfChoice")) {
-                            if (conformance_json.at("sdfChoice").contains(bitfield.name)) {
-                                if (conformance_json.at("sdfChoice").at(bitfield.name).contains("summary")) {
-                                    conformance_json.at("sdfChoice").at(bitfield.name).at("summary").get_to(bitfield.summary);
+                    if (ImportFromMapping(current_given_name_node->GeneratePointer(), "bitfield", conformance_json)) {
+                        for (auto& bitfield_json : conformance_json) {
+                            if (bitfield_json.at("name") == bitfield.name) {
+                                if (bitfield_json.contains("summary")) {
+                                    bitfield_json.at("summary").get_to(bitfield.summary);
                                 }
-                                if (conformance_json.at("sdfChoice").at(bitfield.name).contains("bit")) {
-                                    conformance_json.at("sdfChoice").at(bitfield.name).at("bit").get_to(bitfield.bit);
+                                if (bitfield_json.contains("bit")) {
+                                    bitfield_json.at("bit").get_to(bitfield.bit);
                                 } else {
                                     bitfield.bit = bit;
+                                    bit++;
                                 }
-                                bitfield.conformance = GenerateMatterConformance(conformance_json.at("sdfChoice").at(bitfield.name));
+                                bitfield.conformance = GenerateMatterConformance(bitfield_json);
                             }
                         }
                     }
                     bitmap.push_back(bitfield);
-                    bit++;
                 }
                 cluster.bitmaps[sdf_data_elem.first] = bitmap;
             }
@@ -1238,11 +1238,6 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 item.name = sdf_choice.first;
                 item.summary = sdf_choice.second.description;
                 json conformance_json;
-                if (ImportFromMapping(current_given_name_node->GeneratePointer(), "sdfChoice", conformance_json)) {
-                    if (conformance_json.contains(item.name)) {
-                        item.conformance = GenerateMatterConformance(conformance_json.at(item.name));
-                    }
-                }
                 if (sdf_choice.second.const_.has_value()) {
                     if (std::holds_alternative<double>(sdf_choice.second.const_.value())) {
                         item.value = static_cast<int>(std::get<double>(sdf_choice.second.const_.value()));
@@ -1254,6 +1249,14 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 } else {
                     item.value = value;
                     value++;
+                }
+                if (ImportFromMapping(current_given_name_node->GeneratePointer(), "item", conformance_json)) {
+                    for (auto& item_json : conformance_json) {
+                        if (item_json.at("value") == item.value) {
+                            item.conformance = GenerateMatterConformance(item_json);
+                            break;
+                        }
+                    }
                 }
                 matter_enum.push_back(item);
             }

@@ -204,15 +204,15 @@ bool EvaluateConformanceCondition(const json& condition) {
 
 void to_json(json& j, const matter::Conformance& conformance) {
     if (conformance.mandatory) {
-        j = json {{"mandatoryConform", conformance.condition}};
+        j["mandatoryConform"] = conformance.condition;
     } else if (conformance.optional) {
-        j = json {{"optionalConform", conformance.condition}};
+        j["optionalConform"] = conformance.condition;
     } else if (conformance.provisional) {
-        j = json {{"provisionalConform", conformance.condition}};
+        j["provisionalConform"] = conformance.condition;
     } else if (conformance.deprecated) {
-        j = json {{"deprecateConform", conformance.condition}};
+        j["deprecateConform"] = conformance.condition;
     } else if (conformance.disallowed) {
-        j = json {{"disallowConform", conformance.condition}};
+        j["disallowConform"] = conformance.condition;
     }
 }
 
@@ -229,18 +229,20 @@ std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::st
 
     for (const auto& bitfield : bitmap_pair.second) {
         sdf::DataQuality sdf_choice_data_quality;
-
+        json bitfield_json;
         if (bitfield.conformance.has_value()) {
-            to_json(bitmap_json["sdfChoice"][bitfield.name], bitfield.conformance.value());
+            to_json(bitfield_json, bitfield.conformance.value());
         }
 
-        bitmap_json["sdfChoice"][bitfield.name]["bit"] = bitfield.bit;
-        bitmap_json["sdfChoice"][bitfield.name]["summary"] = bitfield.summary;
+        bitfield_json["bit"] = bitfield.bit;
+        bitfield_json["name"] = bitfield.name;
+        bitfield_json["summary"] = bitfield.summary;
         item.sdf_choice[bitfield.name] = sdf_choice_data_quality;
+        bitmap_json.push_back(bitfield_json);
     }
 
     data_quality.items = item;
-    current_given_name_node->AddAttribute("items", bitmap_json);
+    current_given_name_node->AddAttribute("bitfield", bitmap_json);
     return {bitmap_pair.first, data_quality};
 }
 
@@ -258,13 +260,16 @@ std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::stri
         sdf_choice_data_quality.description = item.summary;
 
         if (item.conformance.has_value()) {
-            to_json(enum_json[item.name], item.conformance.value());
+            json item_json;
+            item_json["value"] = item.value;
+            to_json(item_json, item.conformance.value());
+            enum_json.push_back(item_json);
         }
 
         data_quality.sdf_choice[item.name] = sdf_choice_data_quality;
     }
 
-    current_given_name_node->AddAttribute("sdfChoice", enum_json);
+    current_given_name_node->AddAttribute("item", enum_json);
 
     return {enum_pair.first, data_quality};
 }
