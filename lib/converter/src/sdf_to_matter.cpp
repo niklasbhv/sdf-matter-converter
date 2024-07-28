@@ -1104,6 +1104,11 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
 
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "id", cluster.id);
     cluster.name = sdf_object_pair.second.label;
+    if (!sdf_object_pair.second.sdf_required.empty()) {
+        sdf_required_list.insert(sdf_required_list.end(),
+                                 sdf_object_pair.second.sdf_required.begin(),
+                                 sdf_object_pair.second.sdf_required.end());
+    }
     cluster.conformance = GenerateMatterConformance();
     cluster.summary = sdf_object_pair.second.description;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "side", cluster.side);
@@ -1304,6 +1309,11 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     // Import the ID from the mapping
     ImportFromMapping(sdf_thing_reference->GeneratePointer(), "id", device.id);
     device.name = sdf_thing_pair.second.label;
+    if (!sdf_thing_pair.second.sdf_required.empty()) {
+        sdf_required_list.insert(sdf_required_list.end(),
+                                 sdf_thing_pair.second.sdf_required.begin(),
+                                 sdf_thing_pair.second.sdf_required.end());
+    }
     device.summary = sdf_thing_pair.second.description;
     // Import the revision as well as the revision history from the mapping
     if (!ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revision", device.revision)) {
