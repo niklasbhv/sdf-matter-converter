@@ -15,6 +15,8 @@
  */
 
 #include <nlohmann/json-schema.hpp>
+#include <libxml/parser.h>
+#include <libxml/xmlschemas.h>
 #include <fstream>
 #include <iostream>
 
@@ -35,7 +37,7 @@ int LoadJsonFile(const char* path, nlohmann::ordered_json& json_file)
     return 0;
 }
 
-int validateSdf(const char* path, const char* schema)
+int ValidateSdf(const char* path, const char* schema)
 {
     //Load the json file as well as the schema
     nlohmann::ordered_json json_file;
@@ -62,7 +64,50 @@ int validateSdf(const char* path, const char* schema)
     return 0;
 }
 
-int validateMatter(const char* path, const char* schema)
-{
-    return 0;
+int ValidateMatter(const char* xmlFile, const char* schemaFile) {
+    xmlDocPtr doc = xmlReadFile(xmlFile, NULL, 0);
+    if (doc == nullptr) {
+        std::cerr << "Failed to parse " << xmlFile << std::endl;
+        return false;
+    }
+
+    xmlSchemaParserCtxtPtr parserCtxt = xmlSchemaNewParserCtxt(schemaFile);
+    if (parserCtxt == nullptr) {
+        std::cerr << "Could not create XML Schema parser context for " << schemaFile << std::endl;
+        xmlFreeDoc(doc);
+        return false;
+    }
+
+    xmlSchemaPtr schema = xmlSchemaParse(parserCtxt);
+    if (schema == nullptr) {
+        std::cerr << "Failed to parse XML Schema " << schemaFile << std::endl;
+        xmlSchemaFreeParserCtxt(parserCtxt);
+        xmlFreeDoc(doc);
+        return false;
+    }
+
+    xmlSchemaValidCtxtPtr validCtxt = xmlSchemaNewValidCtxt(schema);
+    if (validCtxt == nullptr) {
+        std::cerr << "Could not create XML Schema validation context" << std::endl;
+        xmlSchemaFree(schema);
+        xmlSchemaFreeParserCtxt(parserCtxt);
+        xmlFreeDoc(doc);
+        return false;
+    }
+
+    int ret = xmlSchemaValidateDoc(validCtxt, doc);
+    if (ret == 0) {
+        std::cout << "The XML file is valid against the schema." << std::endl;
+    } else if (ret > 0) {
+        std::cout << "The XML file is NOT valid against the schema." << std::endl;
+    } else {
+        std::cerr << "Validation generated an internal error." << std::endl;
+    }
+
+    xmlSchemaFreeValidCtxt(validCtxt);
+    xmlSchemaFree(schema);
+    xmlSchemaFreeParserCtxt(parserCtxt);
+    xmlFreeDoc(doc);
+
+    return ret;
 }

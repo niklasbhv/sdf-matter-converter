@@ -13,6 +13,10 @@ As this software uses the `sdt::unordered_map` data type in combination with inc
 - Clang >= 15
 - ESP-IDF >= 5.1
 
+If you want to use the validation functionality, the library `libxml2` has to be installed. For Ubuntu this can be done with:
+
+`sudo apt-get install libxml2-dev`
+
 ## Installation
 
 Using CMake:
