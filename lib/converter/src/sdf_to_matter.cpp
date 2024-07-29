@@ -872,47 +872,53 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     std::optional<matter::Command> optional_server_command;
     // Check if the sdfAction has output data qualities
     if (sdf_action_pair.second.sdf_output_data.has_value()) {
-        matter::Command server_command;
-        ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", server_command.id);
-        server_command.name = sdf_action_pair.second.label + "Response";
-        server_command.conformance = GenerateMatterConformance();
-        server_command.summary = sdf_action_pair.second.sdf_output_data.value().description;
-        server_command.direction = "responseFromServer";
-
-        client_command.response = server_command.name;
-        // If object is used as a type, the elements of the object have to be mapped individually
-        if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
-            uint32_t id = 0;
-            for (const auto& quality_pair : sdf_action_pair.second.sdf_output_data.value().properties) {
-                matter::DataField field = MapSdfInputOutputData(quality_pair.second);
-                field.id = id;
-                // If no label is given, set the quality name
-                if (field.name.empty()) {
-                    field.name = quality_pair.first;
-                }
-                if (contains(sdf_action_pair.second.sdf_output_data.value().required, quality_pair.first)) {
-                    matter::Conformance conformance;
-                    conformance.mandatory = true;
-                    field.conformance = conformance;
-                } else {
-                    matter::Conformance conformance;
-                    conformance.optional = true;
-                    field.conformance = conformance;
-                }
-                server_command.command_fields.push_back(field);
-                id++;
-            }
+        if (sdf_action_pair.second.sdf_output_data.value().minimum.has_value() and
+        sdf_action_pair.second.sdf_output_data.value().maximum.has_value() and
+        CheckVariantEquals(sdf_action_pair.second.sdf_output_data.value().minimum.value(), 0) and
+            CheckVariantEquals(sdf_action_pair.second.sdf_output_data.value().maximum.value(), MATTER_U_INT_16_MAX)) {
+                client_command.response = "Y";
         } else {
-            matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_output_data.value());
-            field.id = 0;
-            server_command.command_fields.push_back(field);
+            matter::Command server_command;
+            ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", server_command.id);
+            server_command.name = sdf_action_pair.second.label + "Response";
+            server_command.conformance = GenerateMatterConformance();
+            server_command.summary = sdf_action_pair.second.sdf_output_data.value().description;
+            server_command.direction = "responseFromServer";
+
+            client_command.response = server_command.name;
+            // If object is used as a type, the elements of the object have to be mapped individually
+            if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
+                uint32_t id = 0;
+                for (const auto &quality_pair : sdf_action_pair.second.sdf_output_data.value().properties) {
+                    matter::DataField field = MapSdfInputOutputData(quality_pair.second);
+                    field.id = id;
+                    // If no label is given, set the quality name
+                    if (field.name.empty()) {
+                        field.name = quality_pair.first;
+                    }
+                    if (contains(sdf_action_pair.second.sdf_output_data.value().required, quality_pair.first)) {
+                        matter::Conformance conformance;
+                        conformance.mandatory = true;
+                        field.conformance = conformance;
+                    } else {
+                        matter::Conformance conformance;
+                        conformance.optional = true;
+                        field.conformance = conformance;
+                    }
+                    server_command.command_fields.push_back(field);
+                    id++;
+                }
+            } else  {
+                matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_output_data.value());
+                field.id = 0;
+                server_command.command_fields.push_back(field);
+            }
+            //required
+            optional_server_command = server_command;
         }
-        //required
-        optional_server_command = server_command;
     } else {
         client_command.response = "N";
     }
-    // TODO: Consider the status code here
 
     // Map the sdf_input_data Qualities
     // If object is used as a type, the elements of the object have to be mapped individually
