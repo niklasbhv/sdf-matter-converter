@@ -38,9 +38,9 @@ DefaultType ParseDefaultType(const std::string& value) {
     }
 
     // Try to parse as bool
-    if (value == "true") {
+    if (value == "true" or value == "TRUE") {
         return true;
-    } else if (value == "false") {
+    } else if (value == "false" or value == "FALSE") {
         return false;
     }
 
