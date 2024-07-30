@@ -910,6 +910,10 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
                 }
             } else  {
                 matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_output_data.value());
+                json conformance_json;
+                if (ImportFromMapping(sdf_action_reference->GeneratePointer(), "field", conformance_json)) {
+                    field.conformance = GenerateMatterConformance(conformance_json);
+                }
                 field.id = 0;
                 server_command.command_fields.push_back(field);
             }
@@ -949,6 +953,10 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
             //required
         } else {
             matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_input_data.value());
+            json conformance_json;
+            if (ImportFromMapping(sdf_action_reference->GeneratePointer(), "field", conformance_json)) {
+                field.conformance = GenerateMatterConformance(conformance_json);
+            }
             field.id = 0;
             client_command.command_fields.push_back(field);
         }
