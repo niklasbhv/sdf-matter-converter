@@ -40,6 +40,25 @@ static std::list<std::string> sdf_required_list;
 
 static std::string sdf_data_location;
 
+namespace matter {
+
+void to_json(json& j, const Conformance& conformance) {
+    if (conformance.mandatory) {
+        j = json{{"mandatoryConform", conformance.condition}};
+    } else if (conformance.optional) {
+        j = json{{"optionalConform", conformance.condition}};
+    } else if (conformance.provisional) {
+        j = json{{"provisionalConform", conformance.condition}};
+    } else if (conformance.deprecated) {
+        j = json{{"deprecateConform", conformance.condition}};
+    } else if (conformance.disallowed) {
+        j = json{{"disallowConform", conformance.condition}};
+    } else {
+        j = json::object();
+    }
+}
+}
+
 //! Maps information of the given other quality onto a sdfProperty object
 void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty& sdf_property) {
     json quality_json;
@@ -211,20 +230,6 @@ bool EvaluateConformanceCondition(const json& condition) {
     return false;
 }
 
-void to_json(json& j, const matter::Conformance& conformance) {
-    if (conformance.mandatory) {
-        j["mandatoryConform"] = conformance.condition;
-    } else if (conformance.optional) {
-        j["optionalConform"] = conformance.condition;
-    } else if (conformance.provisional) {
-        j["provisionalConform"] = conformance.condition;
-    } else if (conformance.deprecated) {
-        j["deprecateConform"] = conformance.condition;
-    } else if (conformance.disallowed) {
-        j["disallowConform"] = conformance.condition;
-    }
-}
-
 std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair) {
     auto* bitmap_reference = new ReferenceTreeNode(bitmap_pair.first);
     current_quality_name_node->AddChild(bitmap_reference);
@@ -240,7 +245,7 @@ std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::st
         sdf::DataQuality sdf_choice_data_quality;
         json bitfield_json;
         if (bitfield.conformance.has_value()) {
-            to_json(bitfield_json, bitfield.conformance.value());
+            bitfield_json.merge_patch(bitfield.conformance.value());
         }
 
         bitfield_json["bit"] = bitfield.bit;
@@ -271,7 +276,7 @@ std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::stri
         if (item.conformance.has_value()) {
             json item_json;
             item_json["value"] = item.value;
-            to_json(item_json, item.conformance.value());
+            item_json.merge_patch(item.conformance.value());
             enum_json.push_back(item_json);
         }
 
@@ -1133,6 +1138,11 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
         if (data_field_list.front().constraint.has_value()) {
             MapMatterConstraint(data_field_list.front().constraint.value(), data_quality);
         }
+
+        if (data_field_list.front().conformance.has_value()) {
+            json conformance_json = data_field_list.front().conformance.value();
+            current_given_name_node->AddAttribute("field", conformance_json);
+        }
     } else {
         data_quality.type = "object";
         for (const auto& field : data_field_list) {
@@ -1167,6 +1177,7 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
     return data_quality;
 }
 
+//! Function used to map a Matter event onto a sdfEvent
 sdf::SdfEvent MapMatterEvent(const matter::Event& event) {
     sdf::SdfEvent sdf_event;
     // Append the event node to the tree
@@ -1189,10 +1200,8 @@ sdf::SdfEvent MapMatterEvent(const matter::Event& event) {
 
     // Export priority to the mapping
     event_reference->AddAttribute("priority", event.priority);
+    // Map the datafields onto sdfOutputData
     sdf_event.sdf_output_data = MapMatterDataField(event.data);
-    // TODO: Event itself should probably not have these qualities
-    //if (event.quality.has_value())
-    //    MapOtherQuality(event.quality.value(), sdf_event.sdf_output_data.value());
 
     return sdf_event;
 }
@@ -1232,6 +1241,7 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
         sdf_output_data.type = "integer";
         sdf_output_data.minimum = 0;
         sdf_output_data.maximum = MATTER_U_INT_16_MAX;
+        sdf_action.sdf_output_data = sdf_output_data;
     }
     // Otherwise, the client client_command has a reference to a server client_command
     else {
