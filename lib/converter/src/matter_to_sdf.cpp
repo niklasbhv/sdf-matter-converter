@@ -1340,6 +1340,82 @@ void MapClusterClassification(const matter::ClusterClassification& cluster_class
     current_given_name_node->AddAttribute("classification", cluster_classification_json);
 }
 
+//! Function used to map a Matter client cluster onto a sdfObject
+sdf::SdfObject MapMatterClientCluster(const matter::Cluster& cluster) {
+    sdf::SdfObject sdf_object;
+    ReferenceTreeNode* cluster_reference;
+    cluster_reference = new ReferenceTreeNode(cluster.name + "_Client");
+    current_quality_name_node->AddChild(cluster_reference);
+    current_given_name_node = cluster_reference;
+    cluster_reference->AddAttribute("side", cluster.side);
+    // Set the location of sdfData
+    sdf_data_location = current_given_name_node->GeneratePointer() + "/sdfData/";
+    cluster_reference->AddAttribute("id", static_cast<uint64_t>(cluster.id));
+    sdf_object.label = cluster.name;
+    if (cluster.conformance.has_value()) {
+        MapMatterConformance(cluster.conformance.value());
+    }
+
+    sdf_object.description = cluster.summary;
+    // Export the cluster revision to the mapping
+    cluster_reference->AddAttribute("revision", cluster.revision);
+
+    // Export the revision history to the mapping
+    json revision_history_json;
+    for (const auto& revision : cluster.revision_history) {
+        json revision_json;
+        revision_json["revision"]["revision"] = revision.first;
+        revision_json["revision"]["summary"] = revision.second;
+        revision_history_json.push_back(revision_json);
+    }
+    cluster_reference->AddAttribute("revisionHistory", revision_history_json);
+
+    // Export the cluster aliases to the mapping
+    json cluster_aliases_json;
+    for (const auto& cluster_alias : cluster.cluster_aliases) {
+        json cluster_alias_json;
+        cluster_alias_json["clusterId"]["id"] = cluster_alias.first;
+        cluster_alias_json["clusterId"]["name"] = cluster_alias.second;
+        cluster_aliases_json.push_back(cluster_alias_json);
+    }
+    cluster_reference->AddAttribute("clusterIds", cluster_aliases_json);
+
+    if (cluster.classification.has_value()) {
+        MapClusterClassification(cluster.classification.value());
+    }
+
+    MapFeatureMap(cluster.feature_map);
+
+    // Iterate through the commands and map them
+    auto* sdf_action_node = new ReferenceTreeNode("sdfAction");
+    cluster_reference->AddChild(sdf_action_node);
+    current_quality_name_node = sdf_action_node;
+    for (const auto& command : cluster.client_commands){
+        sdf::SdfAction sdf_action = MapMatterCommand(command, cluster.server_commands);
+        sdf_object.sdf_action.insert({command.name, sdf_action});
+    }
+
+    // Iterate through the data types and map them
+    auto* sdf_data_node = new ReferenceTreeNode("sdfData");
+    cluster_reference->AddChild(sdf_data_node);
+    current_quality_name_node = sdf_data_node;
+    for (const auto& struct_pair : cluster.structs) {
+        sdf_object.sdf_data.insert(MapMatterStruct(struct_pair));
+    }
+
+    for (const auto& enum_pair : cluster.enums) {
+        sdf_object.sdf_data.insert(MapMatterEnum(enum_pair));
+    }
+
+    for (const auto& bitmap_pair : cluster.bitmaps) {
+        sdf_object.sdf_data.insert(MapMatterBitmap(bitmap_pair));
+    }
+
+    sdf_object.sdf_required = sdf_required_list;
+
+    return sdf_object;
+}
+
 sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
     sdf::SdfObject sdf_object;
     ReferenceTreeNode* cluster_reference;
