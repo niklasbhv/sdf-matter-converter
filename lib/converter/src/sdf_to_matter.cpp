@@ -872,47 +872,53 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     std::optional<matter::Command> optional_server_command;
     // Check if the sdfAction has output data qualities
     if (sdf_action_pair.second.sdf_output_data.has_value()) {
-        matter::Command server_command;
-        ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", server_command.id);
-        server_command.name = sdf_action_pair.second.label + "Response";
-        server_command.conformance = GenerateMatterConformance();
-        server_command.summary = sdf_action_pair.second.sdf_output_data.value().description;
-        server_command.direction = "responseFromServer";
-
-        client_command.response = server_command.name;
-        // If object is used as a type, the elements of the object have to be mapped individually
-        if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
-            uint32_t id = 0;
-            for (const auto& quality_pair : sdf_action_pair.second.sdf_output_data.value().properties) {
-                matter::DataField field = MapSdfInputOutputData(quality_pair.second);
-                field.id = id;
-                // If no label is given, set the quality name
-                if (field.name.empty()) {
-                    field.name = quality_pair.first;
-                }
-                if (contains(sdf_action_pair.second.sdf_output_data.value().required, quality_pair.first)) {
-                    matter::Conformance conformance;
-                    conformance.mandatory = true;
-                    field.conformance = conformance;
-                } else {
-                    matter::Conformance conformance;
-                    conformance.optional = true;
-                    field.conformance = conformance;
-                }
-                server_command.command_fields.push_back(field);
-                id++;
-            }
+        if (sdf_action_pair.second.sdf_output_data.value().minimum.has_value() and
+        sdf_action_pair.second.sdf_output_data.value().maximum.has_value() and
+        CheckVariantEquals(sdf_action_pair.second.sdf_output_data.value().minimum.value(), 0) and
+            CheckVariantEquals(sdf_action_pair.second.sdf_output_data.value().maximum.value(), MATTER_U_INT_16_MAX)) {
+                client_command.response = "Y";
         } else {
-            matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_output_data.value());
-            field.id = 0;
-            server_command.command_fields.push_back(field);
+            matter::Command server_command;
+            ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", server_command.id);
+            server_command.name = sdf_action_pair.second.label + "Response";
+            server_command.conformance = GenerateMatterConformance();
+            server_command.summary = sdf_action_pair.second.sdf_output_data.value().description;
+            server_command.direction = "responseFromServer";
+
+            client_command.response = server_command.name;
+            // If object is used as a type, the elements of the object have to be mapped individually
+            if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
+                uint32_t id = 0;
+                for (const auto &quality_pair : sdf_action_pair.second.sdf_output_data.value().properties) {
+                    matter::DataField field = MapSdfInputOutputData(quality_pair.second);
+                    field.id = id;
+                    // If no label is given, set the quality name
+                    if (field.name.empty()) {
+                        field.name = quality_pair.first;
+                    }
+                    if (contains(sdf_action_pair.second.sdf_output_data.value().required, quality_pair.first)) {
+                        matter::Conformance conformance;
+                        conformance.mandatory = true;
+                        field.conformance = conformance;
+                    } else {
+                        matter::Conformance conformance;
+                        conformance.optional = true;
+                        field.conformance = conformance;
+                    }
+                    server_command.command_fields.push_back(field);
+                    id++;
+                }
+            } else  {
+                matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_output_data.value());
+                field.id = 0;
+                server_command.command_fields.push_back(field);
+            }
+            //required
+            optional_server_command = server_command;
         }
-        //required
-        optional_server_command = server_command;
     } else {
         client_command.response = "N";
     }
-    // TODO: Consider the status code here
 
     // Map the sdf_input_data Qualities
     // If object is used as a type, the elements of the object have to be mapped individually
@@ -1005,8 +1011,10 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
 std::list<matter::Feature> GenerateFeatureMap() {
     std::list<matter::Feature> feature_map;
     json feature_map_json;
-    ImportFromMapping(current_given_name_node->GeneratePointer(), "features", feature_map_json);
-    for (const auto& feature_json : feature_map_json) {
+    if (!ImportFromMapping(current_given_name_node->GeneratePointer(), "features", feature_map_json)) {
+        return feature_map;
+    }
+    for (const auto& feature_json : feature_map_json.at("feature")) {
         matter::Feature feature;
         if (feature_json.contains("bit")) {
             feature_json.at("bit").get_to(feature.bit);
@@ -1102,31 +1110,40 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
 
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "id", cluster.id);
     cluster.name = sdf_object_pair.second.label;
+    if (!sdf_object_pair.second.sdf_required.empty()) {
+        sdf_required_list.insert(sdf_required_list.end(),
+                                 sdf_object_pair.second.sdf_required.begin(),
+                                 sdf_object_pair.second.sdf_required.end());
+    }
     cluster.conformance = GenerateMatterConformance();
     cluster.summary = sdf_object_pair.second.description;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "side", cluster.side);
-    ImportFromMapping(sdf_object_reference->GeneratePointer(), "revision", cluster.revision);
+    if (!ImportFromMapping(sdf_object_reference->GeneratePointer(), "revision", cluster.revision)) {
+        cluster.revision = 1;
+    }
 
     // Import the revision history from the mapping
     json revision_history_json;
-    ImportFromMapping(sdf_object_reference->GeneratePointer(), "revisionHistory", revision_history_json);
-    for (const auto& item : revision_history_json) {
-        u_int8_t revision;
-        item.at("revision").at("revision").get_to(revision);
-        std::string summary;
-        item.at("revision").at("summary").get_to(summary);
-        cluster.revision_history[revision] = summary;
+    if (ImportFromMapping(sdf_object_reference->GeneratePointer(), "revisionHistory", revision_history_json)) {
+        for (const auto& item : revision_history_json.at("revision")) {
+            u_int8_t revision;
+            item.at("revision").get_to(revision);
+            std::string summary;
+            item.at("summary").get_to(summary);
+            cluster.revision_history[revision] = summary;
+        }
     }
 
     // Import the cluster aliases from the mapping
     json cluster_aliases_json;
-    ImportFromMapping(sdf_object_reference->GeneratePointer(), "clusterIds", cluster_aliases_json);
-    for (const auto& cluster_alias : cluster_aliases_json) {
-        uint32_t id;
-        cluster_alias.at("clusterId").at("id").get_to(id);
-        std::string name;
-        cluster_alias.at("clusterId").at("name").get_to(name);
-        cluster.cluster_aliases.emplace_back(id, name);
+    if (ImportFromMapping(sdf_object_reference->GeneratePointer(), "clusterIds", cluster_aliases_json)) {
+        for (const auto& cluster_alias : cluster_aliases_json.at("clusterId")) {
+            uint32_t id;
+            cluster_alias.at("id").get_to(id);
+            std::string name;
+            cluster_alias.at("name").get_to(name);
+            cluster.cluster_aliases.emplace_back(id, name);
+        }
     }
 
     cluster.classification = GenerateClusterClassification();
@@ -1208,23 +1225,23 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                     matter::Bitfield bitfield;
                     bitfield.name = sdf_choice.first;
                     json conformance_json;
-                    if (ImportFromMapping(current_given_name_node->GeneratePointer(), "items", conformance_json)) {
-                        if (conformance_json.contains("sdfChoice")) {
-                            if (conformance_json.at("sdfChoice").contains(bitfield.name)) {
-                                if (conformance_json.at("sdfChoice").at(bitfield.name).contains("summary")) {
-                                    conformance_json.at("sdfChoice").at(bitfield.name).at("summary").get_to(bitfield.summary);
+                    if (ImportFromMapping(current_given_name_node->GeneratePointer(), "bitfield", conformance_json)) {
+                        for (auto& bitfield_json : conformance_json) {
+                            if (bitfield_json.at("name") == bitfield.name) {
+                                if (bitfield_json.contains("summary")) {
+                                    bitfield_json.at("summary").get_to(bitfield.summary);
                                 }
-                                if (conformance_json.at("sdfChoice").at(bitfield.name).contains("bit")) {
-                                    conformance_json.at("sdfChoice").at(bitfield.name).at("bit").get_to(bitfield.bit);
+                                if (bitfield_json.contains("bit")) {
+                                    bitfield_json.at("bit").get_to(bitfield.bit);
                                 } else {
                                     bitfield.bit = bit;
+                                    bit++;
                                 }
-                                bitfield.conformance = GenerateMatterConformance(conformance_json.at("sdfChoice").at(bitfield.name));
+                                bitfield.conformance = GenerateMatterConformance(bitfield_json);
                             }
                         }
                     }
                     bitmap.push_back(bitfield);
-                    bit++;
                 }
                 cluster.bitmaps[sdf_data_elem.first] = bitmap;
             }
@@ -1236,11 +1253,6 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 item.name = sdf_choice.first;
                 item.summary = sdf_choice.second.description;
                 json conformance_json;
-                if (ImportFromMapping(current_given_name_node->GeneratePointer(), "sdfChoice", conformance_json)) {
-                    if (conformance_json.contains(item.name)) {
-                        item.conformance = GenerateMatterConformance(conformance_json.at(item.name));
-                    }
-                }
                 if (sdf_choice.second.const_.has_value()) {
                     if (std::holds_alternative<double>(sdf_choice.second.const_.value())) {
                         item.value = static_cast<int>(std::get<double>(sdf_choice.second.const_.value()));
@@ -1252,6 +1264,14 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 } else {
                     item.value = value;
                     value++;
+                }
+                if (ImportFromMapping(current_given_name_node->GeneratePointer(), "item", conformance_json)) {
+                    for (auto& item_json : conformance_json) {
+                        if (item_json.at("value") == item.value) {
+                            item.conformance = GenerateMatterConformance(item_json);
+                            break;
+                        }
+                    }
                 }
                 matter_enum.push_back(item);
             }
@@ -1295,17 +1315,25 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     // Import the ID from the mapping
     ImportFromMapping(sdf_thing_reference->GeneratePointer(), "id", device.id);
     device.name = sdf_thing_pair.second.label;
+    if (!sdf_thing_pair.second.sdf_required.empty()) {
+        sdf_required_list.insert(sdf_required_list.end(),
+                                 sdf_thing_pair.second.sdf_required.begin(),
+                                 sdf_thing_pair.second.sdf_required.end());
+    }
     device.summary = sdf_thing_pair.second.description;
     // Import the revision as well as the revision history from the mapping
-    ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revision", device.revision);
+    if (!ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revision", device.revision)) {
+        device.revision = 1;
+    }
     json revision_history_json;
-    ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revisionHistory", revision_history_json);
-    for (const auto& item : revision_history_json) {
-        u_int8_t revision;
-        item.at("revision").at("revision").get_to(revision);
-        std::string summary;
-        item.at("revision").at("summary").get_to(summary);
-        device.revision_history[revision] = summary;
+    if (ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revisionHistory", revision_history_json)) {
+        for (const auto& item : revision_history_json.at("revision")) {
+            u_int8_t revision;
+            item.at("revision").get_to(revision);
+            std::string summary;
+            item.at("summary").get_to(summary);
+            device.revision_history[revision] = summary;
+        }
     }
 
     device.classification = GenerateDeviceClassification();

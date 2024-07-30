@@ -35,7 +35,7 @@
  * @param schema Path to the schema.
  * @return 0 on success, negative on failure.
  */
-int validateSdf(const char* path, const char* schema);
+int ValidateSdf(const char* path, const char* schema);
 
 /**
  * @brief Check compliance for matter file against schema.
@@ -46,6 +46,6 @@ int validateSdf(const char* path, const char* schema);
  * @param schema Path to the schema.
  * @return 0 on success, negative on failure.
  */
-int validateMatter(const char* path, const char* schema);
+int ValidateMatter(const char* path, const char* schema);
 
 #endif //VALIDATOR_H

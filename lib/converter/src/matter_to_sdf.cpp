@@ -161,7 +161,7 @@ bool EvaluateConformanceCondition(const json& condition) {
     } else if (condition.contains("orTerm")) {
         // Returns true, if any one of the contained expressions evaluate to true
         // Returns false otherwise
-        for (auto& item : condition.at("orTerm")) {
+        for (auto &item: condition.at("orTerm")) {
             if (EvaluateConformanceCondition(item)) {
                 return true;
             }
@@ -184,15 +184,24 @@ bool EvaluateConformanceCondition(const json& condition) {
     } else if (condition.contains("notTerm")) {
         return !EvaluateConformanceCondition(condition.at("notTerm"));
     } else if (condition.contains("feature")) {
-        std::cout << "Reached" << condition.at("feature") << std::endl;
-        if (supported_features.find(condition.at("feature").at("name")) != supported_features.end()) {
-            std::cout << "Feature" << condition.at("feature") << "supported" << std::endl;
-            return true;
+        if (condition.at("feature").is_array()) {
+            for (auto& feature_json : condition.at("feature")) {
+                if (supported_features.find(feature_json.at("name")) != supported_features.end()) {
+                    return true;
+                }
+            }
+        } else {
+            if (supported_features.find(condition.at("feature").at("name")) != supported_features.end()) {
+                return true;
+            }
         }
     } else if (condition.contains("condition")) {
-        std::cout << "Reached" << condition.at("condition") << std::endl;
-        // TODO: Check if the condition is satisfied
-        return true;
+        // The only condition that this converter can evaluate
+        if (condition.at("condition").at("name") == "Matter") {
+            return true;
+        } else {
+            return false;
+        }
     } else if (condition.contains("attribute")) {
         std::cout << "Reached" << condition.at("attribute") << std::endl;
         // TODO: Check if the attribute exists
@@ -204,15 +213,15 @@ bool EvaluateConformanceCondition(const json& condition) {
 
 void to_json(json& j, const matter::Conformance& conformance) {
     if (conformance.mandatory) {
-        j = json {{"mandatoryConform", conformance.condition}};
+        j["mandatoryConform"] = conformance.condition;
     } else if (conformance.optional) {
-        j = json {{"optionalConform", conformance.condition}};
+        j["optionalConform"] = conformance.condition;
     } else if (conformance.provisional) {
-        j = json {{"provisionalConform", conformance.condition}};
+        j["provisionalConform"] = conformance.condition;
     } else if (conformance.deprecated) {
-        j = json {{"deprecateConform", conformance.condition}};
+        j["deprecateConform"] = conformance.condition;
     } else if (conformance.disallowed) {
-        j = json {{"disallowConform", conformance.condition}};
+        j["disallowConform"] = conformance.condition;
     }
 }
 
@@ -229,18 +238,20 @@ std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::st
 
     for (const auto& bitfield : bitmap_pair.second) {
         sdf::DataQuality sdf_choice_data_quality;
-
+        json bitfield_json;
         if (bitfield.conformance.has_value()) {
-            to_json(bitmap_json["sdfChoice"][bitfield.name], bitfield.conformance.value());
+            to_json(bitfield_json, bitfield.conformance.value());
         }
 
-        bitmap_json["sdfChoice"][bitfield.name]["bit"] = bitfield.bit;
-        bitmap_json["sdfChoice"][bitfield.name]["summary"] = bitfield.summary;
+        bitfield_json["bit"] = bitfield.bit;
+        bitfield_json["name"] = bitfield.name;
+        bitfield_json["summary"] = bitfield.summary;
         item.sdf_choice[bitfield.name] = sdf_choice_data_quality;
+        bitmap_json.push_back(bitfield_json);
     }
 
     data_quality.items = item;
-    current_given_name_node->AddAttribute("items", bitmap_json);
+    current_given_name_node->AddAttribute("bitfield", bitmap_json);
     return {bitmap_pair.first, data_quality};
 }
 
@@ -258,13 +269,16 @@ std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::stri
         sdf_choice_data_quality.description = item.summary;
 
         if (item.conformance.has_value()) {
-            to_json(enum_json[item.name], item.conformance.value());
+            json item_json;
+            item_json["value"] = item.value;
+            to_json(item_json, item.conformance.value());
+            enum_json.push_back(item_json);
         }
 
         data_quality.sdf_choice[item.name] = sdf_choice_data_quality;
     }
 
-    current_given_name_node->AddAttribute("sdfChoice", enum_json);
+    current_given_name_node->AddAttribute("item", enum_json);
 
     return {enum_pair.first, data_quality};
 }
@@ -1303,7 +1317,7 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map) {
                 std::cout << "Supported Feature: " << feature.code << std::endl;
             }
         }
-        feature_map_json.push_back(feature_json);
+        feature_map_json["feature"].push_back(feature_json);
     }
     if (!feature_map_json.is_null()) {
         current_given_name_node->AddAttribute("features", feature_map_json);
@@ -1456,9 +1470,9 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
     json revision_history_json;
     for (const auto& revision : cluster.revision_history) {
         json revision_json;
-        revision_json["revision"]["revision"] = revision.first;
-        revision_json["revision"]["summary"] = revision.second;
-        revision_history_json.push_back(revision_json);
+        revision_json["revision"] = revision.first;
+        revision_json["summary"] = revision.second;
+        revision_history_json["revision"].push_back(revision_json);
     }
     cluster_reference->AddAttribute("revisionHistory", revision_history_json);
 
@@ -1466,9 +1480,9 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
     json cluster_aliases_json;
     for (const auto& cluster_alias : cluster.cluster_aliases) {
         json cluster_alias_json;
-        cluster_alias_json["clusterId"]["id"] = cluster_alias.first;
-        cluster_alias_json["clusterId"]["name"] = cluster_alias.second;
-        cluster_aliases_json.push_back(cluster_alias_json);
+        cluster_alias_json["id"] = cluster_alias.first;
+        cluster_alias_json["name"] = cluster_alias.second;
+        cluster_aliases_json["clusterId"].push_back(cluster_alias_json);
     }
     cluster_reference->AddAttribute("clusterIds", cluster_aliases_json);
 
@@ -1578,9 +1592,9 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device) {
     json revision_history_json;
     for (const auto& revision : device.revision_history) {
         json revision_json;
-        revision_json["revision"]["revision"] = revision.first;
-        revision_json["revision"]["summary"] = revision.second;
-        revision_history_json.push_back(revision_json);
+        revision_json["revision"] = revision.first;
+        revision_json["summary"] = revision.second;
+        revision_history_json["revision"].push_back(revision_json);
     }
     device_reference->AddAttribute("revisionHistory", revision_history_json);
 
