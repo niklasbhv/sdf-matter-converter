@@ -171,7 +171,6 @@ Constraint ParseEntryConstraint(const pugi::xml_node& constraint_node) {
 //! easy evaluation for the contained expression
 nlohmann::json ParseLogicalTerm(const pugi::xml_node& logical_node) {
     nlohmann::json condition;
-
     std::string node_name = logical_node.name();
     condition[node_name] = {};
     if (node_name == "feature" or node_name == "condition" or node_name == "attribute") {
@@ -188,13 +187,24 @@ nlohmann::json ParseLogicalTerm(const pugi::xml_node& logical_node) {
                     condition[node_name][child_node_name] = {temp_feature, {{"name", child_node.attribute("name").value()}}};
                 }
             } else {
-                condition[node_name][child_node_name] = {{"name", child_node.attribute("name").value()}};
+                if (condition[node_name].is_array()) {
+                    condition[node_name].push_back({{"name", child_node.attribute("name").value()}});
+                } else {
+                    condition[node_name][child_node_name] = {{"name", child_node.attribute("name").value()}};
+                }
+
             }
         } else {
             if (node_name == "notTerm") {
                 condition[node_name] = ParseLogicalTerm(child_node);
             } else {
-                condition[node_name].push_back(ParseLogicalTerm(child_node));
+                nlohmann::json logical_term_json = ParseLogicalTerm(child_node);
+                if (logical_term_json.is_object()) {
+                    condition[node_name] = logical_term_json;
+                } else {
+                    condition[node_name].push_back(logical_term_json);
+                }
+
             }
         }
     }
