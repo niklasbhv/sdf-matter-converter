@@ -38,10 +38,12 @@ static std::set<std::string> supported_features;
 //! This list gets filled while mapping and afterward appended to the corresponding sdfModel
 static std::list<std::string> sdf_required_list;
 
+//! Location of the sdfData for the currently mapped structure
 static std::string sdf_data_location;
 
 namespace matter {
 
+//! Function used to convert a conformance object into a JSON structure
 void to_json(json& j, const Conformance& conformance) {
     if (conformance.mandatory) {
         j = json{{"mandatoryConform", conformance.condition}};
@@ -57,9 +59,10 @@ void to_json(json& j, const Conformance& conformance) {
         j = json::object();
     }
 }
-}
+} // matter
 
-//! Maps information of the given other quality onto a sdfProperty object
+//! This function is used to map Matter other qualities onto an sdfProperty
+//! The remaining information gets exported to the sdf-mapping
 void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty& sdf_property) {
     json quality_json;
 
@@ -112,7 +115,8 @@ void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty
     }
 }
 
-//! Maps information of the given other quality onto a data quality object
+//! This function is used to map Matter other qualities onto data qualities
+//! The remaining information gets exported to the sdf-mapping
 void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::DataQuality& data_quality) {
     json quality_json;
 
@@ -165,6 +169,8 @@ void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::DataQuality
     }
 }
 
+//! Function used to evaluate the given condition
+//! This function is used in combination with Matter conformance's
 bool EvaluateConformanceCondition(const json& condition) {
     if (condition.empty()) {
         return true;
@@ -230,6 +236,7 @@ bool EvaluateConformanceCondition(const json& condition) {
     return false;
 }
 
+//! Function used to map a Matter bitmap onto a sdfData element
 std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair) {
     auto* bitmap_reference = new ReferenceTreeNode(bitmap_pair.first);
     current_quality_name_node->AddChild(bitmap_reference);
@@ -260,6 +267,7 @@ std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::st
     return {bitmap_pair.first, data_quality};
 }
 
+//! Function used to map a Matter enum onto a sdfData element
 std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::string, std::list<matter::Item>>& enum_pair) {
     auto* enum_reference = new ReferenceTreeNode(enum_pair.first);
     current_quality_name_node->AddChild(enum_reference);
@@ -288,6 +296,7 @@ std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::stri
     return {enum_pair.first, data_quality};
 }
 
+//! Function used to map the default type from Matter onto the variable type of sdf
 std::optional<sdf::VariableType> MapMatterDefaultType(const matter::DefaultType& default_type) {
     sdf::VariableType variable_type;
 
@@ -313,7 +322,7 @@ std::optional<sdf::VariableType> MapMatterDefaultType(const matter::DefaultType&
     return variable_type;
 }
 
-//! Generates data qualities based on the given matter type
+//! Function used to map a given matter type onto a data quality
 void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_quality) {
     // Base Matter data types
     // Boolean data type
@@ -842,6 +851,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     }
 }
 
+//! Function used to map a Matter struct onto a sdfData element
 std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::string, matter::Struct>& struct_pair) {
     sdf::DataQuality data_quality;
     data_quality.type = "object";
@@ -864,7 +874,7 @@ std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::st
     return {struct_pair.first, data_quality};
 }
 
-//! Function used to map data qualities onto an JsoItem object
+//! Helper function used to map data qualities onto an JsoItem object
 sdf::JsoItem DataQualityToJsoItem(const sdf::DataQuality& data_quality) {
     sdf::JsoItem jso_item;
 
@@ -892,7 +902,7 @@ sdf::JsoItem MapMatterEntryConstraint(const matter::Constraint& entry_constraint
     return jso_item;
 }
 
-//! Matter Constraint -> Data Quality
+//! Function used to map a Matter constraint onto a data quality
 void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality& data_quality) {
     if (constraint.type == "desc") {
         json constraint_json;
@@ -981,8 +991,8 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
     // char constraints
 }
 
-//! Matter Access Type -> SDF Mapping
-//! This function is used standalone to move all qualities to the SDF Mapping
+//! Function used to map a Matter access
+//! This structure gets completely exported to the sdf-mapping
 void MapMatterAccess(const matter::Access& access) {
     json access_json;
     if (access.read.has_value()) {
@@ -1020,8 +1030,8 @@ void MapMatterAccess(const matter::Access& access) {
     current_given_name_node->AddAttribute("access", access_json);
 }
 
-//! Matter Access Type
-//! This function is used in combination with a sdfProperty
+//! Function used to map a Matter access onto a readable and writeable of a sdfProperty
+//! The remaining information gets exported to the sdf-mapping
 void MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdf_property) {
     json access_json;
     if (access.read.has_value()) {
@@ -1059,15 +1069,10 @@ void MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdf_propert
     current_given_name_node->AddAttribute("access", access_json);
 }
 
-/**
- * @brief Adds element to sdf_required depending on the conformance.
- *
- * This function adds the current element to sdf_required it is set to mandatory via its conformance.
- *
- * @param conformance The conformance to check.
- * @param current_node The reference tree node of the current element.
- * @return 0 on success, negative on failure.
- */
+//! Function used to map a Matter conformance
+//! If the conformance is mandatory, the current element gets added to the list of required elements
+//! The function also exports the conformance onto the sdf-mapping
+//! This function also returns the result of the evaluated condition
 bool MapMatterConformance(const matter::Conformance& conformance) {
     if (conformance.mandatory and EvaluateConformanceCondition(conformance.condition)) {
         sdf_required_list.push_back(current_given_name_node->GeneratePointer());
@@ -1113,6 +1118,7 @@ bool MapMatterConformance(const matter::Conformance& conformance) {
     return EvaluateConformanceCondition(conformance.condition);
 }
 
+//! Function used to map a list of Matter data fields onto a data quality
 sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_field_list) {
     sdf::DataQuality data_quality;
     //id
@@ -1206,6 +1212,8 @@ sdf::SdfEvent MapMatterEvent(const matter::Event& event) {
     return sdf_event;
 }
 
+//! Function used to map a Matter client command onto a sdfAction
+//! This list of server commands is used to map the response of the command onto the sdfOutputData
 sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std::unordered_map<std::string,
                                 matter::Command>& server_commands) {
     sdf::SdfAction sdf_action;
@@ -1233,6 +1241,7 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
     }
 
     // If the command does not have a response
+    // In this case there is nothing left to be done
     if (client_command.response == "N") {}
     // If the client_command only returns a simple status
     else if (client_command.response == "Y") {
@@ -1251,6 +1260,7 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
     return sdf_action;
 }
 
+//! Function used to map a Matter attribute onto a sdfProperty
 sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute) {
     sdf::SdfProperty sdf_property;
     // Append the attribute node to the tree
@@ -1290,12 +1300,15 @@ sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute) {
     return sdf_property;
 }
 
+//! Function used to map the Matter feature map
+//! This function servers two purposes.
+//! Firstly, evaluates for each feature, if it is supported and adds it to the global list of supported features
+//! Secondly, it generates a JSON structure and exports this structure to the sdf-mapping
 void MapFeatureMap(const std::list<matter::Feature>& feature_map) {
     // Evaluate the features while also exporting them to the mapping
     json feature_map_json;
     for (const auto& feature : feature_map) {
         json feature_json;
-        bool condition;
         feature_json["bit"] = feature.bit;
         feature_json["code"] = feature.code;
         feature_json["name"] = feature.name;
@@ -1321,7 +1334,7 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map) {
                 feature_json["disallowConform"] = feature.conformance.value().condition;
             }
 
-            condition = EvaluateConformanceCondition(feature.conformance.value().condition);
+            bool condition = EvaluateConformanceCondition(feature.conformance.value().condition);
             if (feature.conformance.value().mandatory and condition) {
                 supported_features.insert(feature.code);
                 std::cout << "Supported Feature: " << feature.code << std::endl;
@@ -1334,6 +1347,8 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map) {
     }
 }
 
+//! Function used to map the cluster classification
+//! This structure gets completely exported to the sdf-mapping
 void MapClusterClassification(const matter::ClusterClassification& cluster_classification) {
     json cluster_classification_json;
 
@@ -1364,6 +1379,7 @@ void MapClusterClassification(const matter::ClusterClassification& cluster_class
     current_given_name_node->AddAttribute("classification", cluster_classification_json);
 }
 
+//! Function used to map a Matter cluster onto a sdfObject
 sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
     sdf::SdfObject sdf_object;
     ReferenceTreeNode* cluster_reference;
@@ -1453,18 +1469,21 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
         sdf_object.sdf_event.insert({event.name, sdf_event});
     }
 
-    // Iterate through the data types and map them
     auto* sdf_data_node = new ReferenceTreeNode("sdfData");
     cluster_reference->AddChild(sdf_data_node);
     current_quality_name_node = sdf_data_node;
+
+    // Iterate through the structs and map them individually
     for (const auto& struct_pair : cluster.structs) {
         sdf_object.sdf_data.insert(MapMatterStruct(struct_pair));
     }
 
+    // Iterate through the enums and map them individually
     for (const auto& enum_pair : cluster.enums) {
         sdf_object.sdf_data.insert(MapMatterEnum(enum_pair));
     }
 
+    // Iterate through bitmaps and map them individually
     for (const auto& bitmap_pair : cluster.bitmaps) {
         sdf_object.sdf_data.insert(MapMatterBitmap(bitmap_pair));
     }
@@ -1474,8 +1493,8 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
     return sdf_object;
 }
 
-//! Generate a SDF-Model or SDF-Mapping information block based on information of either
-//! a Matter device or a Matter cluster
+//! Generate a sdf-model or sdf-mapping information block based on information of either
+//! a Matter device type or a Matter cluster
 sdf::InformationBlock GenerateInformationBlock(const std::variant<matter::Device, matter::Cluster>& input) {
     sdf::InformationBlock information_block;
     if (std::holds_alternative<matter::Device>(input)) {
@@ -1488,6 +1507,8 @@ sdf::InformationBlock GenerateInformationBlock(const std::variant<matter::Device
     return information_block;
 }
 
+//! Function used to map the device type classification
+//! This structure gets completely exported to the sdf-mapping
 void MapDeviceClassification(const matter::DeviceClassification& device_classification) {
     json device_classification_json;
 
@@ -1506,6 +1527,7 @@ void MapDeviceClassification(const matter::DeviceClassification& device_classifi
     current_given_name_node->AddAttribute("classification", device_classification_json);
 }
 
+//! Function used to map a Matter device type onto a sdfThing
 sdf::SdfThing MapMatterDevice(const matter::Device& device) {
     sdf::SdfThing sdf_thing;
     // Append a new sdf_object node to the tree
@@ -1514,6 +1536,7 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device) {
     current_given_name_node = device_reference;
 
     device_reference->AddAttribute("id", static_cast<uint64_t>(device.id));
+
     if (device.classification.has_value()) {
         MapDeviceClassification(device.classification.value());
     }
@@ -1535,10 +1558,10 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device) {
     sdf_thing.label = device.name;
     sdf_thing.description = device.summary;
 
-    // Iterate through cluster definitions for the device
     auto* sdf_object_reference = new ReferenceTreeNode("sdfObject");
     device_reference->AddChild(sdf_object_reference);
     current_quality_name_node = sdf_object_reference;
+    // Iterate through clusters of the device type and map them individually
     for (const auto& cluster : device.clusters){
         sdf::SdfObject sdf_object = MapMatterCluster(cluster);
         // Clear the sdfRequired list as it would result in duplicates
@@ -1546,12 +1569,15 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device) {
         current_quality_name_node = sdf_object_reference;
         // Clear the list of supported features after every run
         supported_features.clear();
+        // As a cluster can be mapped as a client as well as a server cluster, we suffix the cluster name
+        // with _Client or _Server
         if (cluster.side == "client") {
             sdf_thing.sdf_object.insert({cluster.name + "_Client", sdf_object});
         } else {
             sdf_thing.sdf_object.insert({cluster.name + "_Server", sdf_object});
         }
     }
+    // Set the list of required elements for the sdfThing
     sdf_thing.sdf_required = sdf_required_list;
 
     return sdf_thing;
@@ -1663,30 +1689,42 @@ void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>
 
 int MapMatterToSdf(const std::optional<matter::Device>& optional_device, const std::list<matter::Cluster>& cluster_list,
                    sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping) {
+    // Create a new ReferenceTree
     ReferenceTree reference_tree;
+    // Check if a device type is given
     if (optional_device.has_value()) {
+        // Add sdfThing to the ReferenceTree
         auto* sdf_thing_reference = new ReferenceTreeNode("sdfThing");
         reference_tree.root->AddChild(sdf_thing_reference);
         current_quality_name_node = sdf_thing_reference;
+
         matter::Device device = optional_device.value();
+        // Generate the information block based on the given device type
         sdf_model.information_block = GenerateInformationBlock(device);
         sdf_mapping.information_block = GenerateInformationBlock(device);
+        // Merge the clusters from the cluster list into the specified clusters for the device type
         MergeDeviceCluster(device, cluster_list);
+        // Map the device type onto a sdfThing
         sdf::SdfThing sdf_thing = MapMatterDevice(device);
         sdf_model.sdf_thing.insert({sdf_thing.label, sdf_thing});
     } else {
+        // Add sdfObject to the ReferenceTree
         auto* sdf_object_reference = new ReferenceTreeNode("sdfObject");
         reference_tree.root->AddChild(sdf_object_reference);
         current_quality_name_node = sdf_object_reference;
+        // Iterate through all clusters and map them individually
         for (const auto& cluster : cluster_list) {
+            // Generate the information block based on the given cluster
             sdf_model.information_block = GenerateInformationBlock(cluster);
             sdf_mapping.information_block = GenerateInformationBlock(cluster);
+            // Map the cluster onto a sdfObject
             sdf::SdfObject sdf_object = MapMatterCluster(cluster);
             sdf_model.sdf_object.insert({sdf_object.label, sdf_object});
             current_quality_name_node = sdf_object_reference;
         }
     }
 
+    // Generate the sdf-mapping map section based on the reference tree
     sdf_mapping.map = reference_tree.GenerateMapping(reference_tree.root);
 
     return 0;
