@@ -125,4 +125,46 @@ static bool contains(const std::list<std::string>& list, const std::string& str)
     return std::find(list.begin(), list.end(), str) != list.end();
 }
 
+inline bool equals(int64_t a, uint64_t b) {
+    if (a < 0) {
+        // A negative int64_t is always less than any uint64_t
+        return false;
+    }
+    auto ua = static_cast<uint64_t>(a);
+    return ua == b;
+}
+
+inline bool equals(uint64_t a, int64_t b) {
+    // Check if the int64_t value is negative
+    if (b < 0) {
+        // A negative int64_t is always less than any uint64_t
+        return false;
+    }
+    // At this point, b is non-negative, so we can safely cast to uint64_t
+    auto ub = static_cast<uint64_t>(b);
+    return a == ub;
+}
+
+inline bool compare(int64_t a, uint64_t b) {
+    // Check if the int64_t value is negative
+    if (a < 0) {
+        // A negative int64_t is always less than any uint64_t
+        return true;
+    }
+    // At this point, a is non-negative, so we can safely cast to uint64_t
+    auto ua = static_cast<uint64_t>(a);
+    return ua <= b;
+}
+
+inline bool compare(uint64_t a, int64_t b) {
+    // Check if the int64_t value is negative
+    if (b < 0) {
+        // A negative int64_t is always less than any uint64_t
+        return false;
+    }
+    // At this point, b is non-negative, so we can safely cast to uint64_t
+    auto ub = static_cast<uint64_t>(b);
+    return a <= ub;
+}
+
 #endif //SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MAPPING_H_
