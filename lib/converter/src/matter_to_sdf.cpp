@@ -467,7 +467,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         hundredths_qualities.nullable = true;
         properties["Hundredths"] = hundredths_qualities;
         data_quality.properties = properties;
-        //data_quality.required
     }
     // Data data type
     // Base: struct
@@ -605,29 +604,30 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // 8-bit enumeration data type
     // Base: uint8
     else if (matter_type == "enum8") {
-        //data_quality.nullable = true;
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_8_MAX;
     }
     // 16-bit enumeration data type
     // Base: uint16
     else if (matter_type == "enum16") {
-        //data_quality.nullable = true;
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_16_MAX;
     }
     // Priority data type
     // Base: enum8
     else if (matter_type == "priority") {
-        data_quality.type = "integer";
-        data_quality.minimum = 0;
-        data_quality.maximum = MATTER_U_INT_8_MAX;
         sdf::DataQuality debug_priority;
-        //debug_priority.label = "DEBUG";
+        debug_priority.label = "DEBUG";
         debug_priority.const_ = 0;
         debug_priority.description = "Information for engineering debugging/troubleshooting";
         sdf::DataQuality info_priority;
-        //info_priority.label = "INFO";
+        info_priority.label = "INFO";
         info_priority.const_ = 1;
         info_priority.description = "Information that either drives customer facing features or provides insights into device functions that are used to drive analytics use cases";
         sdf::DataQuality critical_priority;
-        //critical_priority.label = "CRITICAL";
+        critical_priority.label = "CRITICAL";
         critical_priority.const_ = 2;
         critical_priority.description = "Information or notification that impacts safety, a critical function, or ongoing reliable operation of the node or application supported on an endpoint";
         data_quality.sdf_choice["DEBUG"] = debug_priority;
@@ -637,6 +637,9 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Status code data type
     // Base: enum8
     else if (matter_type == "status") {
+        data_quality.type = "integer";
+        data_quality.minimum = 0;
+        data_quality.maximum = MATTER_U_INT_8_MAX;
     }
     // Group id data type
     // Base: uint16
@@ -847,7 +850,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Otherwise, the type is a custom type defined in the data type section
     else {
         data_quality.sdf_ref = sdf_data_location + matter_type;
-        std::cout << "Found: " << matter_type << std::endl;
     }
 }
 
