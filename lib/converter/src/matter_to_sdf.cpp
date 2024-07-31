@@ -1334,26 +1334,9 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map) {
         feature_json["code"] = feature.code;
         feature_json["name"] = feature.name;
         feature_json["summary"] = feature.summary;
+
         if (feature.conformance.has_value()) {
-            if (feature.conformance.value().mandatory) {
-                feature_json["mandatoryConform"] = feature.conformance.value().condition;
-            }
-
-            if (feature.conformance.value().optional) {
-                feature_json["optionalConform"] = feature.conformance.value().condition;
-            }
-
-            if (feature.conformance.value().provisional) {
-                feature_json["provisionalConform"] = feature.conformance.value().condition;
-            }
-
-            if (feature.conformance.value().deprecated) {
-                feature_json["deprecateConform"] = feature.conformance.value().condition;
-            }
-
-            if (feature.conformance.value().disallowed) {
-                feature_json["disallowConform"] = feature.conformance.value().condition;
-            }
+            feature_json.merge_patch(feature.conformance.value());
 
             bool condition = EvaluateConformanceCondition(feature.conformance.value().condition);
             if (feature.conformance.value().mandatory and condition) {
