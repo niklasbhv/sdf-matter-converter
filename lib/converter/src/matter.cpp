@@ -674,6 +674,10 @@ Device ParseDevice(const pugi::xml_node& device_xml) {
         device.classification = ParseDeviceClassification(device_xml.child("classification"));
     }
 
+    for (const auto& condition_node : device_xml.child("conditions").children()) {
+        device.conditions.push_back(condition_node.attribute("name").value());
+    }
+
     // Iterate through all clusters needed by the device and parse them individually
     for (const auto &cluster_node: device_xml.child("clusters").children("cluster")) {
         device.clusters.push_back(ParseCluster(cluster_node));
@@ -1334,6 +1338,9 @@ void SerializeDevice(const Device& device, pugi::xml_document& device_xml)
     }
 
     device_node.append_child("conditions");
+    for (const auto& condition : device.conditions) {
+        device_node.child("conditions").append_child("condition").append_attribute("name").set_value(condition.c_str());
+    }
 
     // Iterate through all clusters and serialize them individually
     auto clusters_node = device_node.append_child("clusters");

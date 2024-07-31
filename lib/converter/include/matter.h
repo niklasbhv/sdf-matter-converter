@@ -362,7 +362,7 @@ struct Device : CommonQuality {
     //! Device classification
     std::optional<DeviceClassification> classification;
     //! Device conditions
-    std::map<std::string, std::string> conditions;
+    std::list<std::string> conditions;
     //! List of used server and client clusters
     std::list<Cluster> clusters;
 };
