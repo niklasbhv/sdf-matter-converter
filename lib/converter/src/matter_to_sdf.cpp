@@ -1142,11 +1142,12 @@ bool MapMatterConformance(const matter::Conformance& conformance) {
 //! Function used to map a list of Matter data fields onto a data quality
 sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_field_list) {
     sdf::DataQuality data_quality;
-    //id
-    //conformance
-    //default
     if (data_field_list.empty()) {}
     else if (data_field_list.size() <= 1) {
+        json conformance_json;
+        conformance_json["id"] = data_field_list.front().id;
+        conformance_json["name"] = data_field_list.front().name;
+
         data_quality.label = data_field_list.front().name;
         if (data_field_list.front().access.has_value()) {
             MapMatterAccess(data_field_list.front().access.value());
@@ -1167,12 +1168,20 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
         }
 
         if (data_field_list.front().conformance.has_value()) {
-            json conformance_json = data_field_list.front().conformance.value();
+            conformance_json.merge_patch(data_field_list.front().conformance.value());
+
+        }
+
+        if (!conformance_json.is_null()) {
             current_given_name_node->AddAttribute("field", conformance_json);
         }
     } else {
+        json conformance_json;
         data_quality.type = "object";
         for (const auto& field : data_field_list) {
+            json field_json;
+            field_json["id"] = field.id;
+            field_json["name"] = field.name;
             sdf::DataQuality data_quality_properties;
             data_quality_properties.label = field.name;
             if (field.access.has_value()) {
@@ -1195,10 +1204,15 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
 
             data_quality.properties[field.name] = data_quality_properties;
             if (field.conformance.has_value()) {
+                field_json.merge_patch(field.conformance.value());
                 if (field.conformance.value().mandatory and EvaluateConformanceCondition(field.conformance.value().condition)) {
                     data_quality.required.push_back(field.name);
                 }
             }
+            conformance_json.push_back(field_json);
+        }
+        if (!conformance_json.is_null()) {
+            current_given_name_node->AddAttribute("field", conformance_json);
         }
     }
     return data_quality;
@@ -1330,6 +1344,7 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map) {
     json feature_map_json;
     for (const auto& feature : feature_map) {
         json feature_json;
+        bool condition;
         feature_json["bit"] = feature.bit;
         feature_json["code"] = feature.code;
         feature_json["name"] = feature.name;
