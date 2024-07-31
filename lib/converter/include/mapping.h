@@ -125,6 +125,7 @@ static bool contains(const std::list<std::string>& list, const std::string& str)
     return std::find(list.begin(), list.end(), str) != list.end();
 }
 
+//! Helper function used to check if a int and a uint are equal
 inline bool equals(int64_t a, uint64_t b) {
     if (a < 0) {
         // A negative int64_t is always less than any uint64_t
@@ -134,6 +135,7 @@ inline bool equals(int64_t a, uint64_t b) {
     return ua == b;
 }
 
+//! Helper function used to check if a int and a uint are equal
 inline bool equals(uint64_t a, int64_t b) {
     // Check if the int64_t value is negative
     if (b < 0) {
@@ -145,6 +147,7 @@ inline bool equals(uint64_t a, int64_t b) {
     return a == ub;
 }
 
+//! Helper function used to compare a int and a uint
 inline bool compare(int64_t a, uint64_t b) {
     // Check if the int64_t value is negative
     if (a < 0) {
@@ -156,6 +159,7 @@ inline bool compare(int64_t a, uint64_t b) {
     return ua <= b;
 }
 
+//! Helper function used to compare a int and a uint
 inline bool compare(uint64_t a, int64_t b) {
     // Check if the int64_t value is negative
     if (b < 0) {
