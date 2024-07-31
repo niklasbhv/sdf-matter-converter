@@ -294,6 +294,26 @@ matter::Conformance GenerateMatterConformance(json& conformance_json) {
     return conformance;
 }
 
+bool equals(int64_t a, uint64_t b) {
+    if (a < 0) {
+        // A negative int64_t is always less than any uint64_t
+        return false;
+    }
+    auto ua = static_cast<uint64_t>(a);
+    return ua == b;
+}
+
+bool equals(uint64_t a, int64_t b) {
+    // Check if the int64_t value is negative
+    if (b < 0) {
+        // A negative int64_t is always less than any uint64_t
+        return false;
+    }
+    // At this point, b is non-negative, so we can safely cast to uint64_t
+    auto ub = static_cast<uint64_t>(b);
+    return a == ub;
+}
+
 bool compare(int64_t a, uint64_t b) {
     // Check if the int64_t value is negative
     if (a < 0) {
@@ -323,14 +343,14 @@ bool CheckVariantEquals(const std::variant<double, int64_t, uint64_t>& variant, 
                 return true;
         }
         else if (std::holds_alternative<u_int64_t>(value)) {
-            if (compare(std::get<uint64_t>(value), std::get<int64_t>(variant))) {
+            if (equals(std::get<uint64_t>(value), std::get<int64_t>(variant))) {
                 return true;
             }
         }
     }
     else if (std::holds_alternative<uint64_t>(variant)) {
         if (std::holds_alternative<int64_t>(value)) {
-            if (compare(std::get<int64_t>(value), std::get<uint64_t>(variant))) {
+            if (equals(std::get<int64_t>(value), std::get<uint64_t>(variant))) {
                 return true;
             }
         }
