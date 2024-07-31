@@ -294,35 +294,6 @@ matter::Conformance GenerateMatterConformance(json& conformance_json) {
     return conformance;
 }
 
-bool CheckVariantEquals(const std::variant<double, int64_t, uint64_t>& variant, std::variant<int64_t, uint64_t> value) {
-    if (std::holds_alternative<int64_t>(variant)) {
-        if (std::holds_alternative<int64_t>(value)) {
-            if (std::get<int64_t>(value) == std::get<int64_t>(variant))
-                return true;
-        }
-        else if (std::holds_alternative<u_int64_t>(value)) {
-            if (std::get<uint64_t>(value) == std::get<int64_t>(variant)) {
-                return true;
-            }
-        }
-    }
-    else if (std::holds_alternative<uint64_t>(variant)) {
-        if (std::holds_alternative<int64_t>(value)) {
-            if (std::get<int64_t>(value) == std::get<uint64_t>(variant)) {
-                return true;
-            }
-        }
-        else if (std::holds_alternative<uint64_t>(value)) {
-            if (std::get<uint64_t>(value) == std::get<uint64_t>(variant)) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-//template <typename T> bool Test();
-
 bool compare(int64_t a, uint64_t b) {
     // Check if the int64_t value is negative
     if (a < 0) {
@@ -343,6 +314,33 @@ bool compare(uint64_t a, int64_t b) {
     // At this point, b is non-negative, so we can safely cast to uint64_t
     auto ub = static_cast<uint64_t>(b);
     return a <= ub;
+}
+
+bool CheckVariantEquals(const std::variant<double, int64_t, uint64_t>& variant, std::variant<int64_t, uint64_t> value) {
+    if (std::holds_alternative<int64_t>(variant)) {
+        if (std::holds_alternative<int64_t>(value)) {
+            if (std::get<int64_t>(value) == std::get<int64_t>(variant))
+                return true;
+        }
+        else if (std::holds_alternative<u_int64_t>(value)) {
+            if (compare(std::get<uint64_t>(value), std::get<int64_t>(variant))) {
+                return true;
+            }
+        }
+    }
+    else if (std::holds_alternative<uint64_t>(variant)) {
+        if (std::holds_alternative<int64_t>(value)) {
+            if (compare(std::get<int64_t>(value), std::get<uint64_t>(variant))) {
+                return true;
+            }
+        }
+        else if (std::holds_alternative<uint64_t>(value)) {
+            if (std::get<uint64_t>(value) == std::get<uint64_t>(variant)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 //! Function to check if the variant's integer value is within borders
