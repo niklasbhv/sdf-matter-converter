@@ -1344,6 +1344,14 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
         }
     }
 
+    // Import the conditions from the mapping
+    json conditions_json;
+    if (ImportFromMapping(sdf_thing_reference->GeneratePointer(), "conditions", conditions_json)) {
+        for (const auto& condition : conditions_json.at("condition")) {
+            device.conditions.push_back(condition.at("name"));
+        }
+    }
+
     device.classification = GenerateDeviceClassification();
 
     // Iterate through all sdfObjects and map them individually

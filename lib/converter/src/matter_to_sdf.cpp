@@ -1548,6 +1548,19 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device) {
     }
     device_reference->AddAttribute("revisionHistory", revision_history_json);
 
+    // If the device type contains conditions, export them to the mapping
+    if (!device.conditions.empty()) {
+        json conditions_json;
+        if (device.conditions.size() > 1) {
+            for (const auto& condition : device.conditions) {
+                conditions_json["condition"].push_back({{"name", condition}});
+            }
+        } else {
+            conditions_json["condition"] = {{"name", device.conditions.front()}};
+        }
+        device_reference->AddAttribute("conditions", conditions_json);
+    }
+
     sdf_thing.label = device.name;
     sdf_thing.description = device.summary;
 
