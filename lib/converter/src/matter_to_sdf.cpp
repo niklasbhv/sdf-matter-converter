@@ -235,16 +235,10 @@ bool EvaluateConformanceCondition(const json& condition) {
     } else if (condition.contains("notTerm")) {
         return !EvaluateConformanceCondition(condition.at("notTerm"));
     } else if (condition.contains("feature")) {
-        if (condition.at("feature").is_array()) {
-            for (auto& feature_json : condition.at("feature")) {
-                if (supported_features.find(feature_json.at("name")) != supported_features.end()) {
-                    return true;
-                }
-            }
-        } else {
-            if (supported_features.find(condition.at("feature").at("name")) != supported_features.end()) {
-                return true;
-            }
+        std::cout << "Reached" << condition.at("feature") << std::endl;
+        if (supported_features.find(condition.at("feature").at("name")) != supported_features.end()) {
+            std::cout << "Feature" << condition.at("feature") << "supported" << std::endl;
+            return true;
         }
     } else if (condition.contains("condition")) {
         // The only condition that this converter can evaluate
