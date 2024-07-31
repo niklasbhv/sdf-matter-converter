@@ -55,6 +55,7 @@ template <typename T> bool ImportFromMapping(const std::string& json_pointer, co
     return false;
 }
 
+//! Function used to map the sdf variable type onto the Matter default type
 std::optional<matter::DefaultType> MapSdfDefaultValue(const sdf::VariableType& variable_type) {
     if (std::holds_alternative<uint64_t>(variable_type)) {
         matter::DefaultType default_type;
@@ -184,13 +185,8 @@ std::optional<matter::OtherQuality> ImportOtherQualityFromMapping(const std::str
     return other_quality;
 }
 
-//! @brief Generates a Matter conformance.
-//! The resulting conformance depends on the following factors:
-//! - required quality for the object type
-//! - being part of a sdfRequired quality
-//! If the referred element mentioned in either of these factors,
-//! a mandatory conformance will be created.
-//! Otherwise a optional conformance will be created.
+//! Function used to generate a Matter conformance
+//! The conformance is either imported from the mapping or determined via the sdfRequired and required qualities
 matter::Conformance GenerateMatterConformance() {
     matter::Conformance conformance;
     json conformance_json;
@@ -243,13 +239,8 @@ matter::Conformance GenerateMatterConformance() {
     return conformance;
 }
 
-//! @brief Generates a Matter conformance.
-//! The resulting conformance depends on the following factors:
-//! - required quality for the object type
-//! - being part of a sdfRequired quality
-//! If the referred element mentioned in either of these factors,
-//! a mandatory conformance will be created.
-//! Otherwise a optional conformance will be created.
+//! Function used to generate a Matter conformance based on the given conformance JSON
+//! The conformance is either imported from the mapping or determined via the sdfRequired and required qualities
 matter::Conformance GenerateMatterConformance(json& conformance_json) {
     matter::Conformance conformance;
 
@@ -294,6 +285,7 @@ matter::Conformance GenerateMatterConformance(json& conformance_json) {
     return conformance;
 }
 
+//! Function used to check if the variant's integer value is equal to another variant's integer value
 bool CheckVariantEquals(const std::variant<double, int64_t, uint64_t>& variant, std::variant<int64_t, uint64_t> value) {
     if (std::holds_alternative<int64_t>(variant)) {
         if (std::holds_alternative<int64_t>(value)) {
@@ -321,7 +313,7 @@ bool CheckVariantEquals(const std::variant<double, int64_t, uint64_t>& variant, 
     return false;
 }
 
-//! Function to check if the variant's integer value is within borders
+//! Function used to check if the variant's integer value is within the given borders
 bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant,
                          std::variant<int64_t, uint64_t> lower_bound,
                          std::variant<int64_t, uint64_t> upper_bound) {
@@ -385,6 +377,7 @@ bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant,
     return false;
 }
 
+//! Function used to map a integer type data quality onto a Matter type as well as a Matter constraint
 std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constraint& constraint) {
     if (data_quality.minimum.has_value()) {
         // Check if the minimum value is positive or negative
@@ -669,6 +662,7 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
     return "";
 }
 
+//! Helper function used to get the remaining string after a slash
 std::string GetLastPartAfterSlash(const std::string& str) {
     size_t pos = str.find_last_of('/');
     if (pos != std::string::npos) {
@@ -677,6 +671,7 @@ std::string GetLastPartAfterSlash(const std::string& str) {
     return str;  // If no slash is found, return the original string
 }
 
+//! Helper function used to map a JsoItem object onto a data quality
 sdf::DataQuality MapJsoItemToSdfDataQuality(const sdf::JsoItem& jso_item) {
     sdf::DataQuality data_quality;
 
@@ -697,7 +692,7 @@ sdf::DataQuality MapJsoItemToSdfDataQuality(const sdf::JsoItem& jso_item) {
     return data_quality;
 }
 
-//! Determine a Matter type from the information's of a given data quality
+//! Function used to determine a Matter type based on the information of the given data quality
 std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint) {
     json desc_json;
     ImportFromMapping(current_given_name_node->GeneratePointer(), "constraint", desc_json);
@@ -752,7 +747,7 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
     return result;
 }
 
-//! Maps a data quality onto a data field.
+//! Function used to map a data quality onto a Matter data field
 matter::DataField MapSdfData(sdf::DataQuality& data_quality) {
     matter::DataField data_field;
 
@@ -773,7 +768,7 @@ matter::DataField MapSdfData(sdf::DataQuality& data_quality) {
     return data_field;
 }
 
-//! Maps either a sdfInputData or sdfOutputData element onto a Matter data field
+//! Function used to map sdfInputData or a sdfOutputData onto a Matter data field
 matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality) {
     matter::DataField data_field;
 
@@ -810,7 +805,7 @@ matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality) {
     return data_field;
 }
 
-//! Maps a sdfEvent onto a Matter event
+//! Function used to map a sdfEvent onto a Matter event
 matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event_pair) {
     matter::Event event;
     auto* sdf_event_reference = new ReferenceTreeNode(sdf_event_pair.first);
@@ -830,7 +825,7 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
     return event;
 }
 
-//! Maps a sdfAction onto a Matter client and optionally on a server command
+//! Function used to map a sdfAction onto a client and optionally onto a server command
 std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const std::pair<std::string,
                                                                         sdf::SdfAction>& sdf_action_pair) {
     matter::Command client_command;
@@ -941,7 +936,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     return {client_command, optional_server_command};
 }
 
-//! Maps a sdfProperty onto a Matter attribute
+//! Function used to map a sdfProperty onto a Matter attribute
 matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>& sdf_property_pair) {
     matter::Attribute attribute;
     auto* sdf_property_reference = new ReferenceTreeNode(sdf_property_pair.first);
@@ -991,7 +986,7 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     return attribute;
 }
 
-//! Imports the feature map for the current cluster from the mapping
+//! Function used to generate a feature map based on the information given by the sdf-mapping
 std::list<matter::Feature> GenerateFeatureMap() {
     std::list<matter::Feature> feature_map;
     json feature_map_json;
@@ -1053,7 +1048,7 @@ std::list<matter::Feature> GenerateFeatureMap() {
     return feature_map;
 }
 
-//! Imports the cluster classification for the current cluster from the mapping
+//! Function used to generate a cluster classification based on the information given by the sdf-mapping
 matter::ClusterClassification GenerateClusterClassification() {
     matter::ClusterClassification cluster_classification;
     json cluster_classification_json;
@@ -1085,7 +1080,7 @@ matter::ClusterClassification GenerateClusterClassification() {
     return cluster_classification;
 }
 
-//! Maps a sdfObject onto a Matter cluster
+//! Function used to map a sdfObject onto a Matter cluster
 matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_object_pair) {
     matter::Cluster cluster;
     auto* sdf_object_reference = new ReferenceTreeNode(sdf_object_pair.first);
@@ -1266,7 +1261,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     return cluster;
 }
 
-//! Imports the device classification for the current device type
+//! Function used to generate a device type classification based on the information given by sdf-mapping
 matter::DeviceClassification GenerateDeviceClassification()
 {
     matter::DeviceClassification device_classification;
@@ -1288,7 +1283,7 @@ matter::DeviceClassification GenerateDeviceClassification()
     return device_classification;
 }
 
-//! Maps a sdfThing onto a Matter device type
+//! Function used to map a sdfThing onto a Matter device type
 matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thing_pair)
 {
     matter::Device device;
@@ -1340,7 +1335,7 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     return device;
 }
 
-//! Creates Matter optional_device as well as cluster definitions from a given SDF Model and SDF Mapping
+//! Function used to map a sdf-model and a sdf-thing onto a device type as well as cluster definitions
 int MapSdfToMatter(const sdf::SdfModel& sdf_model, const sdf::SdfMapping& sdf_mapping,
                    std::optional<matter::Device>& optional_device, std::list<matter::Cluster>& cluster_list) {
     // Make the mapping a global variable
