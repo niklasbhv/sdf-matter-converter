@@ -895,13 +895,6 @@ sdf::JsoItem DataQualityToJsoItem(const sdf::DataQuality& data_quality) {
     return jso_item;
 }
 
-//! Maps a Matter entry constraint onto a Jso Item object
-sdf::JsoItem MapMatterEntryConstraint(const matter::Constraint& entry_constraint) {
-    sdf::JsoItem jso_item;
-    jso_item.sdf_ref = sdf_data_location + entry_constraint.entry_type;
-    return jso_item;
-}
-
 //! Function used to map a Matter constraint onto a data quality
 void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality& data_quality) {
     if (constraint.type == "desc") {
