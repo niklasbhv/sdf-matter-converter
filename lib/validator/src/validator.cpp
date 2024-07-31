@@ -23,6 +23,7 @@
 using nlohmann::ordered_json;
 using nlohmann::json_schema::json_validator;
 
+//! Function used to load a JSON file from the given path
 int LoadJsonFile(const char* path, nlohmann::ordered_json& json_file)
 {
     try {
@@ -37,65 +38,66 @@ int LoadJsonFile(const char* path, nlohmann::ordered_json& json_file)
     return 0;
 }
 
-int ValidateSdf(const char* path, const char* schema)
+
+int ValidateSdf(const char* path, const char* schema_path)
 {
-    //Load the json file as well as the schema
+    //Load the json file as well as the schema_path
     nlohmann::ordered_json json_file;
     LoadJsonFile(path, json_file);
     nlohmann::ordered_json json_schema;
-    LoadJsonFile(schema, json_schema);
+    LoadJsonFile(schema_path, json_schema);
 
-    // Create a new validator and set its schema
+    // Create a new validator and set its schema_path
     json_validator validator;
     try {
         validator.set_root_schema(json_schema);
     } catch (const std::exception &e) {
-        std::cerr << "Validation of schema failed: " << e.what() << "\n";
+        std::cerr << "Validation of schema_path failed: " << e.what() << "\n";
         return -1;
     }
 
-    // Validate the json file against the schema
+    // Validate the json file against the schema_path
     try {
-        auto defaultPatch = validator.validate(json_file);
+        auto default_patch = validator.validate(json_file);
     } catch (const std::exception &e) {
-        std::cerr << "Validation of schema failed: " << e.what() << "\n";
+        std::cerr << "Validation of schema_path failed: " << e.what() << "\n";
         return -1;
     }
     return 0;
 }
 
-int ValidateMatter(const char* xmlFile, const char* schemaFile) {
-    xmlDocPtr doc = xmlReadFile(xmlFile, NULL, 0);
+int ValidateMatter(const char* path, const char* schema_path) {
+    xmlDocPtr doc = xmlReadFile(path, NULL, 0);
     if (doc == nullptr) {
-        std::cerr << "Failed to parse " << xmlFile << std::endl;
+        std::cerr << "Failed to parse " << path << std::endl;
         return false;
     }
 
-    xmlSchemaParserCtxtPtr parserCtxt = xmlSchemaNewParserCtxt(schemaFile);
-    if (parserCtxt == nullptr) {
-        std::cerr << "Could not create XML Schema parser context for " << schemaFile << std::endl;
+    xmlSchemaParserCtxtPtr parser_ctxt = xmlSchemaNewParserCtxt(schema_path);
+    if (parser_ctxt == nullptr) {
+        std::cerr << "Could not create XML Schema parser context for " << schema_path << std::endl;
         xmlFreeDoc(doc);
         return false;
     }
 
-    xmlSchemaPtr schema = xmlSchemaParse(parserCtxt);
+    xmlSchemaPtr schema = xmlSchemaParse(parser_ctxt);
     if (schema == nullptr) {
-        std::cerr << "Failed to parse XML Schema " << schemaFile << std::endl;
-        xmlSchemaFreeParserCtxt(parserCtxt);
+        std::cerr << "Failed to parse XML Schema " << schema << std::endl;
+        xmlSchemaFreeParserCtxt(parser_ctxt);
         xmlFreeDoc(doc);
         return false;
     }
 
-    xmlSchemaValidCtxtPtr validCtxt = xmlSchemaNewValidCtxt(schema);
-    if (validCtxt == nullptr) {
+    xmlSchemaValidCtxtPtr valid_ctxt = xmlSchemaNewValidCtxt(schema);
+    if (valid_ctxt == nullptr) {
         std::cerr << "Could not create XML Schema validation context" << std::endl;
         xmlSchemaFree(schema);
-        xmlSchemaFreeParserCtxt(parserCtxt);
+        xmlSchemaFreeParserCtxt(parser_ctxt);
         xmlFreeDoc(doc);
         return false;
     }
 
-    int ret = xmlSchemaValidateDoc(validCtxt, doc);
+    int ret = xmlSchemaValidateDoc(valid_ctxt, doc);
     if (ret == 0) {
         std::cout << "The XML file is valid against the schema." << std::endl;
     } else if (ret > 0) {
@@ -104,9 +106,9 @@ int ValidateMatter(const char* xmlFile, const char* schemaFile) {
         std::cerr << "Validation generated an internal error." << std::endl;
     }
 
-    xmlSchemaFreeValidCtxt(validCtxt);
+    xmlSchemaFreeValidCtxt(valid_ctxt);
     xmlSchemaFree(schema);
-    xmlSchemaFreeParserCtxt(parserCtxt);
+    xmlSchemaFreeParserCtxt(parser_ctxt);
     xmlFreeDoc(doc);
 
     return ret;

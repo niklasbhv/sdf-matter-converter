@@ -23,29 +23,25 @@
  * Functions validate sdf and matter against a schema.
  */
 
-#ifndef VALIDATOR_H
-#define VALIDATOR_H
+#ifndef SDF_MATTER_CONVERTER_LIB_VALIDATOR_INCLUDE_VALIDATOR_H_
+#define SDF_MATTER_CONVERTER_LIB_VALIDATOR_INCLUDE_VALIDATOR_H_
 
-/**
- * @brief Check compliance for sdf file against schema.
- *
- * This function checks, if a given file complies with the given schema.
- *
- * @param path Path to the file.
- * @param schema Path to the schema.
- * @return 0 on success, negative on failure.
- */
-int ValidateSdf(const char* path, const char* schema);
+//! @brief Check compliance for sdf file against schema_path.
+//!
+//! This function checks, if a given file complies with the given schema_path.
+//!
+//! @param path Path to the file.
+//! @param schema_path Path to the schema_path.
+//! @return 0 on success, negative on failure.
+int ValidateSdf(const char* path, const char* schema_path);
 
-/**
- * @brief Check compliance for matter file against schema.
- *
- * This function checks, if a given file complies with the given schema.
- *
- * @param path Path to the file.
- * @param schema Path to the schema.
- * @return 0 on success, negative on failure.
- */
-int ValidateMatter(const char* path, const char* schema);
+//! @brief Check compliance for matter file against schema_file.
+//!
+//! This function checks, if a given file complies with the given schema_file.
+//!
+//! @param xml_file Path to the file.
+//! @param schema_file Path to the schema_file.
+//! @return 0 on success, negative on failure.
+int ValidateMatter(const char* path, const char* schema_path);
 
-#endif //VALIDATOR_H
+#endif //SDF_MATTER_CONVERTER_LIB_VALIDATOR_INCLUDE_VALIDATOR_H_
