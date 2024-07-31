@@ -40,6 +40,25 @@ static std::list<std::string> sdf_required_list;
 
 static std::string sdf_data_location;
 
+namespace matter {
+
+void to_json(json& j, const Conformance& conformance) {
+    if (conformance.mandatory) {
+        j = json{{"mandatoryConform", conformance.condition}};
+    } else if (conformance.optional) {
+        j = json{{"optionalConform", conformance.condition}};
+    } else if (conformance.provisional) {
+        j = json{{"provisionalConform", conformance.condition}};
+    } else if (conformance.deprecated) {
+        j = json{{"deprecateConform", conformance.condition}};
+    } else if (conformance.disallowed) {
+        j = json{{"disallowConform", conformance.condition}};
+    } else {
+        j = json::object();
+    }
+}
+}
+
 //! Maps information of the given other quality onto a sdfProperty object
 void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty& sdf_property) {
     json quality_json;
@@ -211,20 +230,6 @@ bool EvaluateConformanceCondition(const json& condition) {
     return false;
 }
 
-void to_json(json& j, const matter::Conformance& conformance) {
-    if (conformance.mandatory) {
-        j["mandatoryConform"] = conformance.condition;
-    } else if (conformance.optional) {
-        j["optionalConform"] = conformance.condition;
-    } else if (conformance.provisional) {
-        j["provisionalConform"] = conformance.condition;
-    } else if (conformance.deprecated) {
-        j["deprecateConform"] = conformance.condition;
-    } else if (conformance.disallowed) {
-        j["disallowConform"] = conformance.condition;
-    }
-}
-
 std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair) {
     auto* bitmap_reference = new ReferenceTreeNode(bitmap_pair.first);
     current_quality_name_node->AddChild(bitmap_reference);
@@ -240,7 +245,7 @@ std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::st
         sdf::DataQuality sdf_choice_data_quality;
         json bitfield_json;
         if (bitfield.conformance.has_value()) {
-            to_json(bitfield_json, bitfield.conformance.value());
+            bitfield_json.merge_patch(bitfield.conformance.value());
         }
 
         bitfield_json["bit"] = bitfield.bit;
@@ -271,7 +276,7 @@ std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::stri
         if (item.conformance.has_value()) {
             json item_json;
             item_json["value"] = item.value;
-            to_json(item_json, item.conformance.value());
+            item_json.merge_patch(item.conformance.value());
             enum_json.push_back(item_json);
         }
 
@@ -1133,6 +1138,11 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
         if (data_field_list.front().constraint.has_value()) {
             MapMatterConstraint(data_field_list.front().constraint.value(), data_quality);
         }
+
+        if (data_field_list.front().conformance.has_value()) {
+            json conformance_json = data_field_list.front().conformance.value();
+            current_given_name_node->AddAttribute("field", conformance_json);
+        }
     } else {
         data_quality.type = "object";
         for (const auto& field : data_field_list) {
@@ -1167,6 +1177,7 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
     return data_quality;
 }
 
+//! Function used to map a Matter event onto a sdfEvent
 sdf::SdfEvent MapMatterEvent(const matter::Event& event) {
     sdf::SdfEvent sdf_event;
     // Append the event node to the tree
@@ -1189,10 +1200,8 @@ sdf::SdfEvent MapMatterEvent(const matter::Event& event) {
 
     // Export priority to the mapping
     event_reference->AddAttribute("priority", event.priority);
+    // Map the datafields onto sdfOutputData
     sdf_event.sdf_output_data = MapMatterDataField(event.data);
-    // TODO: Event itself should probably not have these qualities
-    //if (event.quality.has_value())
-    //    MapOtherQuality(event.quality.value(), sdf_event.sdf_output_data.value());
 
     return sdf_event;
 }
@@ -1232,6 +1241,7 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
         sdf_output_data.type = "integer";
         sdf_output_data.minimum = 0;
         sdf_output_data.maximum = MATTER_U_INT_16_MAX;
+        sdf_action.sdf_output_data = sdf_output_data;
     }
     // Otherwise, the client client_command has a reference to a server client_command
     else {
@@ -1352,82 +1362,6 @@ void MapClusterClassification(const matter::ClusterClassification& cluster_class
     }
 
     current_given_name_node->AddAttribute("classification", cluster_classification_json);
-}
-
-//! Function used to map a Matter client cluster onto a sdfObject
-sdf::SdfObject MapMatterClientCluster(const matter::Cluster& cluster) {
-    sdf::SdfObject sdf_object;
-    ReferenceTreeNode* cluster_reference;
-    cluster_reference = new ReferenceTreeNode(cluster.name + "_Client");
-    current_quality_name_node->AddChild(cluster_reference);
-    current_given_name_node = cluster_reference;
-    cluster_reference->AddAttribute("side", cluster.side);
-    // Set the location of sdfData
-    sdf_data_location = current_given_name_node->GeneratePointer() + "/sdfData/";
-    cluster_reference->AddAttribute("id", static_cast<uint64_t>(cluster.id));
-    sdf_object.label = cluster.name;
-    if (cluster.conformance.has_value()) {
-        MapMatterConformance(cluster.conformance.value());
-    }
-
-    sdf_object.description = cluster.summary;
-    // Export the cluster revision to the mapping
-    cluster_reference->AddAttribute("revision", cluster.revision);
-
-    // Export the revision history to the mapping
-    json revision_history_json;
-    for (const auto& revision : cluster.revision_history) {
-        json revision_json;
-        revision_json["revision"]["revision"] = revision.first;
-        revision_json["revision"]["summary"] = revision.second;
-        revision_history_json.push_back(revision_json);
-    }
-    cluster_reference->AddAttribute("revisionHistory", revision_history_json);
-
-    // Export the cluster aliases to the mapping
-    json cluster_aliases_json;
-    for (const auto& cluster_alias : cluster.cluster_aliases) {
-        json cluster_alias_json;
-        cluster_alias_json["clusterId"]["id"] = cluster_alias.first;
-        cluster_alias_json["clusterId"]["name"] = cluster_alias.second;
-        cluster_aliases_json.push_back(cluster_alias_json);
-    }
-    cluster_reference->AddAttribute("clusterIds", cluster_aliases_json);
-
-    if (cluster.classification.has_value()) {
-        MapClusterClassification(cluster.classification.value());
-    }
-
-    MapFeatureMap(cluster.feature_map);
-
-    // Iterate through the commands and map them
-    auto* sdf_action_node = new ReferenceTreeNode("sdfAction");
-    cluster_reference->AddChild(sdf_action_node);
-    current_quality_name_node = sdf_action_node;
-    for (const auto& command : cluster.client_commands){
-        sdf::SdfAction sdf_action = MapMatterCommand(command, cluster.server_commands);
-        sdf_object.sdf_action.insert({command.name, sdf_action});
-    }
-
-    // Iterate through the data types and map them
-    auto* sdf_data_node = new ReferenceTreeNode("sdfData");
-    cluster_reference->AddChild(sdf_data_node);
-    current_quality_name_node = sdf_data_node;
-    for (const auto& struct_pair : cluster.structs) {
-        sdf_object.sdf_data.insert(MapMatterStruct(struct_pair));
-    }
-
-    for (const auto& enum_pair : cluster.enums) {
-        sdf_object.sdf_data.insert(MapMatterEnum(enum_pair));
-    }
-
-    for (const auto& bitmap_pair : cluster.bitmaps) {
-        sdf_object.sdf_data.insert(MapMatterBitmap(bitmap_pair));
-    }
-
-    sdf_object.sdf_required = sdf_required_list;
-
-    return sdf_object;
 }
 
 sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
