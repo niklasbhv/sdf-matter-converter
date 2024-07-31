@@ -119,7 +119,6 @@ namespace sdf {
 //! Type definition for the possible types contained in the sdf-mapping
 typedef std::variant<uint64_t, int64_t, double, std::string, bool, json> MappingValue;
 
-
 //! Struct which contains common quality information.
 struct CommonQuality {
     std::string description;

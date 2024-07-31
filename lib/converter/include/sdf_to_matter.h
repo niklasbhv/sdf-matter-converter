@@ -40,8 +40,7 @@
 //! @param device The optionally resulting device definition.
 //! @param cluster_list The resulting list of cluster definitions.
 //! @return 0 on success, negative on failure.
-int MapSdfToMatter(const sdf::SdfModel& sdf_model,
-                   const sdf::SdfMapping& sdf_mapping,
+int MapSdfToMatter(const sdf::SdfModel& sdf_model, const sdf::SdfMapping& sdf_mapping,
                    std::optional<matter::Device>& optional_device, std::list<matter::Cluster>& cluster_list);
 
 #endif //SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_SDF_TO_MATTER_H_

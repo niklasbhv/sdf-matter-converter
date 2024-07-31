@@ -29,7 +29,7 @@
 #include <list>
 #include "sdf.h"
 
-//! Function to escape JSON Pointer according to RFC 6901
+//! Function to escape JSON Pointer according to section 3 of RFC6901
 inline std::string EscapeJsonPointer(const std::string& input) {
     std::string result = input;
     std::size_t pos = 0;
@@ -46,24 +46,34 @@ inline std::string EscapeJsonPointer(const std::string& input) {
     return result;
 }
 
+//! Node structure that is used to build the ReferenceTree
 class ReferenceTreeNode {
 public:
+    //! Name of the node
     std::string name;
+    //! List of attributes for the node
     std::unordered_map<std::string, sdf::MappingValue> attributes;
+    //! Pointer to the parent of the node
     ReferenceTreeNode* parent;
+    //! List of pointers to the children of the node
     std::vector<ReferenceTreeNode*> children;
 
+    //! Constructor
     ReferenceTreeNode(std::string name) : name(std::move(name)), attributes(), parent(nullptr) {}
 
+    //! Function used to add a new child to the node
     void AddChild(ReferenceTreeNode* child) {
         child->parent = this;
         children.push_back(child);
     }
 
+    //! Function used to add an attribute to the node
+    //! Attributes are a key value pair
     void AddAttribute(const std::string& key, sdf::MappingValue value) {
         attributes[key] = std::move(value);
     }
 
+    //! Function used to generate a pointer that is compliant with section 3 of RFC6901
     std::string GeneratePointer() {
         std::string path;
         ReferenceTreeNode* current = this;
@@ -75,14 +85,17 @@ public:
     }
 };
 
+//! Tree structure used for generating the sdf-mapping
 class ReferenceTree {
 public:
+    //! Root node of the tree
     ReferenceTreeNode* root;
 
     ReferenceTree() {
         root = new ReferenceTreeNode("#");
     }
 
+    //! Function used to generate the complete map section of a sdf-mapping based on the contents of the tree
     std::unordered_map<std::string, std::unordered_map<std::string, sdf::MappingValue>> GenerateMapping(ReferenceTreeNode* node) {
         std::unordered_map<std::string, std::unordered_map<std::string, sdf::MappingValue>> map;
         ReferenceTreeNode* current = node;
@@ -95,6 +108,7 @@ public:
         return map;
     }
 
+    //! Function used to generate a pointer that is compliant with section 3 of RFC6901
     std::string GeneratePointer(ReferenceTreeNode* node) {
         std::string path;
         ReferenceTreeNode* current = node;
@@ -106,6 +120,7 @@ public:
     }
 };
 
+//! Helper function used to determine of a list of strings contains a certain string
 static bool contains(const std::list<std::string>& list, const std::string& str) {
     return std::find(list.begin(), list.end(), str) != list.end();
 }

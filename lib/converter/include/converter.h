@@ -33,7 +33,6 @@
 #include "matter_to_sdf.h"
 #include "sdf_to_matter.h"
 
-
 //! @brief Convert sdf to matter.
 //!
 //! This function converts a given sdf-model and sdf-mapping into the matter format.

@@ -61,7 +61,7 @@
 #define MATTER_INT_56_MIN (-36028797018963968)
 #define MATTER_INT_56_MAX 36028797018963967
 
-//! Function used to filter multiple spaces from a string
+//! Helper function used to filter multiple spaces from a string
 //! This is meant for summary fields as these often contain linebreaks that result in multiple spaces between words
 inline std::string FilterMultipleSpaces(const std::string& input) {
     std::string result;
@@ -82,6 +82,7 @@ inline std::string FilterMultipleSpaces(const std::string& input) {
     return result;
 }
 
+//! Helper function used to convert a integer into a hexadecimal representation
 inline std::string IntToHex(u_int32_t num) {
     std::string hex_str;
     while (num > 0) {
@@ -103,7 +104,7 @@ inline std::string IntToHex(u_int32_t num) {
 
 namespace matter {
 
-//!Type definition for the default type.
+//! Type definition for the default type.
 typedef std::variant<double, int64_t, uint64_t, std::string, bool, std::optional<std::monostate>> DefaultType;
 
 //! Type definition for the numeric type.
@@ -212,7 +213,6 @@ struct CommonQuality {
     u_int32_t id;
     //! CamelCase name of the element.
     std::string name;
-    //! Field is being stripped as it is deprecated, use name instead.
     //! Defines dependencies.
     std::optional<Conformance> conformance;
     //! Defines how an element is accessed.
