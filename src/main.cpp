@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
             .help("Convert from SDF to Matter")
             .default_value(false);
 
-    program.add_argument("--round-trip")
+    program.add_argument("--roundtrip")
             .help("Use round-tripping to convert from one format to the other and back to the original format")
             .default_value(false);
 
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
             }
 
             // Check if round-tripping was selected
-            if (program.is_used("--round-trip")) {
+            if (program.is_used("--roundtrip")) {
                 std::cout << "Round-tripping flag was set!" << std::endl;
                 std::cout << "Converting SDF to Matter..." << std::endl;
                 pugi::xml_document round_trip_device_xml;
@@ -243,7 +243,7 @@ int main(int argc, char *argv[]) {
         pugi::xml_document device_xml;
         std::list<pugi::xml_document> cluster_xml_list;
         ConvertSdfToMatter(sdf_model_json, sdf_mapping_json, device_xml, cluster_xml_list);
-        if (program.is_used("--round-trip")) {
+        if (program.is_used("--roundtrip")) {
             std::cout << "Round-tripping flag was set!" << std::endl;
             std::cout << "Converting Matter to SDF..." << std::endl;
             sdf_model_json.clear();
