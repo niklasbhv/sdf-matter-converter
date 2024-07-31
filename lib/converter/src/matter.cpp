@@ -461,10 +461,6 @@ Command ParseCommand(const pugi::xml_node& command_node) {
         command.access = ParseAccess(command_node.child("access"));
     }
 
-    if (!command_node.attribute("default").empty()) {
-        command.default_ = ParseDefaultType(command_node.attribute("default").value());
-    }
-
     // Iterate through all command fields and parse them individually
     for (const auto& field_node : command_node.children("field")) {
         command.command_fields.push_back(ParseDataField(field_node));
@@ -1039,10 +1035,6 @@ void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
 
     if (!command.summary.empty()) {
         command_node.append_attribute("summary").set_value(command.summary.c_str());
-    }
-
-    if (command.default_.has_value()) {
-        SerializeDefaultType(command.default_.value(), "default", command_node);
     }
 
     command_node.append_attribute("direction").set_value(command.direction.c_str());

@@ -779,28 +779,12 @@ matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality) {
         quality.nullable = data_quality.nullable;
         data_field.quality = quality;
     }
-    //comment
-    //sdf_required
     matter::Constraint constraint;
     data_field.type = MapSdfDataType(data_quality, constraint);
     data_field.constraint = constraint;
-    //sdf_choice
-    //enum
-    //const
     if (data_quality.default_.has_value()) {
         data_field.default_ = MapSdfDefaultValue(data_quality.default_.value());
     }
-    //exclusive_minimum
-    //exclusive_maximum
-    //multiple_of
-    //pattern
-    //format
-    //unique_items
-    //items
-    //unit
-    //nullable
-    //sdf_type
-    //content_format
 
     return data_field;
 }
@@ -838,7 +822,6 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     client_command.conformance = GenerateMatterConformance();
     client_command.access = ImportAccessFromMapping(sdf_action_reference->GeneratePointer());
     client_command.summary = sdf_action_pair.second.description;
-    // default
     client_command.direction = "commandToServer";
     std::optional<matter::Command> optional_server_command;
     // Check if the sdfAction has output data qualities
@@ -888,7 +871,6 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
                 field.id = 0;
                 server_command.command_fields.push_back(field);
             }
-            //required
             optional_server_command = server_command;
         }
     } else {
@@ -921,7 +903,6 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
                 client_command.command_fields.push_back(field);
                 id++;
             }
-            //required
         } else {
             matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_input_data.value());
             json conformance_json;

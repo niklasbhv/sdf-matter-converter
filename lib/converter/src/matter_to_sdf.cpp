@@ -1643,9 +1643,6 @@ void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>
                             if (device_command.second.conformance.has_value()) {
                                 cluster_client_command.conformance = device_command.second.conformance;
                             }
-                            if (device_command.second.default_.has_value()) {
-                                cluster_client_command.default_ = device_command.second.default_;
-                            }
                             if (!device_command.second.response.empty()) {
                                 cluster_client_command.response = device_command.second.response;
                             }
@@ -1658,9 +1655,6 @@ void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>
                             }
                             if (device_command.second.conformance.has_value()) {
                                 cluster_server_command.second.conformance = device_command.second.conformance;
-                            }
-                            if (device_command.second.default_.has_value()) {
-                                cluster_server_command.second.default_ = device_command.second.default_;
                             }
                             if (!device_command.second.response.empty()) {
                                 cluster_server_command.second.response = device_command.second.response;

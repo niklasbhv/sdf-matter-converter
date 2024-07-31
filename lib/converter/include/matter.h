@@ -275,7 +275,6 @@ struct Event : CommonQuality {
 
 //! Struct which contains Matter command information.
 struct Command : CommonQuality {
-    std::optional<DefaultType> default_;
     //! Either commandToServer or responseFromServer
     std::string direction;
     //! Either Y, N or the name of the response command
