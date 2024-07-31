@@ -48,13 +48,39 @@ void to_json(json& j, const Conformance& conformance) {
     if (conformance.mandatory) {
         j = json{{"mandatoryConform", conformance.condition}};
     } else if (conformance.optional) {
-        j = json{{"optionalConform", conformance.condition}};
+        if (!conformance.choice.empty()) {
+            json choice_json;
+            choice_json["choice"] = conformance.choice;
+            if (conformance.choice_more.has_value()) {
+                choice_json["more"] = conformance.choice_more.value();
+            }
+            choice_json.merge_patch(conformance.condition);
+            j = json{{"optionalConform", choice_json}};
+        } else {
+            j = json{{"optionalConform", conformance.condition}};
+        }
     } else if (conformance.provisional) {
         j = json{{"provisionalConform", conformance.condition}};
     } else if (conformance.deprecated) {
         j = json{{"deprecateConform", conformance.condition}};
     } else if (conformance.disallowed) {
         j = json{{"disallowConform", conformance.condition}};
+    } else if (!conformance.otherwise.empty()) {
+        json otherwise_json;
+        for (const auto& otherwise_conformance : conformance.otherwise) {
+            if (otherwise_conformance.mandatory) {
+                otherwise_json["mandatoryConform"] = otherwise_conformance.condition;
+            } else if (otherwise_conformance.optional) {
+                otherwise_json["optionalConform"] = otherwise_conformance.condition;
+            } else if (otherwise_conformance.provisional) {
+                otherwise_json["provisionalConform"] = otherwise_conformance.condition;
+            } else if (otherwise_conformance.deprecated) {
+                otherwise_json["deprecateConform"] = otherwise_conformance.condition;
+            } else if (otherwise_conformance.disallowed) {
+                otherwise_json["disallowConform"] = otherwise_conformance.condition;
+            }
+        }
+        j = json{{"otherwiseConform", otherwise_json}};
     } else {
         j = json::object();
     }
