@@ -1720,6 +1720,8 @@ int MapMatterToSdf(const std::optional<matter::Device>& optional_device, const s
             // Map the cluster onto a sdfObject
             sdf::SdfObject sdf_object = MapMatterCluster(cluster);
             sdf_model.sdf_object.insert({sdf_object.label, sdf_object});
+            // Clear the list of required elements
+            sdf_required_list.clear();
             current_quality_name_node = sdf_object_reference;
         }
     }
