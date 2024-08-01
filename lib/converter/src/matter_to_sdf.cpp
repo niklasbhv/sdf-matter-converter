@@ -1609,6 +1609,45 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device) {
     return sdf_thing;
 }
 
+//! Function used to merge a derived cluster with its base
+void MergeDerivedCluster(matter::Cluster derived_cluster, const std::list<matter::Cluster>& cluster_list) {
+    std::string base_cluster = derived_cluster.classification.value().base_cluster;
+    // Search for the base cluster
+    for (const auto& cluster : cluster_list) {
+        // Iterate through all aliases of the cluster and compare them to the base cluster
+        for (const auto& alias : cluster.cluster_aliases) {
+            if (alias.second == base_cluster) {
+                // Merge the information of the base cluster into the derived cluster
+                derived_cluster.feature_map.insert(derived_cluster.feature_map.end(), cluster.feature_map.begin(),
+                                                   cluster.feature_map.end());
+                derived_cluster.attributes.insert(derived_cluster.attributes.end(), cluster.attributes.begin(),
+                                                  cluster.attributes.end());
+                derived_cluster.client_commands.insert(derived_cluster.client_commands.end(),
+                                                       cluster.client_commands.begin(), cluster.client_commands.end());
+                derived_cluster.server_commands.insert(cluster.server_commands.begin(), cluster.server_commands.end());
+                derived_cluster.events.insert(derived_cluster.events.end(), cluster.events.begin(),
+                                              cluster.events.end());
+                derived_cluster.enums.insert(cluster.enums.begin(), cluster.enums.end());
+                derived_cluster.bitmaps.insert(cluster.bitmaps.begin(), cluster.bitmaps.end());
+                derived_cluster.structs.insert(cluster.structs.begin(), cluster.structs.end());
+            }
+        }
+    }
+}
+
+//! Function used to check, if a Matter cluster is derived
+bool CheckIfDerived(const matter::Cluster cluster) {
+    if (cluster.classification.has_value()) {
+        if (cluster.classification.value().hierarchy == "derived") {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
 //! Function used to merge device and cluster specifications together
 void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>& cluster_list) {
     for (auto& device_cluster : device.clusters) {
@@ -1701,6 +1740,10 @@ void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>
                         }
                     }
                 }
+                // If the cluster is derived from a base cluster, we have to merge them together
+                if (CheckIfDerived(temp_cluster)) {
+                    MergeDerivedCluster(temp_cluster, cluster_list);
+                }
                 device_cluster = temp_cluster;
             }
         }
@@ -1734,15 +1777,30 @@ int MapMatterToSdf(const std::optional<matter::Device>& optional_device, const s
         current_quality_name_node = sdf_object_reference;
         // Iterate through all clusters and map them individually
         for (const auto& cluster : cluster_list) {
-            // Generate the information block based on the given cluster
-            sdf_model.information_block = GenerateInformationBlock(cluster);
-            sdf_mapping.information_block = GenerateInformationBlock(cluster);
-            // Map the cluster onto a sdfObject
-            sdf::SdfObject sdf_object = MapMatterCluster(cluster);
-            sdf_model.sdf_object.insert({sdf_object.label, sdf_object});
-            // Clear the list of required elements
-            sdf_required_list.clear();
-            current_quality_name_node = sdf_object_reference;
+            // If the cluster is derived from a base cluster, we have to merge them together
+            if (CheckIfDerived(cluster)) {
+                matter::Cluster merged_cluster = cluster;
+                MergeDerivedCluster(merged_cluster, cluster_list);
+                // Generate the information block based on the given cluster
+                sdf_model.information_block = GenerateInformationBlock(merged_cluster);
+                sdf_mapping.information_block = GenerateInformationBlock(merged_cluster);
+                // Map the cluster onto a sdfObject
+                sdf::SdfObject sdf_object = MapMatterCluster(merged_cluster);
+                sdf_model.sdf_object.insert({sdf_object.label, sdf_object});
+                // Clear the list of required elements
+                sdf_required_list.clear();
+                current_quality_name_node = sdf_object_reference;
+            } else {
+                // Generate the information block based on the given cluster
+                sdf_model.information_block = GenerateInformationBlock(cluster);
+                sdf_mapping.information_block = GenerateInformationBlock(cluster);
+                // Map the cluster onto a sdfObject
+                sdf::SdfObject sdf_object = MapMatterCluster(cluster);
+                sdf_model.sdf_object.insert({sdf_object.label, sdf_object});
+                // Clear the list of required elements
+                sdf_required_list.clear();
+                current_quality_name_node = sdf_object_reference;
+            }
         }
     }
 
