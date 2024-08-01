@@ -32,6 +32,10 @@ static ReferenceTreeNode* current_given_name_node = nullptr;
 //! This list gets filled while mapping and afterward appended to the corresponding sdfModel
 static std::list<std::string> sdf_required_list;
 
+//! Map containing enums
+//! This map is used when the sdf enum quality gets translated into a Matter enum
+std::map<std::string, std::list<matter::Item>> global_enum_map;
+
 //! Map containing the elements of the sdf mapping
 //! This map is used to resolve the elements outsourced into the map
 json reference_map;
@@ -744,6 +748,33 @@ sdf::DataQuality MapJsoItemToSdfDataQuality(const sdf::JsoItem& jso_item) {
     return data_quality;
 }
 
+//! Function used to generate a Matter enum from the sdf enum data quality
+//! This function returns the name of the generated enum as a value
+std::string MapSdfEnum(const sdf::DataQuality& data_quality)
+{
+    std::list<matter::Item> matter_enum;
+    int i = 0;
+    for (const auto& sdf_item : data_quality.enum_) {
+        matter::Item matter_item;
+        matter::Conformance conformance;
+        conformance.mandatory = true;
+        matter_item.value = i;
+        matter_item.name = sdf_item;
+        matter_item.conformance = conformance;
+        matter_enum.push_back(matter_item);
+        i++;
+    }
+    i = 0;
+    std::string enum_name = "CustomEnum";
+    while (true) {
+        if (global_enum_map.count(enum_name + std::to_string(i)) == 0) {
+            global_enum_map[enum_name + std::to_string(i)] = matter_enum;
+            return enum_name + std::to_string(i);
+        }
+        i++;
+    }
+}
+
 //! Function used to determine a Matter type based on the information of the given data quality
 std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint) {
     json desc_json;
@@ -761,25 +792,29 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
     if (data_quality.type == "number") {
         result = "double";
     } else if (data_quality.type == "string") {
-        if (data_quality.min_length.has_value()) {
-            if (data_quality.max_length.has_value()) {
-                constraint.type = "lengthBetween";
-                constraint.min = data_quality.min_length.value();
-                constraint.max = data_quality.max_length.value();
-            } else {
-                constraint.type = "minLength";
-                constraint.min = data_quality.min_length.value();
-            }
-        } else if (data_quality.max_length.has_value()) {
-            constraint.type = "maxLength";
-            constraint.max = data_quality.max_length.value();
-        }
-        else if (data_quality.sdf_type == "byte-string") {
-            result = "octstr";
-        } else if (data_quality.sdf_type == "unix-time") {
-
+        if (!data_quality.enum_.empty()) {
+            result = MapSdfEnum(data_quality);
         } else {
-            result = "string";
+            if (data_quality.min_length.has_value()) {
+                if (data_quality.max_length.has_value()) {
+                    constraint.type = "lengthBetween";
+                    constraint.min = data_quality.min_length.value();
+                    constraint.max = data_quality.max_length.value();
+                } else {
+                    constraint.type = "minLength";
+                    constraint.min = data_quality.min_length.value();
+                }
+            } else if (data_quality.max_length.has_value()) {
+                constraint.type = "maxLength";
+                constraint.max = data_quality.max_length.value();
+            }
+            else if (data_quality.sdf_type == "byte-string") {
+                result = "octstr";
+            } else if (data_quality.sdf_type == "unix-time") {
+
+            } else {
+                result = "string";
+            }
         }
     } else if (data_quality.type == "boolean") {
         result = "bool";
@@ -1216,6 +1251,12 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     auto* sdf_data_reference = new ReferenceTreeNode("sdfData");
     sdf_object_reference->AddChild(sdf_data_reference);
     current_quality_name_node = sdf_data_reference;
+
+    // If enums have been added to the global list of enums, we merge them into the rest of the enums
+    if (!global_enum_map.empty()) {
+        cluster.enums.insert(global_enum_map.begin(), global_enum_map.end());
+        global_enum_map.clear();
+    }
 
     for (const auto& sdf_data_elem : sdf_object_pair.second.sdf_data) {
         auto* given_sdf_data_reference = new ReferenceTreeNode(sdf_data_elem.first);
