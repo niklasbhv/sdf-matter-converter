@@ -43,7 +43,8 @@
 //! @param cluster_xml The output cluster definition.
 //! @return 0 on success, negative on failure.
 int ConvertSdfToMatter(nlohmann::ordered_json& sdf_model_json, nlohmann::ordered_json& sdf_mapping_json,
-                       pugi::xml_document& device_xml, std::list<pugi::xml_document>& cluster_xml_list);
+                       std::optional<pugi::xml_document>& optional_device_xml,
+                       std::list<pugi::xml_document>& cluster_xml_list);
 
 //! @brief Convert sdf to matter.
 //!
