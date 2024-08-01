@@ -761,7 +761,6 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
     if (data_quality.type == "number") {
         result = "double";
     } else if (data_quality.type == "string") {
-        result = "string";
         if (data_quality.min_length.has_value()) {
             if (data_quality.max_length.has_value()) {
                 constraint.type = "lengthBetween";
@@ -775,14 +774,35 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
             constraint.type = "maxLength";
             constraint.max = data_quality.max_length.value();
         }
+        else if (data_quality.sdf_type == "byte-string") {
+            result = "octstr";
+        } else if (data_quality.sdf_type == "unix-time") {
+
+        } else {
+            result = "string";
+        }
     } else if (data_quality.type == "boolean") {
         result = "bool";
     } else if (data_quality.type == "integer") {
         result = MapIntegerType(data_quality, constraint);
     } else if (data_quality.type == "array") {
+        // If the data quality has minItems or maxItems, create a fitting constraint
+        if (data_quality.min_items.has_value()) {
+            if (data_quality.max_items.has_value()) {
+                constraint.type = "countBetween";
+                constraint.min = data_quality.min_items.value();
+                constraint.max = data_quality.max_items.value();
+            } else {
+                constraint.type = "minCount";
+                constraint.min = data_quality.min_items.value();
+            }
+        } else if (data_quality.max_items.has_value()) {
+            constraint.type = "maxCount";
+            constraint.max = data_quality.max_items.value();
+        }
+        // If the data quality has items, generate a entry constraint
         if (data_quality.items.has_value()) {
             auto* entry_constraint = new matter::Constraint();
-            constraint.type = "entry";
             constraint.entry_type = MapSdfDataType(MapJsoItemToSdfDataQuality(data_quality.items.value()),
                                                    *entry_constraint);
             constraint.entry_constraint = entry_constraint;
@@ -790,10 +810,6 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
         result = "list";
     } else if (data_quality.type == "object") {
         result = "struct";
-    } else if (data_quality.sdf_type == "byte-string") {
-        result = "octstr";
-    } else if (data_quality.sdf_type == "unix-time") {
-
     }
 
     return result;

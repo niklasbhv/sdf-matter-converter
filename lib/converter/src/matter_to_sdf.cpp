@@ -995,7 +995,7 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
         if (std::holds_alternative<uint64_t>(constraint.max.value())) {
             data_quality.max_items = std::get<uint64_t>(constraint.max.value());
         }
-    } else if (constraint.type == "entry") {
+    } else if (!constraint.entry_type.empty()) {
         sdf::DataQuality entry_quality;
         MapMatterType(constraint.entry_type, entry_quality);
         if (constraint.entry_constraint != nullptr) {
