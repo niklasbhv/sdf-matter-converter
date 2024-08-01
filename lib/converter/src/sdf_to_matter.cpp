@@ -507,7 +507,10 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
                 }
             }
             // If no maximum value exists
-            else {}
+            else {
+                // If no maximum value exists, we use the largest possible unsigned value
+                return "uint64";
+            }
         }
         // If minimum is negative (or larger than an uint64_t)
         else {
@@ -654,12 +657,61 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
                     }
                 }
             }
-                // If maximum does not have a value
-            else {}
+            // If maximum does not have a value
+            else {
+                // If no maximum value exists, we use the largest possible signed value
+                return "int64";
+            }
         }
     }
-    if (data_quality.maximum.has_value()) {}
-    return "";
+    // If a maximum value but no minimum value exists
+    // In this case we use the smallest data type that can still contain the maximum value
+    else if (data_quality.maximum.has_value()) {
+        // Check if the maximum value is positive
+        if (CheckVariantBorders(data_quality.maximum.value(), 0, std::numeric_limits<uint64_t>::max())) {
+            if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_8_MAX)) {
+                return "uint8";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_16_MAX)) {
+                return "uint16";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_24_MAX)) {
+                return "uint24";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_32_MAX)) {
+                return "uint32";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_40_MAX)) {
+                return "uint40";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_48_MAX)) {
+                return "uint48";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_56_MAX)) {
+                return "uint56";
+            } else {
+                return "uint64";
+            }
+        }
+        // If the value is negative, we use a signed integer
+        else {
+            if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_8_MIN, MATTER_INT_8_MAX)) {
+                return "int8";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_16_MIN, MATTER_INT_16_MAX)) {
+                return "int16";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_24_MIN, MATTER_INT_24_MAX)) {
+                return "int24";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_32_MIN, MATTER_INT_32_MAX)) {
+                return "int32";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_40_MIN, MATTER_INT_40_MAX)) {
+                return "int40";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_48_MIN, MATTER_INT_48_MAX)) {
+                return "int48";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_56_MIN, MATTER_INT_56_MAX)) {
+                return "int56";
+            } else {
+                return "int64";
+            }
+        }
+    }
+    // In case that no minimum and maximum values exists, we default to int64
+    // This gives the flexibility to use negative values
+    // Also, if the target data quality was supposed to be positive, it would have a minimum of 0
+    return "int64";
 }
 
 //! Helper function used to get the remaining string after a slash
