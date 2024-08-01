@@ -819,6 +819,55 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
     } else if (data_quality.type == "boolean") {
         result = "bool";
     } else if (data_quality.type == "integer") {
+        if (!data_quality.unit.empty()) {
+            // If the data quality has a unit, we try to match it with a compatible Matter type
+            if (data_quality.unit == "%") {
+                if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
+                    if (CheckVariantEquals(data_quality.minimum.value(), 0) and
+                        CheckVariantEquals(data_quality.maximum.value(), 100)) {
+                        return "percent";
+                    } else if (CheckVariantEquals(data_quality.minimum.value(), 0) and
+                            CheckVariantEquals(data_quality.maximum.value(), 10000)) {
+                        return "percent100ths";
+                    }
+                }
+            }
+            else if (data_quality.unit == "mW") {
+                if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
+                    if (CheckVariantEquals(data_quality.minimum.value(), std::numeric_limits<int64_t>::min()) and
+                        CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<int64_t>::max())) {
+                        return "power-mW";
+                    }
+                }
+            }
+            else if (data_quality.unit == "mA") {
+                if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
+                    if (CheckVariantEquals(data_quality.minimum.value(), std::numeric_limits<int64_t>::min()) and
+                        CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<int64_t>::max())) {
+                        return "amperage-mA";
+                    }
+                }
+            }
+            else if (data_quality.unit == "mV") {
+                if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
+                    if (CheckVariantEquals(data_quality.minimum.value(), std::numeric_limits<int64_t>::min()) and
+                        CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<int64_t>::max())) {
+                        return "voltage-mW";
+                    }
+                }
+            }
+            else if (data_quality.unit == "mWh") {
+                if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
+                    if (CheckVariantEquals(data_quality.minimum.value(), std::numeric_limits<int64_t>::min()) and
+                        CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<int64_t>::max())) {
+                        return "energy-mWh";
+                    }
+                }
+            }
+            else if (data_quality.unit == "us") {}
+            else if (data_quality.unit == "ms") {}
+            else if (data_quality.unit == "s") {}
+        }
         result = MapIntegerType(data_quality, constraint);
     } else if (data_quality.type == "array") {
         // If the data quality has minItems or maxItems, create a fitting constraint
