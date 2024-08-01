@@ -1069,7 +1069,13 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     current_given_name_node = sdf_object_reference;
 
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "id", cluster.id);
-    cluster.name = sdf_object_pair.second.label;
+
+    if (sdf_object_pair.second.label.empty()) {
+        cluster.name = sdf_object_pair.first;
+    } else {
+        cluster.name = sdf_object_pair.second.label;
+    }
+
     if (!sdf_object_pair.second.sdf_required.empty()) {
         sdf_required_list.insert(sdf_required_list.end(),
                                  sdf_object_pair.second.sdf_required.begin(),
