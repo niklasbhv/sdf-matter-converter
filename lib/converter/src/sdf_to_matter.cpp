@@ -1572,7 +1572,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 if (ImportFromMapping(current_given_name_node->GeneratePointer(), "item", conformance_json)) {
                     for (auto& item_json : conformance_json) {
                         if (item_json.at("value") == item.value) {
-                            item.conformance = GenerateMatterConformance(item_json);
+                            item.conformance = GenerateMatterConformance(sdf_choice.second.sdf_required, item_json);
                             break;
                         }
                     }
