@@ -36,13 +36,26 @@ static std::list<std::string> sdf_required_list;
 //! This map is used when the sdf enum quality gets translated into a Matter enum
 std::map<std::string, std::list<matter::Item>> global_enum_map;
 
+//! Map containing enums
+//! This map is used when an object type data quality gets translated into a global struct
+std::map<std::string, matter::Struct> global_struct_map;
+
 //! Map containing the elements of the sdf mapping
 //! This map is used to resolve the elements outsourced into the map
 json reference_map;
 
 //! Function used to check, if the given pointer is part of a sdfRequired element
 bool CheckForRequired(const std::string& json_pointer) {
-    return contains(sdf_required_list, json_pointer);
+    // Check if the JSON pointer itself is contained in the list
+    if (contains(sdf_required_list, json_pointer)) {
+        return true;
+    }
+    // Check if the given name of the structure is part of the mao
+    else if (contains(sdf_required_list, GetLastPartAfterSlash(json_pointer))) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 //! Generically typed for now as the mapping will later contain different types
@@ -191,7 +204,7 @@ std::optional<matter::OtherQuality> ImportOtherQualityFromMapping(const std::str
 
 //! Function used to generate a Matter conformance
 //! The conformance is either imported from the mapping or determined via the sdfRequired and required qualities
-matter::Conformance GenerateMatterConformance() {
+matter::Conformance GenerateMatterConformance(const std::list<std::string>& sdf_required) {
     matter::Conformance conformance;
     json conformance_json;
 
@@ -234,9 +247,16 @@ matter::Conformance GenerateMatterConformance() {
     }
     // If no conformance can be imported from the mapping, it will be generated based on the sdfRequired quality
     else {
+        // Check if the current given name is part of a sdfRequired definition
         if (CheckForRequired(current_given_name_node->GeneratePointer())) {
             conformance.mandatory = true;
-        } else {
+        }
+        // If not, check if the given sdfRequired itself is true
+        else if (!sdf_required.empty() and sdf_required.front() == "true") {
+            conformance.mandatory = true;
+        }
+        // Otherwise the current element is not mandatory
+        else {
             conformance.optional = true;
         }
     }
@@ -245,7 +265,7 @@ matter::Conformance GenerateMatterConformance() {
 
 //! Function used to generate a Matter conformance based on the given conformance JSON
 //! The conformance is either imported from the mapping or determined via the sdfRequired and required qualities
-matter::Conformance GenerateMatterConformance(json& conformance_json) {
+matter::Conformance GenerateMatterConformance(const std::list<std::string>& sdf_required, json& conformance_json) {
     matter::Conformance conformance;
 
     if (conformance_json.contains("mandatoryConform")) {
@@ -283,6 +303,21 @@ matter::Conformance GenerateMatterConformance(json& conformance_json) {
                 otherwise_conformance.condition = otherwise_json.value();
             }
             conformance.otherwise.push_back(otherwise_conformance);
+        }
+    }
+    // If no conformance is defined in the json, it will be generated based on the sdfRequired quality
+    else {
+        // Check if the current given name is part of a sdfRequired definition
+        if (CheckForRequired(current_given_name_node->GeneratePointer())) {
+            conformance.mandatory = true;
+        }
+            // If not, check if the given sdfRequired itself is true
+        else if (!sdf_required.empty() and sdf_required.front() == "true") {
+            conformance.mandatory = true;
+        }
+            // Otherwise the current element is not mandatory
+        else {
+            conformance.optional = true;
         }
     }
 
@@ -718,15 +753,6 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
     return "int64";
 }
 
-//! Helper function used to get the remaining string after a slash
-std::string GetLastPartAfterSlash(const std::string& str) {
-    size_t pos = str.find_last_of('/');
-    if (pos != std::string::npos) {
-        return str.substr(pos + 1);
-    }
-    return str;  // If no slash is found, return the original string
-}
-
 //! Helper function used to map a JsoItem object onto a data quality
 sdf::DataQuality MapJsoItemToSdfDataQuality(const sdf::JsoItem& jso_item) {
     sdf::DataQuality data_quality;
@@ -746,6 +772,103 @@ sdf::DataQuality MapJsoItemToSdfDataQuality(const sdf::JsoItem& jso_item) {
     data_quality.required = jso_item.required;
 
     return data_quality;
+}
+
+//! Function used to merge the data qualities of the second argument into the data qualities of the first argument
+//! Used in combination with sdfChoice to fill the options with all their information
+void MergeDataQualities(sdf::DataQuality data_quality, const sdf::DataQuality overwrite_data_quality) {
+    if (!overwrite_data_quality.type.empty()) {
+        data_quality.type = overwrite_data_quality.type;
+    } if (!overwrite_data_quality.sdf_choice.empty()) {
+        data_quality.sdf_choice = overwrite_data_quality.sdf_choice;
+    } if (!overwrite_data_quality.enum_.empty()) {
+        data_quality.enum_ = overwrite_data_quality.enum_;
+    } if (overwrite_data_quality.const_.has_value()) {
+        data_quality.const_ = overwrite_data_quality.const_;
+    } if (overwrite_data_quality.default_.has_value()) {
+        data_quality.default_ = overwrite_data_quality.default_;
+    } if (overwrite_data_quality.minimum.has_value()) {
+        data_quality.minimum = overwrite_data_quality.minimum;
+    } if (overwrite_data_quality.maximum.has_value()) {
+        data_quality.maximum = overwrite_data_quality.maximum;
+    } if (overwrite_data_quality.exclusive_minimum.has_value()) {
+        data_quality.exclusive_minimum = overwrite_data_quality.exclusive_minimum;
+    } if (overwrite_data_quality.exclusive_maximum.has_value()) {
+        data_quality.exclusive_maximum = overwrite_data_quality.exclusive_maximum;
+    } if (overwrite_data_quality.multiple_of.has_value()) {
+        data_quality.multiple_of = overwrite_data_quality.multiple_of;
+    } if (overwrite_data_quality.min_length.has_value()) {
+        data_quality.min_length = overwrite_data_quality.min_length;
+    } if (overwrite_data_quality.max_length.has_value()) {
+        data_quality.max_length = overwrite_data_quality.max_length;
+    } if (!overwrite_data_quality.pattern.empty()) {
+        data_quality.pattern = overwrite_data_quality.pattern;
+    } if (!overwrite_data_quality.format.empty()) {
+        data_quality.format = overwrite_data_quality.format;
+    } if (overwrite_data_quality.min_items.has_value()) {
+        data_quality.min_items = overwrite_data_quality.min_items;
+    } if (overwrite_data_quality.max_items.has_value()) {
+        data_quality.max_items = overwrite_data_quality.max_items;
+    } if (overwrite_data_quality.unique_items.has_value()) {
+        data_quality.unique_items = overwrite_data_quality.unique_items;
+    } if (overwrite_data_quality.items.has_value()) {
+        data_quality.items = overwrite_data_quality.items;
+    } if (!overwrite_data_quality.properties.empty()) {
+        data_quality.properties = overwrite_data_quality.properties;
+    } if (!overwrite_data_quality.required.empty()) {
+        data_quality.required = overwrite_data_quality.required;
+    } if (!overwrite_data_quality.unit.empty()) {
+        data_quality.unit = overwrite_data_quality.unit;
+    } if (overwrite_data_quality.nullable.has_value()) {
+        data_quality.nullable = overwrite_data_quality.nullable;
+    } if (!overwrite_data_quality.sdf_type.empty()) {
+        data_quality.sdf_type = overwrite_data_quality.sdf_type;
+    } if (!overwrite_data_quality.content_format.empty()) {
+        data_quality.content_format = overwrite_data_quality.content_format;
+    }
+}
+
+//! Function prototype, function is used to determine a Matter type based on the information of the given data quality
+std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint);
+
+//! Function used to map a sdfChoice onto a special Matter struct
+//! The function returns the Name of the resulting struct
+std::string MapSdfChoice(const sdf::DataQuality& data_quality) {
+    sdf::DataQuality data_quality_copy = data_quality;
+    matter::Struct matter_struct;
+    int i = 0;
+    for (auto& sdf_choice_pair : data_quality_copy.sdf_choice) {
+        MergeDataQualities(sdf_choice_pair.second, data_quality);
+        matter::DataField field;
+        field.id = 0;
+        field.name = sdf_choice_pair.first;
+        field.summary = sdf_choice_pair.second.description;
+        // Set a choice conformance to achieve exclusivity between the fields
+        matter::Conformance conformance;
+        conformance.optional = true;
+        conformance.choice = "a";
+        field.conformance = conformance;
+        matter::Constraint constraint;
+        field.type = MapSdfDataType(sdf_choice_pair.second, constraint);
+        field.constraint = constraint;
+        if (sdf_choice_pair.second.default_.has_value()) {
+            field.default_ = MapSdfDefaultValue(sdf_choice_pair.second.default_.value());
+        }
+        if (sdf_choice_pair.second.nullable) {
+            matter::OtherQuality other_quality;
+            other_quality.nullable = true;
+            field.quality = other_quality;
+        }
+    }
+    i = 0;
+    std::string struct_name = "CustomStruct";
+    while (true) {
+        if (global_struct_map.count(struct_name + std::to_string(i)) == 0) {
+            global_struct_map[struct_name + std::to_string(i)] = matter_struct;
+            return struct_name + std::to_string(i);
+        }
+        i++;
+    }
 }
 
 //! Function used to generate a Matter enum from the sdf enum data quality
@@ -775,6 +898,55 @@ std::string MapSdfEnum(const sdf::DataQuality& data_quality)
     }
 }
 
+//! Function used to map a object type data quality onto a global Matter struct
+//! The function returns the name of the created struct for referencing it
+std::string MapSdfObjectType(const sdf::DataQuality& data_quality) {
+    int i = 0;
+    matter::Struct matter_struct;
+    if (!data_quality.properties.empty()) {
+        for (const auto &data_quality_pair : data_quality.properties) {
+            matter::DataField field;
+            field.id = i;
+            field.name = data_quality.label;
+            field.summary = data_quality.description;
+            matter::Constraint constraint;
+            field.type = MapSdfDataType(data_quality_pair.second, constraint);
+            field.constraint = constraint;
+            if (contains(data_quality_pair.second.required, data_quality_pair.first)) {
+                matter::Conformance conformance;
+                conformance.mandatory = true;
+                field.conformance = conformance;
+            } else {
+                matter::Conformance conformance;
+                conformance.optional = true;
+                field.conformance = conformance;
+            }
+            if (data_quality_pair.second.default_.has_value()) {
+                field.default_ = MapSdfDefaultValue(data_quality_pair.second.default_.value());
+            }
+            if (data_quality_pair.second.nullable) {
+                matter::OtherQuality other_quality;
+                other_quality.nullable = true;
+                field.quality = other_quality;
+            }
+            i++;
+            matter_struct.push_back(field);
+        }
+        i = 0;
+        std::string struct_name = "CustomStruct";
+        while (true) {
+            if (global_struct_map.count(struct_name + std::to_string(i)) == 0) {
+                global_struct_map[struct_name + std::to_string(i)] = matter_struct;
+                return struct_name + std::to_string(i);
+            }
+            i++;
+        }
+    } else {
+        // If the properties quality is empty, we just return struct
+        return "struct";
+    }
+}
+
 //! Function used to determine a Matter type based on the information of the given data quality
 std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint) {
     json desc_json;
@@ -782,6 +954,10 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
 
     if (desc_json.contains("type")) {
         desc_json.at("type").get_to(constraint.type);
+    }
+    // Check if the data qualities contain a sdfChoice
+    if (!data_quality.sdf_choice.empty()) {
+        return MapSdfChoice(data_quality);
     }
 
     std::string result;
@@ -811,7 +987,7 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
             else if (data_quality.sdf_type == "byte-string") {
                 result = "octstr";
             } else if (data_quality.sdf_type == "unix-time") {
-
+                result = "posix-ms";
             } else {
                 result = "string";
             }
@@ -821,13 +997,18 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
     } else if (data_quality.type == "integer") {
         if (!data_quality.unit.empty()) {
             // If the data quality has a unit, we try to match it with a compatible Matter type
-            if (data_quality.unit == "%") {
+            if (data_quality.unit == "/100") {
                 if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
                     if (CheckVariantEquals(data_quality.minimum.value(), 0) and
                         CheckVariantEquals(data_quality.maximum.value(), 100)) {
                         return "percent";
-                    } else if (CheckVariantEquals(data_quality.minimum.value(), 0) and
-                            CheckVariantEquals(data_quality.maximum.value(), 10000)) {
+                    }
+                }
+            }
+            else if (data_quality.unit == "%") {
+                if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
+                    if (CheckVariantEquals(data_quality.minimum.value(), 0) and
+                        CheckVariantEquals(data_quality.maximum.value(), 10000)) {
                         return "percent100ths";
                     }
                 }
@@ -864,9 +1045,9 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
                     }
                 }
             }
-            else if (data_quality.unit == "us") {}
-            else if (data_quality.unit == "ms") {}
-            else if (data_quality.unit == "s") {}
+            else if (data_quality.unit == "ms") {
+                result = "systime-ms";
+            }
         }
         result = MapIntegerType(data_quality, constraint);
     } else if (data_quality.type == "array") {
@@ -884,7 +1065,7 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
             constraint.type = "maxCount";
             constraint.max = data_quality.max_items.value();
         }
-        // If the data quality has items, generate a entry constraint
+        // If the data quality has items, generate an entry constraint
         if (data_quality.items.has_value()) {
             auto* entry_constraint = new matter::Constraint();
             constraint.entry_type = MapSdfDataType(MapJsoItemToSdfDataQuality(data_quality.items.value()),
@@ -893,31 +1074,10 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
         }
         result = "list";
     } else if (data_quality.type == "object") {
-        result = "struct";
+        return MapSdfObjectType(data_quality);
     }
 
     return result;
-}
-
-//! Function used to map a data quality onto a Matter data field
-matter::DataField MapSdfData(sdf::DataQuality& data_quality) {
-    matter::DataField data_field;
-
-    // data_field.id
-    data_field.name = data_quality.label;
-    //data_field.conformance = GenerateMatterConformance();
-    // data_field.access
-    data_field.summary = data_quality.description;
-    matter::Constraint constraint;
-    data_field.type = MapSdfDataType(data_quality, constraint);
-    data_field.constraint = constraint;
-    //data_field.constraint = GenerateMatterConstraint(data_quality);
-    // data_field.quality;
-    if (data_quality.default_.has_value()) {
-        data_field.default_ = MapSdfDefaultValue(data_quality.default_.value());
-    }
-
-    return data_field;
 }
 
 //! Function used to map sdfInputData or a sdfOutputData onto a Matter data field
@@ -951,13 +1111,23 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
     ImportFromMapping(sdf_event_reference->GeneratePointer(), "id", event.id);
     event.name = sdf_event_pair.second.label;
     event.summary = sdf_event_pair.second.description;
-    event.conformance = GenerateMatterConformance();
+    event.conformance = GenerateMatterConformance(sdf_event_pair.second.sdf_required);
     if (sdf_event_pair.second.sdf_output_data.has_value()) {
-        MapSdfInputOutputData(sdf_event_pair.second.sdf_output_data.value());
+        if (sdf_event_pair.second.sdf_output_data.value().type == "object") {
+            int i = 0;
+            for (const auto& data_quality_pair : sdf_event_pair.second.sdf_output_data.value().properties) {
+                matter::DataField field = MapSdfInputOutputData(data_quality_pair.second);
+                field.id = i;
+                i++;
+                event.data.push_back(field);
+            }
+        } else {
+            matter::DataField field = MapSdfInputOutputData(sdf_event_pair.second.sdf_output_data.value());
+            field.id = 0;
+            event.data.push_back(field);
+        }
     }
-    for (auto elem : sdf_event_pair.second.sdf_data) {
-        MapSdfData(elem.second);
-    }
+
     return event;
 }
 
@@ -971,7 +1141,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
 
     ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", client_command.id);
     client_command.name = sdf_action_pair.second.label;
-    client_command.conformance = GenerateMatterConformance();
+    client_command.conformance = GenerateMatterConformance(sdf_action_pair.second.sdf_required);
     client_command.access = ImportAccessFromMapping(sdf_action_reference->GeneratePointer());
     client_command.summary = sdf_action_pair.second.description;
     client_command.direction = "commandToServer";
@@ -987,7 +1157,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
             matter::Command server_command;
             ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", server_command.id);
             server_command.name = sdf_action_pair.second.label + "Response";
-            server_command.conformance = GenerateMatterConformance();
+            server_command.conformance = GenerateMatterConformance(sdf_action_pair.second.sdf_required);
             server_command.summary = sdf_action_pair.second.sdf_output_data.value().description;
             server_command.direction = "responseFromServer";
 
@@ -1018,7 +1188,8 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
                 matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_output_data.value());
                 json conformance_json;
                 if (ImportFromMapping(sdf_action_reference->GeneratePointer(), "field", conformance_json)) {
-                    field.conformance = GenerateMatterConformance(conformance_json);
+                    field.conformance = GenerateMatterConformance(
+                        sdf_action_pair.second.sdf_output_data.value().sdf_required, conformance_json);
                 }
                 field.id = 0;
                 server_command.command_fields.push_back(field);
@@ -1059,7 +1230,8 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
             matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_input_data.value());
             json conformance_json;
             if (ImportFromMapping(sdf_action_reference->GeneratePointer(), "field", conformance_json)) {
-                field.conformance = GenerateMatterConformance(conformance_json);
+                field.conformance = GenerateMatterConformance(
+                    sdf_action_pair.second.sdf_input_data.value().sdf_required,conformance_json);
             }
             field.id = 0;
             client_command.command_fields.push_back(field);
@@ -1078,7 +1250,7 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
 
     ImportFromMapping(sdf_property_reference->GeneratePointer(), "id", attribute.id);
     attribute.name = sdf_property_pair.first;
-    attribute.conformance = GenerateMatterConformance();
+    attribute.conformance = GenerateMatterConformance(sdf_property_pair.second.sdf_required);
 
     attribute.access = ImportAccessFromMapping(sdf_property_reference->GeneratePointer());
     if (attribute.access.has_value()) {
@@ -1233,7 +1405,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                                  sdf_object_pair.second.sdf_required.begin(),
                                  sdf_object_pair.second.sdf_required.end());
     }
-    cluster.conformance = GenerateMatterConformance();
+    cluster.conformance = GenerateMatterConformance(sdf_object_pair.second.sdf_required);
     cluster.summary = sdf_object_pair.second.description;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "side", cluster.side);
     if (!ImportFromMapping(sdf_object_reference->GeneratePointer(), "revision", cluster.revision)) {
@@ -1301,10 +1473,16 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     sdf_object_reference->AddChild(sdf_data_reference);
     current_quality_name_node = sdf_data_reference;
 
-    // If enums have been added to the global list of enums, we merge them into the rest of the enums
+    // If enums have been added to the global map of enums, we merge them into the rest of the enums
     if (!global_enum_map.empty()) {
         cluster.enums.insert(global_enum_map.begin(), global_enum_map.end());
         global_enum_map.clear();
+    }
+
+    // If structs have been added to the global map of structs, we merge them into the rest of the structs
+    if (!global_struct_map.empty()) {
+        cluster.structs.insert(global_struct_map.begin(), global_struct_map.end());
+        global_struct_map.clear();
     }
 
     for (const auto& sdf_data_elem : sdf_object_pair.second.sdf_data) {
@@ -1323,7 +1501,8 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 json conformance_json;
                 if (ImportFromMapping(current_given_name_node->GeneratePointer(), "properties", conformance_json)) {
                     if (conformance_json.contains(property.first)) {
-                        data_field.conformance = GenerateMatterConformance(conformance_json.at(property.first));
+                        data_field.conformance = GenerateMatterConformance(property.second.sdf_required,
+                                                                           conformance_json.at(property.first));
                     }
                 } else {
                     matter::Conformance conformance;
@@ -1361,7 +1540,8 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                                     bitfield.bit = bit;
                                     bit++;
                                 }
-                                bitfield.conformance = GenerateMatterConformance(bitfield_json);
+                                bitfield.conformance = GenerateMatterConformance(sdf_choice.second.sdf_required,
+                                                                                 bitfield_json);
                             }
                         }
                     }

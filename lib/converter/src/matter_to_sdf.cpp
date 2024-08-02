@@ -249,8 +249,7 @@ bool EvaluateConformanceCondition(const json& condition) {
         }
     } else if (condition.contains("attribute")) {
         std::cout << "Reached" << condition.at("attribute") << std::endl;
-        // TODO: Check if the attribute exists
-        return true;
+        return false;
     }
 
     return false;
@@ -397,7 +396,6 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     }
     // Unsigned integer data type
     else if (matter_type.substr(0, 4) == "uint") {
-        // TODO: These boundaries change if the corresponding value is nullable
         data_quality.type = "integer";
         data_quality.minimum = 0;
         if (matter_type.substr(4) == "8") {
@@ -477,7 +475,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Base: uint8
     else if (matter_type == "percent") {
         data_quality.type = "integer";
-        data_quality.unit = "%";
+        data_quality.unit = "/100";
         data_quality.minimum = 0;
         data_quality.maximum = 100;
     }
@@ -584,10 +582,8 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // POSIX time in milliseconds
     // Base: uint64
     else if (matter_type == "posix-ms") {
-        data_quality.type = "integer";
-        data_quality.minimum = 0;
-        data_quality.maximum = std::numeric_limits<u_int64_t>::max();
-        data_quality.unit = "ms";
+        data_quality.type = "string";
+        data_quality.sdf_type = "unix-time";
 
     }
     // System time in microseconds
@@ -1272,7 +1268,7 @@ sdf::SdfEvent MapMatterEvent(const matter::Event& event) {
 
     // Export priority to the mapping
     event_reference->AddAttribute("priority", event.priority);
-    // Map the datafields onto sdfOutputData
+    // Map the data fields onto sdfOutputData
     sdf_event.sdf_output_data = MapMatterDataField(event.data);
 
     return sdf_event;
@@ -1300,7 +1296,6 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
     }
 
     sdf_action.description = client_command.summary;
-    // client_command.default_
 
     if (!client_command.command_fields.empty()) {
         sdf_action.sdf_input_data = MapMatterDataField(client_command.command_fields);
