@@ -256,6 +256,36 @@ bool EvaluateConformanceCondition(const json& condition) {
     return false;
 }
 
+//! Function used to check if a conformance is either
+//! - Provisional
+//! - Deprecated
+//! - Disallowed
+//! Function additionally checks the condition
+//! Returns false if any of the above are true
+//! Otherwise, the function returns true to indicate that the element to this conformance is allowed for mapping
+bool CheckElementAllowedConformance(const matter::Conformance& conformance) {
+    if (conformance.provisional or conformance.deprecated or conformance.disallowed) {
+        if (EvaluateConformanceCondition(conformance.condition)) {
+            return false;
+        }
+    } else if (!conformance.otherwise.empty()) {
+        for (const auto& otherwise_conformance : conformance.otherwise) {
+            if (CheckElementAllowedConformance(otherwise_conformance)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+//! Overloaded function to check if the conformance even has a value
+bool CheckElementAllowedConformance(const std::optional<matter::Conformance>& conformance) {
+    if (conformance.has_value()) {
+        return CheckElementAllowedConformance(conformance.value());
+    }
+    return true;
+}
+
 //! Function used to map a Matter bitmap onto a sdfData element
 std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair) {
     auto* bitmap_reference = new ReferenceTreeNode(bitmap_pair.first);
@@ -269,17 +299,19 @@ std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::st
     sdf::JsoItem item;
 
     for (const auto& bitfield : bitmap_pair.second) {
-        sdf::DataQuality sdf_choice_data_quality;
-        json bitfield_json;
-        if (bitfield.conformance.has_value()) {
-            bitfield_json.merge_patch(bitfield.conformance.value());
-        }
+        if (CheckElementAllowedConformance(bitfield.conformance)) {
+            sdf::DataQuality sdf_choice_data_quality;
+            json bitfield_json;
+            if (bitfield.conformance.has_value()) {
+                bitfield_json.merge_patch(bitfield.conformance.value());
+            }
 
-        bitfield_json["bit"] = bitfield.bit;
-        bitfield_json["name"] = bitfield.name;
-        bitfield_json["summary"] = bitfield.summary;
-        item.sdf_choice[bitfield.name] = sdf_choice_data_quality;
-        bitmap_json.push_back(bitfield_json);
+            bitfield_json["bit"] = bitfield.bit;
+            bitfield_json["name"] = bitfield.name;
+            bitfield_json["summary"] = bitfield.summary;
+            item.sdf_choice[bitfield.name] = sdf_choice_data_quality;
+            bitmap_json.push_back(bitfield_json);
+        }
     }
 
     data_quality.items = item;
@@ -879,15 +911,17 @@ std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::st
     data_quality.type = "object";
 
     for (const auto& struct_field : struct_pair.second) {
-        sdf::DataQuality struct_field_data_quality;
-        struct_field_data_quality.label = struct_field.name;
-        struct_field_data_quality.description = struct_field.summary;
-        MapMatterType(struct_field.type, struct_field_data_quality);
-        data_quality.properties[struct_field.name] = struct_field_data_quality;
-        if (struct_field.conformance.has_value()) {
-            if (struct_field.conformance.value().mandatory) {
-                if (EvaluateConformanceCondition(struct_field.conformance.value().condition)) {
-                    data_quality.required.push_back(struct_field.name);
+        if (CheckElementAllowedConformance(struct_field.conformance)) {
+            sdf::DataQuality struct_field_data_quality;
+            struct_field_data_quality.label = struct_field.name;
+            struct_field_data_quality.description = struct_field.summary;
+            MapMatterType(struct_field.type, struct_field_data_quality);
+            data_quality.properties[struct_field.name] = struct_field_data_quality;
+            if (struct_field.conformance.has_value()) {
+                if (struct_field.conformance.value().mandatory) {
+                    if (EvaluateConformanceCondition(struct_field.conformance.value().condition)) {
+                        data_quality.required.push_back(struct_field.name);
+                    }
                 }
             }
         }
@@ -1137,7 +1171,7 @@ bool MapMatterConformance(const matter::Conformance& conformance) {
 sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_field_list) {
     sdf::DataQuality data_quality;
     if (data_field_list.empty()) {}
-    else if (data_field_list.size() <= 1) {
+    else if (data_field_list.size() <= 1 and CheckElementAllowedConformance(data_field_list.front().conformance)) {
         json conformance_json;
         conformance_json["id"] = data_field_list.front().id;
         conformance_json["name"] = data_field_list.front().name;
@@ -1173,37 +1207,40 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
         json conformance_json;
         data_quality.type = "object";
         for (const auto& field : data_field_list) {
-            json field_json;
-            field_json["id"] = field.id;
-            field_json["name"] = field.name;
-            sdf::DataQuality data_quality_properties;
-            data_quality_properties.label = field.name;
-            if (field.access.has_value()) {
-                MapMatterAccess(field.access.value());
-            }
-
-            data_quality_properties.description = field.summary;
-            MapMatterType(field.type, data_quality_properties);
-            if (field.default_.has_value()) {
-                data_quality_properties.default_ = MapMatterDefaultType(field.default_.value());
-            }
-
-            if (field.quality.has_value()) {
-                MapOtherQuality(field.quality.value(), data_quality_properties);
-            }
-
-            if (field.constraint.has_value()) {
-                MapMatterConstraint(field.constraint.value(), data_quality_properties);
-            }
-
-            data_quality.properties[field.name] = data_quality_properties;
-            if (field.conformance.has_value()) {
-                field_json.merge_patch(field.conformance.value());
-                if (field.conformance.value().mandatory and EvaluateConformanceCondition(field.conformance.value().condition)) {
-                    data_quality.required.push_back(field.name);
+            if (CheckElementAllowedConformance(field.conformance)) {
+                json field_json;
+                field_json["id"] = field.id;
+                field_json["name"] = field.name;
+                sdf::DataQuality data_quality_properties;
+                data_quality_properties.label = field.name;
+                if (field.access.has_value()) {
+                    MapMatterAccess(field.access.value());
                 }
+
+                data_quality_properties.description = field.summary;
+                MapMatterType(field.type, data_quality_properties);
+                if (field.default_.has_value()) {
+                    data_quality_properties.default_ = MapMatterDefaultType(field.default_.value());
+                }
+
+                if (field.quality.has_value()) {
+                    MapOtherQuality(field.quality.value(), data_quality_properties);
+                }
+
+                if (field.constraint.has_value()) {
+                    MapMatterConstraint(field.constraint.value(), data_quality_properties);
+                }
+
+                data_quality.properties[field.name] = data_quality_properties;
+                if (field.conformance.has_value()) {
+                    field_json.merge_patch(field.conformance.value());
+                    if (field.conformance.value().mandatory
+                        and EvaluateConformanceCondition(field.conformance.value().condition)) {
+                        data_quality.required.push_back(field.name);
+                    }
+                }
+                conformance_json.push_back(field_json);
             }
-            conformance_json.push_back(field_json);
         }
         if (!conformance_json.is_null()) {
             current_given_name_node->AddAttribute("field", conformance_json);
@@ -1460,8 +1497,10 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
     cluster_reference->AddChild(sdf_property_node);
     current_quality_name_node = sdf_property_node;
     for (const auto& attribute : cluster.attributes){
-        sdf::SdfProperty sdf_property = MapMatterAttribute(attribute);
-        sdf_object.sdf_property.insert({attribute.name, sdf_property});
+        if (CheckElementAllowedConformance(attribute.conformance)) {
+            sdf::SdfProperty sdf_property = MapMatterAttribute(attribute);
+            sdf_object.sdf_property.insert({attribute.name, sdf_property});
+        }
     }
 
     // Iterate through the commands and map them
@@ -1469,8 +1508,10 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
     cluster_reference->AddChild(sdf_action_node);
     current_quality_name_node = sdf_action_node;
     for (const auto& command : cluster.client_commands){
-        sdf::SdfAction sdf_action = MapMatterCommand(command, cluster.server_commands);
-        sdf_object.sdf_action.insert({command.name, sdf_action});
+        if (CheckElementAllowedConformance(command.conformance)) {
+            sdf::SdfAction sdf_action = MapMatterCommand(command, cluster.server_commands);
+            sdf_object.sdf_action.insert({command.name, sdf_action});
+        }
     }
 
     // Iterate through the events and map them
@@ -1478,8 +1519,10 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
     cluster_reference->AddChild(sdf_event_node);
     current_quality_name_node = sdf_event_node;
     for (const auto& event : cluster.events){
-        sdf::SdfEvent sdf_event =  MapMatterEvent(event);
-        sdf_object.sdf_event.insert({event.name, sdf_event});
+        if (CheckElementAllowedConformance(event.conformance)) {
+            sdf::SdfEvent sdf_event = MapMatterEvent(event);
+            sdf_object.sdf_event.insert({event.name, sdf_event});
+        }
     }
 
     auto* sdf_data_node = new ReferenceTreeNode("sdfData");
@@ -1541,6 +1584,8 @@ void MapDeviceClassification(const matter::DeviceClassification& device_classifi
 }
 
 //! Function used to map a Matter device type onto a sdfThing
+//! This function generates a sdfThing based on the given device type definition while also obtaining additional
+//! information via the sdf-mapping
 sdf::SdfThing MapMatterDevice(const matter::Device& device) {
     sdf::SdfThing sdf_thing;
     // Append a new sdf_object node to the tree
@@ -1589,18 +1634,20 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device) {
     current_quality_name_node = sdf_object_reference;
     // Iterate through clusters of the device type and map them individually
     for (const auto& cluster : device.clusters){
-        sdf::SdfObject sdf_object = MapMatterCluster(cluster);
-        // Clear the sdfRequired list as it would result in duplicates
-        sdf_object.sdf_required.clear();
-        current_quality_name_node = sdf_object_reference;
-        // Clear the list of supported features after every run
-        supported_features.clear();
-        // As a cluster can be mapped as a client as well as a server cluster, we suffix the cluster name
-        // with _Client or _Server
-        if (cluster.side == "client") {
-            sdf_thing.sdf_object.insert({cluster.name + "_Client", sdf_object});
-        } else {
-            sdf_thing.sdf_object.insert({cluster.name + "_Server", sdf_object});
+        if (CheckElementAllowedConformance(cluster.conformance)) {
+            sdf::SdfObject sdf_object = MapMatterCluster(cluster);
+            // Clear the sdfRequired list as it would result in duplicates
+            sdf_object.sdf_required.clear();
+            current_quality_name_node = sdf_object_reference;
+            // Clear the list of supported features after every run
+            supported_features.clear();
+            // As a cluster can be mapped as a client as well as a server cluster, we suffix the cluster name
+            // with _Client or _Server
+            if (cluster.side == "client") {
+                sdf_thing.sdf_object.insert({cluster.name + "_Client", sdf_object});
+            } else {
+                sdf_thing.sdf_object.insert({cluster.name + "_Server", sdf_object});
+            }
         }
     }
     // Set the list of required elements for the sdfThing
@@ -1610,6 +1657,8 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device) {
 }
 
 //! Function used to merge a derived cluster with its base
+//! This function searches for the base cluster of the given derived cluster in the list of clusters and merges the
+//! elements of the base cluster into the elements of the derived cluster
 void MergeDerivedCluster(matter::Cluster derived_cluster, const std::list<matter::Cluster>& cluster_list) {
     std::string base_cluster = derived_cluster.classification.value().base_cluster;
     // Search for the base cluster
@@ -1636,6 +1685,7 @@ void MergeDerivedCluster(matter::Cluster derived_cluster, const std::list<matter
 }
 
 //! Function used to check, if a Matter cluster is derived
+//! Returns true if the cluster is derived and false otherwise
 bool CheckIfDerived(const matter::Cluster cluster) {
     if (cluster.classification.has_value()) {
         if (cluster.classification.value().hierarchy == "derived") {
@@ -1649,6 +1699,9 @@ bool CheckIfDerived(const matter::Cluster cluster) {
 }
 
 //! Function used to merge device and cluster specifications together
+//! This function takes the device type definition as well as a list of all clusters
+//! It merges the cluster definitions from the list of clusters into their respective spot in the device type definition
+//! while optionally overwriting their elements
 void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>& cluster_list) {
     for (auto& device_cluster : device.clusters) {
         for (const auto& cluster: cluster_list) {
@@ -1777,29 +1830,32 @@ int MapMatterToSdf(const std::optional<matter::Device>& optional_device, const s
         current_quality_name_node = sdf_object_reference;
         // Iterate through all clusters and map them individually
         for (const auto& cluster : cluster_list) {
-            // If the cluster is derived from a base cluster, we have to merge them together
-            if (CheckIfDerived(cluster)) {
-                matter::Cluster merged_cluster = cluster;
-                MergeDerivedCluster(merged_cluster, cluster_list);
-                // Generate the information block based on the given cluster
-                sdf_model.information_block = GenerateInformationBlock(merged_cluster);
-                sdf_mapping.information_block = GenerateInformationBlock(merged_cluster);
-                // Map the cluster onto a sdfObject
-                sdf::SdfObject sdf_object = MapMatterCluster(merged_cluster);
-                sdf_model.sdf_object.insert({sdf_object.label, sdf_object});
-                // Clear the list of required elements
-                sdf_required_list.clear();
-                current_quality_name_node = sdf_object_reference;
-            } else {
-                // Generate the information block based on the given cluster
-                sdf_model.information_block = GenerateInformationBlock(cluster);
-                sdf_mapping.information_block = GenerateInformationBlock(cluster);
-                // Map the cluster onto a sdfObject
-                sdf::SdfObject sdf_object = MapMatterCluster(cluster);
-                sdf_model.sdf_object.insert({sdf_object.label, sdf_object});
-                // Clear the list of required elements
-                sdf_required_list.clear();
-                current_quality_name_node = sdf_object_reference;
+            // Check if the cluster is allowed for mapping
+            if (CheckElementAllowedConformance(cluster.conformance)) {
+                // If the cluster is derived from a base cluster, we have to merge them together
+                if (CheckIfDerived(cluster)) {
+                    matter::Cluster merged_cluster = cluster;
+                    MergeDerivedCluster(merged_cluster, cluster_list);
+                    // Generate the information block based on the given cluster
+                    sdf_model.information_block = GenerateInformationBlock(merged_cluster);
+                    sdf_mapping.information_block = GenerateInformationBlock(merged_cluster);
+                    // Map the cluster onto a sdfObject
+                    sdf::SdfObject sdf_object = MapMatterCluster(merged_cluster);
+                    sdf_model.sdf_object.insert({sdf_object.label, sdf_object});
+                    // Clear the list of required elements
+                    sdf_required_list.clear();
+                    current_quality_name_node = sdf_object_reference;
+                } else {
+                    // Generate the information block based on the given cluster
+                    sdf_model.information_block = GenerateInformationBlock(cluster);
+                    sdf_mapping.information_block = GenerateInformationBlock(cluster);
+                    // Map the cluster onto a sdfObject
+                    sdf::SdfObject sdf_object = MapMatterCluster(cluster);
+                    sdf_model.sdf_object.insert({sdf_object.label, sdf_object});
+                    // Clear the list of required elements
+                    sdf_required_list.clear();
+                    current_quality_name_node = sdf_object_reference;
+                }
             }
         }
     }
