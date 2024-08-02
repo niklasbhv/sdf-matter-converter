@@ -32,6 +32,10 @@ static ReferenceTreeNode* current_given_name_node = nullptr;
 //! This list gets filled while mapping and afterward appended to the corresponding sdfModel
 static std::list<std::string> sdf_required_list;
 
+//! Map containing enums
+//! This map is used when the sdf enum quality gets translated into a Matter enum
+std::map<std::string, std::list<matter::Item>> global_enum_map;
+
 //! Map containing the elements of the sdf mapping
 //! This map is used to resolve the elements outsourced into the map
 json reference_map;
@@ -507,7 +511,10 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
                 }
             }
             // If no maximum value exists
-            else {}
+            else {
+                // If no maximum value exists, we use the largest possible unsigned value
+                return "uint64";
+            }
         }
         // If minimum is negative (or larger than an uint64_t)
         else {
@@ -654,12 +661,61 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
                     }
                 }
             }
-                // If maximum does not have a value
-            else {}
+            // If maximum does not have a value
+            else {
+                // If no maximum value exists, we use the largest possible signed value
+                return "int64";
+            }
         }
     }
-    if (data_quality.maximum.has_value()) {}
-    return "";
+    // If a maximum value but no minimum value exists
+    // In this case we use the smallest data type that can still contain the maximum value
+    else if (data_quality.maximum.has_value()) {
+        // Check if the maximum value is positive
+        if (CheckVariantBorders(data_quality.maximum.value(), 0, std::numeric_limits<uint64_t>::max())) {
+            if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_8_MAX)) {
+                return "uint8";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_16_MAX)) {
+                return "uint16";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_24_MAX)) {
+                return "uint24";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_32_MAX)) {
+                return "uint32";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_40_MAX)) {
+                return "uint40";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_48_MAX)) {
+                return "uint48";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), 0, MATTER_INT_56_MAX)) {
+                return "uint56";
+            } else {
+                return "uint64";
+            }
+        }
+        // If the value is negative, we use a signed integer
+        else {
+            if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_8_MIN, MATTER_INT_8_MAX)) {
+                return "int8";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_16_MIN, MATTER_INT_16_MAX)) {
+                return "int16";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_24_MIN, MATTER_INT_24_MAX)) {
+                return "int24";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_32_MIN, MATTER_INT_32_MAX)) {
+                return "int32";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_40_MIN, MATTER_INT_40_MAX)) {
+                return "int40";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_48_MIN, MATTER_INT_48_MAX)) {
+                return "int48";
+            } else if (CheckVariantBorders(data_quality.maximum.value(), MATTER_INT_56_MIN, MATTER_INT_56_MAX)) {
+                return "int56";
+            } else {
+                return "int64";
+            }
+        }
+    }
+    // In case that no minimum and maximum values exists, we default to int64
+    // This gives the flexibility to use negative values
+    // Also, if the target data quality was supposed to be positive, it would have a minimum of 0
+    return "int64";
 }
 
 //! Helper function used to get the remaining string after a slash
@@ -692,6 +748,33 @@ sdf::DataQuality MapJsoItemToSdfDataQuality(const sdf::JsoItem& jso_item) {
     return data_quality;
 }
 
+//! Function used to generate a Matter enum from the sdf enum data quality
+//! This function returns the name of the generated enum as a value
+std::string MapSdfEnum(const sdf::DataQuality& data_quality)
+{
+    std::list<matter::Item> matter_enum;
+    int i = 0;
+    for (const auto& sdf_item : data_quality.enum_) {
+        matter::Item matter_item;
+        matter::Conformance conformance;
+        conformance.mandatory = true;
+        matter_item.value = i;
+        matter_item.name = sdf_item;
+        matter_item.conformance = conformance;
+        matter_enum.push_back(matter_item);
+        i++;
+    }
+    i = 0;
+    std::string enum_name = "CustomEnum";
+    while (true) {
+        if (global_enum_map.count(enum_name + std::to_string(i)) == 0) {
+            global_enum_map[enum_name + std::to_string(i)] = matter_enum;
+            return enum_name + std::to_string(i);
+        }
+        i++;
+    }
+}
+
 //! Function used to determine a Matter type based on the information of the given data quality
 std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint) {
     json desc_json;
@@ -709,28 +792,101 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
     if (data_quality.type == "number") {
         result = "double";
     } else if (data_quality.type == "string") {
-        result = "string";
-        if (data_quality.min_length.has_value()) {
-            if (data_quality.max_length.has_value()) {
-                constraint.type = "lengthBetween";
-                constraint.min = data_quality.min_length.value();
+        if (!data_quality.enum_.empty()) {
+            result = MapSdfEnum(data_quality);
+        } else {
+            if (data_quality.min_length.has_value()) {
+                if (data_quality.max_length.has_value()) {
+                    constraint.type = "lengthBetween";
+                    constraint.min = data_quality.min_length.value();
+                    constraint.max = data_quality.max_length.value();
+                } else {
+                    constraint.type = "minLength";
+                    constraint.min = data_quality.min_length.value();
+                }
+            } else if (data_quality.max_length.has_value()) {
+                constraint.type = "maxLength";
                 constraint.max = data_quality.max_length.value();
-            } else {
-                constraint.type = "minLength";
-                constraint.min = data_quality.min_length.value();
             }
-        } else if (data_quality.max_length.has_value()) {
-            constraint.type = "maxLength";
-            constraint.max = data_quality.max_length.value();
+            else if (data_quality.sdf_type == "byte-string") {
+                result = "octstr";
+            } else if (data_quality.sdf_type == "unix-time") {
+
+            } else {
+                result = "string";
+            }
         }
     } else if (data_quality.type == "boolean") {
         result = "bool";
     } else if (data_quality.type == "integer") {
+        if (!data_quality.unit.empty()) {
+            // If the data quality has a unit, we try to match it with a compatible Matter type
+            if (data_quality.unit == "%") {
+                if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
+                    if (CheckVariantEquals(data_quality.minimum.value(), 0) and
+                        CheckVariantEquals(data_quality.maximum.value(), 100)) {
+                        return "percent";
+                    } else if (CheckVariantEquals(data_quality.minimum.value(), 0) and
+                            CheckVariantEquals(data_quality.maximum.value(), 10000)) {
+                        return "percent100ths";
+                    }
+                }
+            }
+            else if (data_quality.unit == "mW") {
+                if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
+                    if (CheckVariantEquals(data_quality.minimum.value(), std::numeric_limits<int64_t>::min()) and
+                        CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<int64_t>::max())) {
+                        return "power-mW";
+                    }
+                }
+            }
+            else if (data_quality.unit == "mA") {
+                if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
+                    if (CheckVariantEquals(data_quality.minimum.value(), std::numeric_limits<int64_t>::min()) and
+                        CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<int64_t>::max())) {
+                        return "amperage-mA";
+                    }
+                }
+            }
+            else if (data_quality.unit == "mV") {
+                if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
+                    if (CheckVariantEquals(data_quality.minimum.value(), std::numeric_limits<int64_t>::min()) and
+                        CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<int64_t>::max())) {
+                        return "voltage-mW";
+                    }
+                }
+            }
+            else if (data_quality.unit == "mWh") {
+                if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
+                    if (CheckVariantEquals(data_quality.minimum.value(), std::numeric_limits<int64_t>::min()) and
+                        CheckVariantEquals(data_quality.maximum.value(), std::numeric_limits<int64_t>::max())) {
+                        return "energy-mWh";
+                    }
+                }
+            }
+            else if (data_quality.unit == "us") {}
+            else if (data_quality.unit == "ms") {}
+            else if (data_quality.unit == "s") {}
+        }
         result = MapIntegerType(data_quality, constraint);
     } else if (data_quality.type == "array") {
+        // If the data quality has minItems or maxItems, create a fitting constraint
+        if (data_quality.min_items.has_value()) {
+            if (data_quality.max_items.has_value()) {
+                constraint.type = "countBetween";
+                constraint.min = data_quality.min_items.value();
+                constraint.max = data_quality.max_items.value();
+            } else {
+                constraint.type = "minCount";
+                constraint.min = data_quality.min_items.value();
+            }
+        } else if (data_quality.max_items.has_value()) {
+            constraint.type = "maxCount";
+            constraint.max = data_quality.max_items.value();
+        }
+        // If the data quality has items, generate a entry constraint
         if (data_quality.items.has_value()) {
             auto* entry_constraint = new matter::Constraint();
-            constraint.type = "entry";
             constraint.entry_type = MapSdfDataType(MapJsoItemToSdfDataQuality(data_quality.items.value()),
                                                    *entry_constraint);
             constraint.entry_constraint = entry_constraint;
@@ -738,10 +894,6 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
         result = "list";
     } else if (data_quality.type == "object") {
         result = "struct";
-    } else if (data_quality.sdf_type == "byte-string") {
-        result = "octstr";
-    } else if (data_quality.sdf_type == "unix-time") {
-
     }
 
     return result;
@@ -1069,7 +1221,13 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     current_given_name_node = sdf_object_reference;
 
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "id", cluster.id);
-    cluster.name = sdf_object_pair.second.label;
+
+    if (sdf_object_pair.second.label.empty()) {
+        cluster.name = sdf_object_pair.first;
+    } else {
+        cluster.name = sdf_object_pair.second.label;
+    }
+
     if (!sdf_object_pair.second.sdf_required.empty()) {
         sdf_required_list.insert(sdf_required_list.end(),
                                  sdf_object_pair.second.sdf_required.begin(),
@@ -1142,6 +1300,12 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     auto* sdf_data_reference = new ReferenceTreeNode("sdfData");
     sdf_object_reference->AddChild(sdf_data_reference);
     current_quality_name_node = sdf_data_reference;
+
+    // If enums have been added to the global list of enums, we merge them into the rest of the enums
+    if (!global_enum_map.empty()) {
+        cluster.enums.insert(global_enum_map.begin(), global_enum_map.end());
+        global_enum_map.clear();
+    }
 
     for (const auto& sdf_data_elem : sdf_object_pair.second.sdf_data) {
         auto* given_sdf_data_reference = new ReferenceTreeNode(sdf_data_elem.first);

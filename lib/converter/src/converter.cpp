@@ -23,7 +23,7 @@
 using json = nlohmann::ordered_json;
 
 int ConvertSdfToMatter(json& sdf_model_json, json& sdf_mapping_json,
-                       pugi::xml_document& device_xml,
+                       std::optional<pugi::xml_document>& optional_device_xml,
                        std::list<pugi::xml_document>& cluster_xml_list)
 {
     sdf::SdfModel sdf_model = sdf::ParseSdfModel(sdf_model_json);
@@ -32,7 +32,11 @@ int ConvertSdfToMatter(json& sdf_model_json, json& sdf_mapping_json,
     std::list<matter::Cluster> clusters;
     MapSdfToMatter(sdf_model, sdf_mapping, device, clusters);
     if (device.has_value()) {
+        pugi::xml_document device_xml;
         SerializeDevice(device.value(), device_xml);
+        optional_device_xml = std::move(device_xml);
+    } else {
+        optional_device_xml.reset();
     }
 
     for (const auto& cluster : clusters) {

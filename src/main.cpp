@@ -146,11 +146,11 @@ int main(int argc, char *argv[]) {
                 std::cout << "Round-tripping flag was set!" << std::endl;
                 std::cout << "Converting SDF to Matter..." << std::endl;
                 pugi::xml_document round_trip_device_xml;
-                pugi::xml_document device_xml;
+                std::optional<pugi::xml_document> optional_device_xml;
                 cluster_xml_list.clear();
                 std::list<pugi::xml_document> round_trip_cluster_xml_list;
 
-                ConvertSdfToMatter(sdf_model, sdf_mapping, device_xml, cluster_xml_list);
+                ConvertSdfToMatter(sdf_model, sdf_mapping, optional_device_xml, cluster_xml_list);
                 std::cout << "Successfully converted SDF to Matter!" << std::endl;
 
                 std::string path_output_device_xml;
@@ -158,9 +158,9 @@ int main(int argc, char *argv[]) {
                 GenerateMatterFilenames(program.get<std::string>("-output"), path_output_device_xml,
                                         path_output_cluster_xml);
 
-                if (!device_xml.empty()) {
+                if (optional_device_xml.has_value()) {
                     std::cout << "Saving Device XML..." << std::endl;
-                    SaveXmlFile(path_output_device_xml.c_str(), device_xml);
+                    SaveXmlFile(path_output_device_xml.c_str(), optional_device_xml.value());
                     std::cout << "Successfully saved Device XML!" << std::endl;
                     if (validate) {
                         if (ValidateMatter(path_device_xml.c_str(), program.get<std::string>("-validate").c_str()) ==
@@ -240,18 +240,15 @@ int main(int argc, char *argv[]) {
         json sdf_mapping_json;
         LoadJsonFile(path_sdf_mapping.c_str(), sdf_mapping_json);
 
-        pugi::xml_document device_xml;
+        std::optional<pugi::xml_document> optional_device_xml;
         std::list<pugi::xml_document> cluster_xml_list;
-        ConvertSdfToMatter(sdf_model_json, sdf_mapping_json, device_xml, cluster_xml_list);
+        ConvertSdfToMatter(sdf_model_json, sdf_mapping_json, optional_device_xml, cluster_xml_list);
         if (program.is_used("--roundtrip")) {
             std::cout << "Round-tripping flag was set!" << std::endl;
             std::cout << "Converting Matter to SDF..." << std::endl;
             sdf_model_json.clear();
             sdf_mapping_json.clear();
-            std::optional<pugi::xml_document> optional_device_xml;
 
-            if (device_xml.empty())
-                optional_device_xml = std::move(device_xml);
 
             ConvertMatterToSdf(optional_device_xml, cluster_xml_list, sdf_model_json, sdf_mapping_json);
             std::cout << "Successfully converted Matter to SDF!" << std::endl;
@@ -287,9 +284,9 @@ int main(int argc, char *argv[]) {
             std::string path_cluster_xml;
             GenerateMatterFilenames(program.get<std::string>("-output"), path_device_xml, path_cluster_xml);
 
-            if (!device_xml.empty()) {
+            if (optional_device_xml.has_value()) {
                 std::cout << "Saving Device XML..." << std::endl;
-                SaveXmlFile(path_device_xml.c_str(), device_xml);
+                SaveXmlFile(path_device_xml.c_str(), optional_device_xml.value());
                 if (validate) {
                     if (ValidateMatter(path_device_xml.c_str(), program.get<std::string>("-validate").c_str()) == 0) {
                         std::cout << "Device XML valid!..." << std::endl;

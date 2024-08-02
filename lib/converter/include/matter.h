@@ -335,11 +335,11 @@ struct Cluster : CommonQuality {
     //! List of events
     std::list<Event> events;
     //! Map for globally defined enums
-    std::unordered_map<std::string, std::list<Item>> enums;
+    std::map<std::string, std::list<Item>> enums;
     //! Map for globally defined bitmaps
-    std::unordered_map<std::string, std::list<Bitfield>> bitmaps;
+    std::map<std::string, std::list<Bitfield>> bitmaps;
     //! Map for globally defined bitmaps
-    std::unordered_map<std::string, Struct> structs;
+    std::map<std::string, Struct> structs;
 };
 
 //! Struct which contains device classification information.
