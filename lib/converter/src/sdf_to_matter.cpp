@@ -1313,6 +1313,39 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
         device.clusters.push_back(MapSdfObject(sdf_object_pair));
     }
 
+    // Check if the sdfThing contains sdfProperties, sdfActions or sdfEvents
+    // If so, we create a new Cluster for these elements and add it to the sdfThing
+    if (!sdf_thing_pair.second.sdf_property.empty() or !sdf_thing_pair.second.sdf_action.empty() or
+        !sdf_thing_pair.second.sdf_event.empty()) {
+        matter::Cluster cluster;
+        cluster.name = sdf_thing_pair.first;
+        // First possible custom Cluster id
+        cluster.id = 32768;
+        // Iterate through all sdfProperties and map them individually
+        for (const auto& sdf_property_pair : sdf_thing_pair.second.sdf_property) {
+            current_quality_name_node = new ReferenceTreeNode("sdfProperty");
+            sdf_thing_reference->AddChild(current_quality_name_node);
+            cluster.attributes.push_back(MapSdfProperty(sdf_property_pair));
+        }
+        // Iterate through all sdfActions and map them individually
+        for (const auto& sdf_action_pair : sdf_thing_pair.second.sdf_action) {
+            current_quality_name_node = new ReferenceTreeNode("sdfAction");
+            sdf_thing_reference->AddChild(current_quality_name_node);
+            std::pair<matter::Command, std::optional<matter::Command>> command_pair = MapSdfAction(sdf_action_pair);
+            cluster.client_commands.push_back(command_pair.first);
+            if (command_pair.second.has_value()) {
+                cluster.server_commands[command_pair.second.value().name] = command_pair.second.value();
+            }
+        }
+        // Iterate through all sdfEvents and map them individually
+        for (const auto& sdf_event_pair : sdf_thing_pair.second.sdf_event) {
+            current_quality_name_node = new ReferenceTreeNode("sdfEvent");
+            sdf_thing_reference->AddChild(current_quality_name_node);
+            cluster.events.push_back(MapSdfEvent(sdf_event_pair));
+        }
+        device.clusters.push_back(cluster);
+    }
+
     return device;
 }
 
