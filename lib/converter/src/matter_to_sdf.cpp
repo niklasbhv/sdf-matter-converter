@@ -285,66 +285,10 @@ bool CheckElementAllowedConformance(const std::optional<matter::Conformance>& co
     return true;
 }
 
-//! Function used to map a Matter bitmap onto a sdfData element
-std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair) {
-    auto* bitmap_reference = new ReferenceTreeNode(bitmap_pair.first);
-    current_quality_name_node->AddChild(bitmap_reference);
-    current_given_name_node = bitmap_reference;
-
-    sdf::DataQuality data_quality;
-    json bitmap_json;
-    data_quality.type = "array";
-    data_quality.unique_items = true;
-    sdf::JsoItem item;
-
-    for (const auto& bitfield : bitmap_pair.second) {
-        if (CheckElementAllowedConformance(bitfield.conformance)) {
-            sdf::DataQuality sdf_choice_data_quality;
-            json bitfield_json;
-            if (bitfield.conformance.has_value()) {
-                bitfield_json.merge_patch(bitfield.conformance.value());
-            }
-
-            bitfield_json["bit"] = bitfield.bit;
-            bitfield_json["name"] = bitfield.name;
-            bitfield_json["summary"] = bitfield.summary;
-            item.sdf_choice[bitfield.name] = sdf_choice_data_quality;
-            bitmap_json.push_back(bitfield_json);
-        }
-    }
-
-    data_quality.items = item;
-    current_given_name_node->AddAttribute("bitfield", bitmap_json);
-    return {bitmap_pair.first, data_quality};
-}
-
-//! Function used to map a Matter enum onto a sdfData element
-std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::string, std::list<matter::Item>>& enum_pair) {
-    auto* enum_reference = new ReferenceTreeNode(enum_pair.first);
-    current_quality_name_node->AddChild(enum_reference);
-    current_given_name_node = enum_reference;
-
-    sdf::DataQuality data_quality;
-    json enum_json;
-
-    for (const auto& item : enum_pair.second) {
-        sdf::DataQuality sdf_choice_data_quality;
-        sdf_choice_data_quality.const_ = item.value;
-        sdf_choice_data_quality.description = item.summary;
-
-        if (item.conformance.has_value()) {
-            json item_json;
-            item_json["value"] = item.value;
-            item_json.merge_patch(item.conformance.value());
-            enum_json.push_back(item_json);
-        }
-
-        data_quality.sdf_choice[item.name] = sdf_choice_data_quality;
-    }
-
-    current_given_name_node->AddAttribute("item", enum_json);
-
-    return {enum_pair.first, data_quality};
+//! Function used to check if the data qualities contain a sdfChoice
+//! If yes, depending on if it's mappable to a enum or a bitmap or none of them, this has to be handled in a special way
+bool CheckForSdfChoice(const sdf::DataQuality& data_quality) {
+    return true;
 }
 
 //! Function used to map the default type from Matter onto the variable type of sdf
@@ -901,26 +845,103 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     }
 }
 
+//! Function used to map a Matter bitmap onto a sdfData element
+std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair) {
+    auto* bitmap_reference = new ReferenceTreeNode(bitmap_pair.first);
+    current_quality_name_node->AddChild(bitmap_reference);
+    current_given_name_node = bitmap_reference;
+
+    sdf::DataQuality data_quality;
+    json bitmap_json;
+    data_quality.type = "array";
+    data_quality.unique_items = true;
+    sdf::JsoItem item;
+    item.type = "integer";
+
+    for (const auto& bitfield : bitmap_pair.second) {
+        if (CheckElementAllowedConformance(bitfield.conformance)) {
+            sdf::DataQuality sdf_choice_data_quality;
+            json bitfield_json;
+            if (bitfield.conformance.has_value()) {
+                bitfield_json.merge_patch(bitfield.conformance.value());
+            }
+            sdf_choice_data_quality.const_ = bitfield.bit;
+            sdf_choice_data_quality.label = bitfield.name;
+            sdf_choice_data_quality.description = bitfield.summary;
+            bitfield_json["bit"] = bitfield.bit;
+            item.sdf_choice[bitfield.name] = sdf_choice_data_quality;
+            bitmap_json.push_back(bitfield_json);
+        }
+    }
+
+    data_quality.items = item;
+    current_given_name_node->AddAttribute("bitfield", bitmap_json);
+    return {bitmap_pair.first, data_quality};
+}
+
+//! Function used to map a Matter enum onto a sdfData element
+std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::string, std::list<matter::Item>>& enum_pair) {
+    auto* enum_reference = new ReferenceTreeNode(enum_pair.first);
+    current_quality_name_node->AddChild(enum_reference);
+    current_given_name_node = enum_reference;
+
+    sdf::DataQuality data_quality;
+    data_quality.type = "integer";
+    json enum_json;
+
+    for (const auto& item : enum_pair.second) {
+        sdf::DataQuality sdf_choice_data_quality;
+        sdf_choice_data_quality.const_ = item.value;
+        sdf_choice_data_quality.description = item.summary;
+
+        if (item.conformance.has_value()) {
+            json item_json;
+            item_json["value"] = item.value;
+            item_json.merge_patch(item.conformance.value());
+            enum_json.push_back(item_json);
+        }
+
+        data_quality.sdf_choice[item.name] = sdf_choice_data_quality;
+    }
+
+    current_given_name_node->AddAttribute("item", enum_json);
+
+    return {enum_pair.first, data_quality};
+}
+
 //! Function used to map a Matter struct onto a sdfData element
 std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::string, matter::Struct>& struct_pair) {
+    auto* struct_node = new ReferenceTreeNode(struct_pair.first);
+    current_quality_name_node->AddChild(struct_node);
+    current_given_name_node = struct_node;
+
     sdf::DataQuality data_quality;
     data_quality.type = "object";
 
+    json struct_json;
     for (const auto& struct_field : struct_pair.second) {
         if (CheckElementAllowedConformance(struct_field.conformance)) {
             sdf::DataQuality struct_field_data_quality;
+            json field_json;
+            field_json["name"] = struct_field.name;
+            field_json["id"] = struct_field.id;
             struct_field_data_quality.label = struct_field.name;
             struct_field_data_quality.description = struct_field.summary;
             MapMatterType(struct_field.type, struct_field_data_quality);
             data_quality.properties[struct_field.name] = struct_field_data_quality;
             if (struct_field.conformance.has_value()) {
+                field_json.merge_patch(struct_field.conformance.value());
                 if (struct_field.conformance.value().mandatory) {
                     if (EvaluateConformanceCondition(struct_field.conformance.value().condition)) {
                         data_quality.required.push_back(struct_field.name);
                     }
                 }
             }
+            struct_json.push_back(field_json);
         }
+    }
+    if (!struct_json.is_null()) {
+        current_given_name_node->AddAttribute("field", struct_json);
     }
 
     return {struct_pair.first, data_quality};

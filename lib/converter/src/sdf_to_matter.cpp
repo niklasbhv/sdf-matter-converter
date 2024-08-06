@@ -28,6 +28,8 @@ static ReferenceTreeNode* current_quality_name_node = nullptr;
 //! for example the `OnOff` node, not a top level sdf element
 static ReferenceTreeNode* current_given_name_node = nullptr;
 
+static ReferenceTreeNode* current_cluster_name_node = nullptr;
+
 //! List containing required sdf elements
 //! This list gets filled while mapping and afterward appended to the corresponding sdfModel
 static std::list<std::string> sdf_required_list;
@@ -36,9 +38,15 @@ static std::list<std::string> sdf_required_list;
 //! This map is used when the sdf enum quality gets translated into a Matter enum
 std::map<std::string, std::list<matter::Item>> global_enum_map;
 
-//! Map containing enums
+//! Map containing structs
 //! This map is used when an object type data quality gets translated into a global struct
 std::map<std::string, matter::Struct> global_struct_map;
+
+//! Map containing bitmaps
+//! This map is used when a bitfield compatible set of data qualities gets translated
+std::map<std::string, std::list<matter::Bitfield>> global_bitmap_map;
+
+std::string sdf_data_location;
 
 //! Map containing the elements of the sdf mapping
 //! This map is used to resolve the elements outsourced into the map
@@ -859,6 +867,8 @@ std::string MapSdfChoice(const sdf::DataQuality& data_quality) {
             other_quality.nullable = true;
             field.quality = other_quality;
         }
+        matter_struct.push_back(field);
+        i++;
     }
     i = 0;
     std::string struct_name = "CustomStruct";
@@ -898,48 +908,184 @@ std::string MapSdfEnum(const sdf::DataQuality& data_quality)
     }
 }
 
+std::string MapToMatterEnum(const sdf::DataQuality& data_quality) {
+    std::list<matter::Item> matter_enum;
+    int i = 0;
+    for (const auto& sdf_choice_pair : data_quality.sdf_choice) {
+        if (sdf_choice_pair.second.const_.has_value()) {
+            if (std::holds_alternative<uint64_t>(sdf_choice_pair.second.const_.value()));
+        }
+        matter::Item matter_item;
+        matter::Conformance conformance;
+        conformance.mandatory = true;
+        matter_item.conformance = conformance;
+        matter_item.value = i;
+        matter_item.name = sdf_choice_pair.first;
+        matter_enum.push_back(matter_item);
+        i++;
+    }
+    i = 0;
+    std::string enum_name = "CustomEnum";
+    while (true) {
+        if (global_enum_map.count(enum_name + std::to_string(i)) == 0) {
+            global_enum_map[enum_name + std::to_string(i)] = matter_enum;
+            return enum_name + std::to_string(i);
+        }
+        i++;
+    }
+}
+
+//! Function used to check if the given data qualities are compatible with the enum data type
+bool CheckEnumCompatible(const sdf::DataQuality& data_quality) {
+    if (data_quality.type == "Integer" and !data_quality.sdf_choice.empty()) {
+        for (const auto& sdf_choice_pair : data_quality.sdf_choice) {
+            if (!sdf_choice_pair.second.const_.has_value()) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+std::string MapToMatterBitmap(const sdf::DataQuality& data_quality) {
+    std::list<matter::Bitfield> bitmap;
+    int i = 0;
+    json bitfield_json;
+    // If one exists, get the pointer to the original element
+    if (!data_quality.sdf_ref.empty()) {
+        // Import additional information from the mapping
+        ImportFromMapping(data_quality.sdf_ref, "bitfield", bitfield_json);
+        std::cout << bitfield_json << std::endl;
+    }
+    for (const auto& sdf_choice : data_quality.items.value().sdf_choice) {
+        matter::Bitfield bitfield;
+        bitfield.bit = i;
+        bitfield.name = sdf_choice.first;
+        matter::Conformance conformance;
+        conformance.mandatory = true;
+        bitfield.conformance = conformance;
+        if (!bitfield_json.is_null()) {
+            for (const auto& array_field : bitfield_json) {
+                std::cout << "ARRAY FIELD" << array_field << std::endl;
+                if (array_field.contains("name") and array_field.at("name") == sdf_choice.first) {
+                    //bitfield.conformance = GenerateMatterConformance(array_field);
+                    if (array_field.contains("bit")) {
+                        array_field.at("bit").get_to(bitfield.bit);
+                    }
+                    if (array_field.contains("summary")) {
+                        array_field.at("summary").get_to(bitfield.summary);
+                    }
+                }
+            }
+
+        }
+
+        bitmap.push_back(bitfield);
+        i++;
+    }
+    if (!data_quality.sdf_ref.empty()) {
+        std::string bitmap_name = GetLastPartAfterSlash(data_quality.sdf_ref);
+        global_bitmap_map[bitmap_name] = bitmap;
+        return bitmap_name;
+    } else {
+        i = 0;
+        std::string bitmap_name = "CustomBitmap";
+        while (true) {
+            if (global_bitmap_map.count(bitmap_name + std::to_string(i)) == 0) {
+                global_bitmap_map[bitmap_name + std::to_string(i)] = bitmap;
+                return bitmap_name + std::to_string(i);
+            }
+            i++;
+        }
+    }
+}
+
+//! Function used if the given array can be turned into a bitmap
+bool CheckBitmapCompatible(const sdf::DataQuality& data_quality) {
+    if (data_quality.items.has_value() and
+    data_quality.unique_items.has_value() and
+    data_quality.unique_items.value() and
+    !data_quality.items.value().sdf_choice.empty()) {
+        return true;
+    }
+    return false;
+}
+
 //! Function used to map a object type data quality onto a global Matter struct
 //! The function returns the name of the created struct for referencing it
 std::string MapSdfObjectType(const sdf::DataQuality& data_quality) {
     int i = 0;
     matter::Struct matter_struct;
+    json field_json;
+    // If one exists, get the pointer to the original element
+    if (!data_quality.sdf_ref.empty()) {
+        // Import additional information from the mapping
+        ImportFromMapping(data_quality.sdf_ref, "field", field_json);
+    }
     if (!data_quality.properties.empty()) {
         for (const auto &data_quality_pair : data_quality.properties) {
             matter::DataField field;
             field.id = i;
-            field.name = data_quality.label;
-            field.summary = data_quality.description;
+            field.name = data_quality_pair.first;
+            field.summary = data_quality_pair.second.description;
             matter::Constraint constraint;
             field.type = MapSdfDataType(data_quality_pair.second, constraint);
             field.constraint = constraint;
-            if (contains(data_quality_pair.second.required, data_quality_pair.first)) {
-                matter::Conformance conformance;
-                conformance.mandatory = true;
-                field.conformance = conformance;
-            } else {
-                matter::Conformance conformance;
-                conformance.optional = true;
-                field.conformance = conformance;
+            // Check if there are information that can be retrieved from the mapping
+            if (!field_json.is_null()) {
+                for (const auto &data_field_json : field_json) {
+                    if (data_field_json["name"] == data_quality_pair.first) {
+                        //field.conformance = GenerateMatterConformance(data_field_json);
+                        //field.quality = ImportOtherQualityFromMapping();
+                        //field.access
+                        if (data_field_json.contains("id")) {
+                            data_field_json.at("id").get_to(field.id);
+                        }
+                    }
+                }
             }
+            if (!field.conformance.has_value()) {
+                if (contains(data_quality_pair.second.required, data_quality_pair.first)) {
+                    matter::Conformance conformance;
+                    conformance.mandatory = true;
+                    field.conformance = conformance;
+                } else {
+                    matter::Conformance conformance;
+                    conformance.optional = true;
+                    field.conformance = conformance;
+                }
+            }
+
             if (data_quality_pair.second.default_.has_value()) {
                 field.default_ = MapSdfDefaultValue(data_quality_pair.second.default_.value());
             }
-            if (data_quality_pair.second.nullable) {
-                matter::OtherQuality other_quality;
-                other_quality.nullable = true;
-                field.quality = other_quality;
+            if (data_quality_pair.second.nullable.has_value()) {
+                if (field.quality.has_value()) {
+                    field.quality.value().nullable = data_quality_pair.second.nullable;
+                } else {
+                    matter::OtherQuality other_quality;
+                    other_quality.nullable = data_quality_pair.second.nullable;
+                    field.quality = other_quality;
+                }
             }
             i++;
             matter_struct.push_back(field);
         }
-        i = 0;
-        std::string struct_name = "CustomStruct";
-        while (true) {
-            if (global_struct_map.count(struct_name + std::to_string(i)) == 0) {
-                global_struct_map[struct_name + std::to_string(i)] = matter_struct;
-                return struct_name + std::to_string(i);
+        if (!data_quality.sdf_ref.empty()) {
+            std::string struct_name = GetLastPartAfterSlash(data_quality.sdf_ref);
+            global_struct_map[struct_name] = matter_struct;
+            return struct_name;
+        } else {
+            i = 0;
+            std::string struct_name = "CustomStruct";
+            while (true) {
+                if (global_struct_map.count(struct_name + std::to_string(i)) == 0) {
+                    global_struct_map[struct_name + std::to_string(i)] = matter_struct;
+                    return struct_name + std::to_string(i);
+                }
+                i++;
             }
-            i++;
         }
     } else {
         // If the properties quality is empty, we just return struct
@@ -949,21 +1095,15 @@ std::string MapSdfObjectType(const sdf::DataQuality& data_quality) {
 
 //! Function used to determine a Matter type based on the information of the given data quality
 std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint) {
-    json desc_json;
-    ImportFromMapping(current_given_name_node->GeneratePointer(), "constraint", desc_json);
-
-    if (desc_json.contains("type")) {
-        desc_json.at("type").get_to(constraint.type);
-    }
     // Check if the data qualities contain a sdfChoice
-    if (!data_quality.sdf_choice.empty()) {
-        return MapSdfChoice(data_quality);
-    }
+    //if (!data_quality.sdf_choice.empty()) {
+    //    return MapSdfChoice(data_quality);
+    //}
 
     std::string result;
-    if (!data_quality.sdf_ref.empty()) {
-        return GetLastPartAfterSlash(data_quality.sdf_ref);
-    }
+    //if (!data_quality.sdf_ref.empty()) {
+    //    return GetLastPartAfterSlash(data_quality.sdf_ref);
+    //}
 
     if (data_quality.type == "number") {
         result = "double";
@@ -1051,6 +1191,9 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
         }
         result = MapIntegerType(data_quality, constraint);
     } else if (data_quality.type == "array") {
+        if (CheckBitmapCompatible(data_quality)) {
+            return MapToMatterBitmap(data_quality);
+        }
         // If the data quality has minItems or maxItems, create a fitting constraint
         if (data_quality.min_items.has_value()) {
             if (data_quality.max_items.has_value()) {
@@ -1281,6 +1424,13 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     attribute.summary = sdf_property_pair.second.description;
     matter::Constraint constraint;
     attribute.type = MapSdfDataType(sdf_property_pair.second, constraint);
+    json desc_json;
+    if (ImportFromMapping(current_given_name_node->GeneratePointer(), "constraint", desc_json)) {
+        if (desc_json.contains("type")) {
+            desc_json.at("type").get_to(constraint.type);
+        }
+    }
+
     attribute.constraint = constraint;
     if (sdf_property_pair.second.default_.has_value()) {
         attribute.default_ = MapSdfDefaultValue(sdf_property_pair.second.default_.value());
@@ -1445,6 +1595,10 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     sdf_object_reference->AddChild(sdf_property_reference);
     current_quality_name_node = sdf_property_reference;
     for (const auto& sdf_property_pair : sdf_object_pair.second.sdf_property) {
+        std::cout << sdf_property_pair.second.sdf_ref << std::endl;
+        if (sdf_property_pair.second.unique_items.has_value()) {
+            std::cout << "success" << std::endl;
+        }
         cluster.attributes.push_back(MapSdfProperty(sdf_property_pair));
     }
 
@@ -1479,6 +1633,11 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
         global_enum_map.clear();
     }
 
+    if (!global_bitmap_map.empty()) {
+        cluster.bitmaps.insert(global_bitmap_map.begin(), global_bitmap_map.end());
+        global_bitmap_map.clear();
+    }
+
     // If structs have been added to the global map of structs, we merge them into the rest of the structs
     if (!global_struct_map.empty()) {
         cluster.structs.insert(global_struct_map.begin(), global_struct_map.end());
@@ -1489,7 +1648,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
         auto* given_sdf_data_reference = new ReferenceTreeNode(sdf_data_elem.first);
         sdf_data_reference->AddChild(given_sdf_data_reference);
         current_given_name_node = given_sdf_data_reference;
-
+        /*
         if (sdf_data_elem.second.type == "object") {
             matter::Struct matter_struct;
             uint32_t id = 0;
@@ -1550,37 +1709,10 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
                 cluster.bitmaps[sdf_data_elem.first] = bitmap;
             }
         } else if (!sdf_data_elem.second.sdf_choice.empty()) {
-            std::list<matter::Item> matter_enum;
-            int value = 0;
-            for (const auto& sdf_choice : sdf_data_elem.second.sdf_choice) {
-                matter::Item item;
-                item.name = sdf_choice.first;
-                item.summary = sdf_choice.second.description;
-                json conformance_json;
-                if (sdf_choice.second.const_.has_value()) {
-                    if (std::holds_alternative<double>(sdf_choice.second.const_.value())) {
-                        item.value = static_cast<int>(std::get<double>(sdf_choice.second.const_.value()));
-                    } else if (std::holds_alternative<uint64_t>(sdf_choice.second.const_.value())) {
-                        item.value = static_cast<int>(std::get<uint64_t>(sdf_choice.second.const_.value()));
-                    } else if (std::holds_alternative<int64_t>(sdf_choice.second.const_.value())) {
-                        item.value = static_cast<int>(std::get<int64_t>(sdf_choice.second.const_.value()));
-                    }
-                } else {
-                    item.value = value;
-                    value++;
-                }
-                if (ImportFromMapping(current_given_name_node->GeneratePointer(), "item", conformance_json)) {
-                    for (auto& item_json : conformance_json) {
-                        if (item_json.at("value") == item.value) {
-                            item.conformance = GenerateMatterConformance(sdf_choice.second.sdf_required, item_json);
-                            break;
-                        }
-                    }
-                }
-                matter_enum.push_back(item);
+
             }
             cluster.enums[sdf_data_elem.first] = matter_enum;
-        }
+        }*/
     }
 
     return cluster;
