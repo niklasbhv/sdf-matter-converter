@@ -26,6 +26,7 @@
 #ifndef SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MAPPING_H_
 #define SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MAPPING_H_
 
+#include <iostream>
 #include <list>
 #include "sdf.h"
 
@@ -169,6 +170,15 @@ inline bool compare(uint64_t a, int64_t b) {
     // At this point, b is non-negative, so we can safely cast to uint64_t
     auto ub = static_cast<uint64_t>(b);
     return a <= ub;
+}
+
+//! Helper function used to get the remaining string after a slash
+inline std::string GetLastPartAfterSlash(const std::string& str) {
+    size_t pos = str.find_last_of('/');
+    if (pos != std::string::npos) {
+        return str.substr(pos + 1);
+    }
+    return str;  // If no slash is found, return the original string
 }
 
 #endif //SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MAPPING_H_
