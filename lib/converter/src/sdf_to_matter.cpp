@@ -784,7 +784,7 @@ sdf::DataQuality MapJsoItemToSdfDataQuality(const sdf::JsoItem& jso_item) {
 
 //! Function used to merge the data qualities of the second argument into the data qualities of the first argument
 //! Used in combination with sdfChoice to fill the options with all their information
-void MergeDataQualities(sdf::DataQuality data_quality, const sdf::DataQuality overwrite_data_quality) {
+void MergeDataQualities(sdf::DataQuality& data_quality, const sdf::DataQuality& overwrite_data_quality) {
     if (!overwrite_data_quality.type.empty()) {
         data_quality.type = overwrite_data_quality.type;
     } if (!overwrite_data_quality.sdf_choice.empty()) {
@@ -842,43 +842,7 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
 //! Function used to map a sdfChoice onto a special Matter struct
 //! The function returns the Name of the resulting struct
 std::string MapSdfChoice(const sdf::DataQuality& data_quality) {
-    sdf::DataQuality data_quality_copy = data_quality;
-    matter::Struct matter_struct;
-    int i = 0;
-    for (auto& sdf_choice_pair : data_quality_copy.sdf_choice) {
-        MergeDataQualities(sdf_choice_pair.second, data_quality);
-        matter::DataField field;
-        field.id = 0;
-        field.name = sdf_choice_pair.first;
-        field.summary = sdf_choice_pair.second.description;
-        // Set a choice conformance to achieve exclusivity between the fields
-        matter::Conformance conformance;
-        conformance.optional = true;
-        conformance.choice = "a";
-        field.conformance = conformance;
-        matter::Constraint constraint;
-        field.type = MapSdfDataType(sdf_choice_pair.second, constraint);
-        field.constraint = constraint;
-        if (sdf_choice_pair.second.default_.has_value()) {
-            field.default_ = MapSdfDefaultValue(sdf_choice_pair.second.default_.value());
-        }
-        if (sdf_choice_pair.second.nullable) {
-            matter::OtherQuality other_quality;
-            other_quality.nullable = true;
-            field.quality = other_quality;
-        }
-        matter_struct.push_back(field);
-        i++;
-    }
-    i = 0;
-    std::string struct_name = "CustomStruct";
-    while (true) {
-        if (global_struct_map.count(struct_name + std::to_string(i)) == 0) {
-            global_struct_map[struct_name + std::to_string(i)] = matter_struct;
-            return struct_name + std::to_string(i);
-        }
-        i++;
-    }
+
 }
 
 //! Function used to generate a Matter enum from the sdf enum data quality
@@ -1441,6 +1405,28 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     return attribute;
 }
 
+//! Function used to map a sdfChoice onto multiple attributes
+//! Each of the resulting attributes gets a choice conformance
+std::list<matter::Attribute> MapSdfChoice(const std::pair<std::string, sdf::SdfProperty>& sdf_property_pair) {
+    std::list<matter::Attribute> attribute_list;
+
+    for (const auto& sdf_choice_pair : sdf_property_pair.second.sdf_choice) {
+        sdf::SdfProperty merged_sdf_property = sdf_property_pair.second;
+        // Merge the data qualities of the sdfChoice into the sdfProperty
+        MergeDataQualities(merged_sdf_property, sdf_choice_pair.second);
+        // Map the resulting sdfProperty onto an attribute
+        matter::Attribute attribute = MapSdfProperty({sdf_property_pair.first, merged_sdf_property});
+        // Create the choice conformance
+        matter::Conformance choice_conformance;
+        choice_conformance.optional = true;
+        choice_conformance.choice = "a";
+        attribute.conformance = choice_conformance;
+        attribute_list.push_back(attribute);
+    }
+
+    return attribute_list;
+}
+
 //! Function used to generate a feature map based on the information given by the sdf-mapping
 std::list<matter::Feature> GenerateFeatureMap() {
     std::list<matter::Feature> feature_map;
@@ -1595,11 +1581,14 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     sdf_object_reference->AddChild(sdf_property_reference);
     current_quality_name_node = sdf_property_reference;
     for (const auto& sdf_property_pair : sdf_object_pair.second.sdf_property) {
-        std::cout << sdf_property_pair.second.sdf_ref << std::endl;
-        if (sdf_property_pair.second.unique_items.has_value()) {
-            std::cout << "success" << std::endl;
+        // Check if the sdfProperty contains a sdfChoice
+        // If yes, multiple exclusive attributes will be generated
+        if (!sdf_property_pair.second.sdf_choice.empty()) {
+            std::list<matter::Attribute> mapped_properties = MapSdfChoice(sdf_property_pair);
+            cluster.attributes.insert(cluster.attributes.end(), mapped_properties.begin(), mapped_properties.end());
+        } else {
+            cluster.attributes.push_back(MapSdfProperty(sdf_property_pair));
         }
-        cluster.attributes.push_back(MapSdfProperty(sdf_property_pair));
     }
 
     // Iterate through all sdfActions and map them individually
