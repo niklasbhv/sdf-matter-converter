@@ -967,6 +967,9 @@ bool CheckBitmapCompatible(const sdf::DataQuality& data_quality) {
     return false;
 }
 
+// Function prototype for MapSdfDataType
+std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint);
+
 //! Function used to map a object type data quality onto a global Matter struct
 //! The function returns the name of the created struct for referencing it
 std::string MapSdfObjectType(const sdf::DataQuality& data_quality) {
