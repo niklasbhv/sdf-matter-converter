@@ -426,6 +426,10 @@ bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant,
 
 //! Function used to map a integer type data quality onto a Matter type as well as a Matter constraint
 std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constraint& constraint) {
+    if (data_quality.const_.has_value()) {
+        constraint.type = "allowed";
+        constraint.value = MapSdfDefaultValue(data_quality.const_.value());
+    }
     if (data_quality.minimum.has_value()) {
         // Check if the minimum value is positive or negative
         if (CheckVariantBorders(data_quality.minimum.value(), 0, std::numeric_limits<uint64_t>::max())) {
@@ -1064,6 +1068,23 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
     //}
 
     if (data_quality.type == "number") {
+        if (data_quality.const_.has_value()) {
+            constraint.type = "allowed";
+            constraint.value = MapSdfDefaultValue(data_quality.const_.value());
+        }
+        if (data_quality.minimum.has_value()) {
+            if (data_quality.maximum.has_value()) {
+                constraint.type = "between";
+                constraint.min = data_quality.minimum.value();
+                constraint.max = data_quality.maximum.value();
+            } else {
+                constraint.type = "min";
+                constraint.min = data_quality.minimum.value();
+            }
+        } else if (data_quality.maximum.has_value()) {
+            constraint.type = "max";
+            constraint.max = data_quality.maximum.value();
+        }
         result = "double";
     } else if (data_quality.type == "string") {
         if (!data_quality.enum_.empty()) {
