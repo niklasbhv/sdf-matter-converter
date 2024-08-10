@@ -836,15 +836,6 @@ void MergeDataQualities(sdf::DataQuality& data_quality, const sdf::DataQuality& 
     }
 }
 
-//! Function prototype, function is used to determine a Matter type based on the information of the given data quality
-std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint);
-
-//! Function used to map a sdfChoice onto a special Matter struct
-//! The function returns the Name of the resulting struct
-std::string MapSdfChoice(const sdf::DataQuality& data_quality) {
-
-}
-
 //! Function used to generate a Matter enum from the sdf enum data quality
 //! This function returns the name of the generated enum as a value
 std::string MapSdfEnum(const sdf::DataQuality& data_quality)
@@ -1109,7 +1100,7 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
                     }
                 }
             }
-            else if (data_quality.unit == "%") {
+            else if (data_quality.unit == "/10000") {
                 if (data_quality.minimum.has_value() and data_quality.maximum.has_value()) {
                     if (CheckVariantEquals(data_quality.minimum.value(), 0) and
                         CheckVariantEquals(data_quality.maximum.value(), 10000)) {
@@ -1208,6 +1199,20 @@ matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality) {
     return data_field;
 }
 
+//! Function used to map a sdfChoice onto a list of exclusive data fields
+std::list<matter::DataField> MapSdfChoice(const sdf::DataQuality& data_quality) {
+    std::list<matter::DataField> data_field_list;
+
+    for (const auto& sdf_choice_pair : data_quality.sdf_choice) {
+        sdf::DataQuality merged_data_quality = data_quality;
+        MergeDataQualities(merged_data_quality, sdf_choice_pair.second);
+        matter::DataField data_field = MapSdfInputOutputData(merged_data_quality);
+        data_field_list.push_back(data_field);
+    }
+
+    return data_field_list;
+}
+
 //! Function used to map a sdfEvent onto a Matter event
 matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event_pair) {
     matter::Event event;
@@ -1220,7 +1225,13 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
     event.summary = sdf_event_pair.second.description;
     event.conformance = GenerateMatterConformance(sdf_event_pair.second.sdf_required);
     if (sdf_event_pair.second.sdf_output_data.has_value()) {
-        if (sdf_event_pair.second.sdf_output_data.value().type == "object") {
+        // Check if sdfOutputData contains a sdfChoice
+        if (!sdf_event_pair.second.sdf_output_data.value().sdf_choice.empty()) {
+            event.data = MapSdfChoice(sdf_event_pair.second.sdf_output_data.value());
+        }
+        // Otherwise check if the type sdfOutputData is object
+        // In this case each data quality in properties gets mapped to its own data field
+        else if (sdf_event_pair.second.sdf_output_data.value().type == "object") {
             int i = 0;
             for (const auto& data_quality_pair : sdf_event_pair.second.sdf_output_data.value().properties) {
                 matter::DataField field = MapSdfInputOutputData(data_quality_pair.second);
@@ -1228,7 +1239,9 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
                 i++;
                 event.data.push_back(field);
             }
-        } else {
+        }
+        // Otherwise the data quality gets mapped to a single data field
+        else {
             matter::DataField field = MapSdfInputOutputData(sdf_event_pair.second.sdf_output_data.value());
             field.id = 0;
             event.data.push_back(field);
@@ -1253,7 +1266,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     client_command.summary = sdf_action_pair.second.description;
     client_command.direction = "commandToServer";
     std::optional<matter::Command> optional_server_command;
-    // Check if the sdfAction has output data qualities
+    // Check if the sdfOutputData has a value
     if (sdf_action_pair.second.sdf_output_data.has_value()) {
         if (sdf_action_pair.second.sdf_output_data.value().minimum.has_value() and
         sdf_action_pair.second.sdf_output_data.value().maximum.has_value() and
@@ -1269,8 +1282,13 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
             server_command.direction = "responseFromServer";
 
             client_command.response = server_command.name;
-            // If object is used as a type, the elements of the object have to be mapped individually
-            if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
+
+            // Check if sdfOutputData contains a sdfChoice
+            if (!sdf_action_pair.second.sdf_output_data.value().sdf_choice.empty()) {
+                server_command.command_fields = MapSdfChoice(sdf_action_pair.second.sdf_output_data.value());
+            }
+            // Otherwise, if object is used as a type, the elements of the object have to be mapped individually
+            else if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
                 uint32_t id = 0;
                 for (const auto &quality_pair : sdf_action_pair.second.sdf_output_data.value().properties) {
                     matter::DataField field = MapSdfInputOutputData(quality_pair.second);
@@ -1291,7 +1309,9 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
                     server_command.command_fields.push_back(field);
                     id++;
                 }
-            } else  {
+            }
+            // Otherwise sdfOutputData gets mapped to a single data field
+            else  {
                 matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_output_data.value());
                 json conformance_json;
                 if (ImportFromMapping(sdf_action_reference->GeneratePointer(), "field", conformance_json)) {
@@ -1303,15 +1323,20 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
             }
             optional_server_command = server_command;
         }
-    } else {
+    }
+    // Otherwise the client command does not have a response value
+    else {
         client_command.response = "N";
     }
 
-    // Map the sdf_input_data Qualities
-    // If object is used as a type, the elements of the object have to be mapped individually
+    // Check if sdfInputData has a value
     if (sdf_action_pair.second.sdf_input_data.has_value()) {
-        // If object is used as a type, the elements of the object have to be mapped individually
-        if (sdf_action_pair.second.sdf_input_data.value().type == "object") {
+        // Check if sdfInputData contains a sdfChoice
+        if (!sdf_action_pair.second.sdf_input_data.value().sdf_choice.empty()) {
+            client_command.command_fields = MapSdfChoice(sdf_action_pair.second.sdf_input_data.value());
+        }
+        // Otherwise, if object is used as a type, the elements of the object have to be mapped individually
+        else if (sdf_action_pair.second.sdf_input_data.value().type == "object") {
             uint32_t id = 0;
             for (const auto& quality_pair : sdf_action_pair.second.sdf_input_data.value().properties) {
                 matter::DataField field = MapSdfInputOutputData(quality_pair.second);
