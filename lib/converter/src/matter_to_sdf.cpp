@@ -285,12 +285,6 @@ bool CheckElementAllowedConformance(const std::optional<matter::Conformance>& co
     return true;
 }
 
-//! Function used to check if the data qualities contain a sdfChoice
-//! If yes, depending on if it's mappable to a enum or a bitmap or none of them, this has to be handled in a special way
-bool CheckForSdfChoice(const sdf::DataQuality& data_quality) {
-    return true;
-}
-
 //! Function used to map the default type from Matter onto the variable type of sdf
 std::optional<sdf::VariableType> MapMatterDefaultType(const matter::DefaultType& default_type) {
     sdf::VariableType variable_type;
@@ -427,7 +421,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     // Base: uint16
     else if (matter_type == "percent100ths") {
         data_quality.type = "integer";
-        data_quality.unit = "%";
+        data_quality.unit = "/10000";
         data_quality.minimum = 0;
         data_quality.maximum = 10000;
     }
@@ -1469,38 +1463,44 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
         current_quality_name_node->AddChild(cluster_reference);
         current_given_name_node = cluster_reference;
     }
+
     // Set the location of sdfData
     sdf_data_location = current_given_name_node->GeneratePointer() + "/sdfData/";
 
     cluster_reference->AddAttribute("id", static_cast<uint64_t>(cluster.id));
     sdf_object.label = cluster.name;
+    sdf_object.description = cluster.summary;
+
     if (cluster.conformance.has_value()) {
         MapMatterConformance(cluster.conformance.value());
     }
 
-    sdf_object.description = cluster.summary;
     // Export the cluster revision to the mapping
     cluster_reference->AddAttribute("revision", cluster.revision);
 
     // Export the revision history to the mapping
-    json revision_history_json;
-    for (const auto& revision : cluster.revision_history) {
-        json revision_json;
-        revision_json["revision"] = revision.first;
-        revision_json["summary"] = revision.second;
-        revision_history_json["revision"].push_back(revision_json);
+    if (!cluster.revision_history.empty()) {
+        json revision_history_json;
+        for (const auto &revision : cluster.revision_history) {
+            json revision_json;
+            revision_json["revision"] = revision.first;
+            revision_json["summary"] = revision.second;
+            revision_history_json["revision"].push_back(revision_json);
+        }
+        cluster_reference->AddAttribute("revisionHistory", revision_history_json);
     }
-    cluster_reference->AddAttribute("revisionHistory", revision_history_json);
 
     // Export the cluster aliases to the mapping
-    json cluster_aliases_json;
-    for (const auto& cluster_alias : cluster.cluster_aliases) {
-        json cluster_alias_json;
-        cluster_alias_json["id"] = cluster_alias.first;
-        cluster_alias_json["name"] = cluster_alias.second;
-        cluster_aliases_json["clusterId"].push_back(cluster_alias_json);
+    if (!cluster.cluster_aliases.empty()) {
+        json cluster_aliases_json;
+        for (const auto &cluster_alias : cluster.cluster_aliases) {
+            json cluster_alias_json;
+            cluster_alias_json["id"] = cluster_alias.first;
+            cluster_alias_json["name"] = cluster_alias.second;
+            cluster_aliases_json["clusterId"].push_back(cluster_alias_json);
+        }
+        cluster_reference->AddAttribute("clusterIds", cluster_aliases_json);
     }
-    cluster_reference->AddAttribute("clusterIds", cluster_aliases_json);
 
     if (cluster.classification.has_value()) {
         MapClusterClassification(cluster.classification.value());
@@ -1618,16 +1618,20 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device) {
     if (device.conformance.has_value()) {
         MapMatterConformance(device.conformance.value());
     }
+
     // Export the revision history to the mapping
     device_reference->AddAttribute("revision", device.revision);
-    json revision_history_json;
-    for (const auto& revision : device.revision_history) {
-        json revision_json;
-        revision_json["revision"] = revision.first;
-        revision_json["summary"] = revision.second;
-        revision_history_json["revision"].push_back(revision_json);
+    // Export the revision history to the mapping
+    if (!device.revision_history.empty()) {
+        json revision_history_json;
+        for (const auto &revision : device.revision_history) {
+            json revision_json;
+            revision_json["revision"] = revision.first;
+            revision_json["summary"] = revision.second;
+            revision_history_json["revision"].push_back(revision_json);
+        }
+        device_reference->AddAttribute("revisionHistory", revision_history_json);
     }
-    device_reference->AddAttribute("revisionHistory", revision_history_json);
 
     // If the device type contains conditions, export them to the mapping
     if (!device.conditions.empty()) {
@@ -1702,7 +1706,7 @@ void MergeDerivedCluster(matter::Cluster derived_cluster, const std::list<matter
 
 //! Function used to check, if a Matter cluster is derived
 //! Returns true if the cluster is derived and false otherwise
-bool CheckIfDerived(const matter::Cluster cluster) {
+bool CheckIfDerived(const matter::Cluster& cluster) {
     if (cluster.classification.has_value()) {
         if (cluster.classification.value().hierarchy == "derived") {
             return true;
@@ -1819,6 +1823,8 @@ void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>
     }
 }
 
+//! Main mapping function used to map an optional device type as well as a list of clusters onto a sdf-model and a
+//! sdf-mapping
 int MapMatterToSdf(const std::optional<matter::Device>& optional_device, const std::list<matter::Cluster>& cluster_list,
                    sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping) {
     // Create a new ReferenceTree
