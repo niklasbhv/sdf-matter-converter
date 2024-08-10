@@ -1068,7 +1068,9 @@ void SerializeBitfield(const Bitfield& bitfield, pugi::xml_node& bitmap_node) {
 
     bitfield_node.append_attribute("name").set_value(bitfield.name.c_str());
     bitfield_node.append_attribute("bit").set_value(bitfield.bit);
-    bitfield_node.append_attribute("summary").set_value(bitfield.summary.c_str());
+    if (!bitfield.summary.empty()) {
+        bitfield_node.append_attribute("summary").set_value(bitfield.summary.c_str());
+    }
 
     if (bitfield.conformance.has_value()) {
         SerializeConformance(bitfield.conformance.value(), bitfield_node);
@@ -1116,7 +1118,9 @@ void SerializeFeatureMap(const std::list<matter::Feature>& features_map, pugi::x
         feature_node.append_attribute("bit").set_value(feature.bit);
         feature_node.append_attribute("code").set_value(feature.code.c_str());
         feature_node.append_attribute("name").set_value(feature.name.c_str());
-        feature_node.append_attribute("summary").set_value(feature.summary.c_str());
+        if (!feature.summary.empty()) {
+            feature_node.append_attribute("summary").set_value(feature.summary.c_str());
+        }
 
         if (feature.conformance.has_value()) {
             SerializeConformance(feature.conformance.value(), feature_node);
