@@ -1191,7 +1191,9 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
         return MapSdfObjectType(data_quality);
     }
 
-    return result;
+    // This case should only ever happen if the data quality has no type
+    // In this case we can't determine a type
+    return "";
 }
 
 //! Function used to map sdfInputData or a sdfOutputData onto a Matter data field
@@ -1223,6 +1225,11 @@ std::list<matter::DataField> MapSdfChoice(const sdf::DataQuality& data_quality) 
         sdf::DataQuality merged_data_quality = data_quality;
         MergeDataQualities(merged_data_quality, sdf_choice_pair.second);
         matter::DataField data_field = MapSdfInputOutputData(merged_data_quality);
+        // Create the choice conformance
+        matter::Conformance choice_conformance;
+        choice_conformance.optional = true;
+        choice_conformance.choice = "a";
+        data_field.conformance = choice_conformance;
         data_field_list.push_back(data_field);
     }
 
@@ -1248,7 +1255,7 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
         // Otherwise check if the type sdfOutputData is object
         // In this case each data quality in properties gets mapped to its own data field
         else if (sdf_event_pair.second.sdf_output_data.value().type == "object") {
-            int i = 0;
+            u_int32_t i = 0;
             for (const auto& data_quality_pair : sdf_event_pair.second.sdf_output_data.value().properties) {
                 matter::DataField field = MapSdfInputOutputData(data_quality_pair.second);
                 field.id = i;
@@ -1398,6 +1405,7 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
 
     ImportFromMapping(sdf_property_reference->GeneratePointer(), "id", attribute.id);
     attribute.name = sdf_property_pair.first;
+    attribute.summary = sdf_property_pair.second.description;
     attribute.conformance = GenerateMatterConformance(sdf_property_pair.second.sdf_required);
 
     attribute.access = ImportAccessFromMapping(sdf_property_reference->GeneratePointer());
@@ -1426,7 +1434,6 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
         }
     }
 
-    attribute.summary = sdf_property_pair.second.description;
     matter::Constraint constraint;
     attribute.type = MapSdfDataType(sdf_property_pair.second, constraint);
     json desc_json;
@@ -1678,71 +1685,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
         auto* given_sdf_data_reference = new ReferenceTreeNode(sdf_data_elem.first);
         sdf_data_reference->AddChild(given_sdf_data_reference);
         current_given_name_node = given_sdf_data_reference;
-        /*
-        if (sdf_data_elem.second.type == "object") {
-            matter::Struct matter_struct;
-            uint32_t id = 0;
-            for (const auto& property : sdf_data_elem.second.properties) {
-                matter::DataField data_field;
-                data_field.id = id;
-                data_field.name = property.second.label;
-                data_field.summary = property.second.description;
-                json conformance_json;
-                if (ImportFromMapping(current_given_name_node->GeneratePointer(), "properties", conformance_json)) {
-                    if (conformance_json.contains(property.first)) {
-                        data_field.conformance = GenerateMatterConformance(property.second.sdf_required,
-                                                                           conformance_json.at(property.first));
-                    }
-                } else {
-                    matter::Conformance conformance;
-                    if (contains(sdf_data_elem.second.required, property.first)) {
-                        conformance.mandatory = true;
-                    } else {
-                        conformance.optional = true;
-                    }
-                    data_field.conformance = conformance;
-                }
-                matter::Constraint constraint;
-                data_field.type = MapSdfDataType(property.second, constraint);
-                data_field.constraint = constraint;
-                matter_struct.push_back(data_field);
-                id++;
-            }
-            cluster.structs[sdf_data_elem.first] = matter_struct;
-        } else if (sdf_data_elem.second.type == "array") {
-            if (sdf_data_elem.second.items.has_value()) {
-                std::list<matter::Bitfield> bitmap;
-                int bit = 0;
-                for (const auto& sdf_choice : sdf_data_elem.second.items.value().sdf_choice) {
-                    matter::Bitfield bitfield;
-                    bitfield.name = sdf_choice.first;
-                    json conformance_json;
-                    if (ImportFromMapping(current_given_name_node->GeneratePointer(), "bitfield", conformance_json)) {
-                        for (auto& bitfield_json : conformance_json) {
-                            if (bitfield_json.at("name") == bitfield.name) {
-                                if (bitfield_json.contains("summary")) {
-                                    bitfield_json.at("summary").get_to(bitfield.summary);
-                                }
-                                if (bitfield_json.contains("bit")) {
-                                    bitfield_json.at("bit").get_to(bitfield.bit);
-                                } else {
-                                    bitfield.bit = bit;
-                                    bit++;
-                                }
-                                bitfield.conformance = GenerateMatterConformance(sdf_choice.second.sdf_required,
-                                                                                 bitfield_json);
-                            }
-                        }
-                    }
-                    bitmap.push_back(bitfield);
-                }
-                cluster.bitmaps[sdf_data_elem.first] = bitmap;
-            }
-        } else if (!sdf_data_elem.second.sdf_choice.empty()) {
 
-            }
-            cluster.enums[sdf_data_elem.first] = matter_enum;
-        }*/
     }
 
     return cluster;
