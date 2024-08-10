@@ -971,7 +971,7 @@ bool CheckBitmapCompatible(const sdf::DataQuality& data_quality) {
     return false;
 }
 
-// Function prototype for MapSdfDataType
+//! Function prototype for MapSdfDataType
 std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint);
 
 //! Function used to map a object type data quality onto a global Matter struct
@@ -1056,17 +1056,7 @@ std::string MapSdfObjectType(const sdf::DataQuality& data_quality) {
 }
 
 //! Function used to determine a Matter type based on the information of the given data quality
-std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint) {
-    // Check if the data qualities contain a sdfChoice
-    //if (!data_quality.sdf_choice.empty()) {
-    //    return MapSdfChoice(data_quality);
-    //}
-
-    std::string result;
-    //if (!data_quality.sdf_ref.empty()) {
-    //    return GetLastPartAfterSlash(data_quality.sdf_ref);
-    //}
-
+std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint){
     if (data_quality.type == "number") {
         if (data_quality.const_.has_value()) {
             constraint.type = "allowed";
@@ -1085,10 +1075,14 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
             constraint.type = "max";
             constraint.max = data_quality.maximum.value();
         }
-        result = "double";
+        if (data_quality.sdf_type == "unix-time") {
+            return "posix-ms";
+        } else {
+            return "double";
+        }
     } else if (data_quality.type == "string") {
         if (!data_quality.enum_.empty()) {
-            result = MapSdfEnum(data_quality);
+            return MapSdfEnum(data_quality);
         } else {
             if (data_quality.min_length.has_value()) {
                 if (data_quality.max_length.has_value()) {
@@ -1103,16 +1097,14 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
                 constraint.type = "maxLength";
                 constraint.max = data_quality.max_length.value();
             }
-            else if (data_quality.sdf_type == "byte-string") {
-                result = "octstr";
-            } else if (data_quality.sdf_type == "unix-time") {
-                result = "posix-ms";
+            if (data_quality.sdf_type == "byte-string") {
+                return "octstr";
             } else {
-                result = "string";
+                return "string";
             }
         }
     } else if (data_quality.type == "boolean") {
-        result = "bool";
+        return "bool";
     } else if (data_quality.type == "integer") {
         if (!data_quality.unit.empty()) {
             // If the data quality has a unit, we try to match it with a compatible Matter type
@@ -1165,10 +1157,10 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
                 }
             }
             else if (data_quality.unit == "ms") {
-                result = "systime-ms";
+                return "systime-ms";
             }
         }
-        result = MapIntegerType(data_quality, constraint);
+        return MapIntegerType(data_quality, constraint);
     } else if (data_quality.type == "array") {
         if (CheckBitmapCompatible(data_quality)) {
             return MapToMatterBitmap(data_quality);
@@ -1194,7 +1186,7 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
                                                    *entry_constraint);
             constraint.entry_constraint = entry_constraint;
         }
-        result = "list";
+        return "list";
     } else if (data_quality.type == "object") {
         return MapSdfObjectType(data_quality);
     }
