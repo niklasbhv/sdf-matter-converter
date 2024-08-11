@@ -44,12 +44,12 @@
 # Documentation folder
 
 /doc/*
-/cmake
-/_deps
-/CPM_modules
-/CMakeCache.txt
-/cmake_install.cmake
-/CPackConfig.cmake
-/CPackSourceConfig.cmake
-/cpm-package-lock.cmake
+cmake/
+_deps/
+CPM_modules/
+CMakeCache.txt
+cmake_install.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+cpm-package-lock.cmake
 
