@@ -44,7 +44,6 @@
 # Documentation folder
 
 /doc/*
-cmake/
 _deps/
 CPM_modules/
 CMakeCache.txt
