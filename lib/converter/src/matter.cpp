@@ -22,6 +22,9 @@
 namespace matter {
 
 //! Function used to parse the default value
+//! This function tries to parse the input as multiple options and catches the exception when this operation does not
+//! succeed.
+//! The first data type that doesn't throw an exception will be chosen.
 DefaultType ParseDefaultType(const std::string& value) {
     // Try to parse as int
     try {
@@ -53,7 +56,7 @@ DefaultType ParseDefaultType(const std::string& value) {
     return value;
 }
 
-//! Function used to parse a quality node into a OtherQuality object
+//! Function used to parse a other quality node into a OtherQuality object.
 OtherQuality ParseOtherQuality(const pugi::xml_node& parent_node) {
     OtherQuality other_quality;
 
@@ -105,7 +108,7 @@ OtherQuality ParseOtherQuality(const pugi::xml_node& parent_node) {
     return other_quality;
 }
 
-//! Function used to parse a constraint node into a Constraint object
+//! Function used to parse a constraint node into a Constraint object.
 Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
     Constraint constraint;
 
@@ -146,12 +149,11 @@ Constraint ParseConstraint(const pugi::xml_node& constraint_node) {
     } else if (constraint.type == "maxCount") {
         constraint.max = constraint_node.attribute("value").as_int();
     }
-    // Character string constraints
 
     return constraint;
 }
 
-//! Function used to parse an entry constraint
+//! Function used to parse an entry constraint node into a Constraint object.
 Constraint ParseEntryConstraint(const pugi::xml_node& constraint_node) {
     Constraint constraint;
 
@@ -165,9 +167,8 @@ Constraint ParseEntryConstraint(const pugi::xml_node& constraint_node) {
     return constraint;
 }
 
-//! Function used to parse a logical term into a JSON representation
-//! This will allow the easy exporting to the mapping as well as the
-//! easy evaluation for the contained expression
+//! Function used to parse logical term nodes into a JSON representation.
+//! This will allow the easy exporting to the mapping as well as the easy evaluation for the contained expression.
 nlohmann::json ParseLogicalTerm(const pugi::xml_node& logical_node) {
     nlohmann::json condition;
 
@@ -199,7 +200,7 @@ nlohmann::json ParseLogicalTerm(const pugi::xml_node& logical_node) {
     return condition;
 }
 
-//! Function used to parse a conformance node into a Conformance object
+//! Function used to parse a conformance node into a Conformance object.
 Conformance ParseConformance(const pugi::xml_node& conformance_node) {
     Conformance conformance;
 
@@ -292,7 +293,7 @@ Conformance ParseConformance(const pugi::xml_node& conformance_node) {
     return conformance;
 }
 
-//! Function used to parse a access node into a Access object
+//! Function used to parse a access node into a Access object.
 Access ParseAccess(const pugi::xml_node& access_node) {
     Access access;
 
@@ -331,7 +332,7 @@ Access ParseAccess(const pugi::xml_node& access_node) {
     return access;
 }
 
-//! Function used to parse a enum item
+//! Function used to parse a enum item node into a Item object.
 Item ParseItem(const pugi::xml_node& enum_item_node) {
     Item item;
 
@@ -343,7 +344,7 @@ Item ParseItem(const pugi::xml_node& enum_item_node) {
     return item;
 }
 
-//! Function used to parse a bitmap bitfield
+//! Function used to parse a bitmap bitfield node into a Bitfield object.
 Bitfield ParseBitfield(const pugi::xml_node& bitfield_node) {
     Bitfield bitfield;
 
@@ -355,7 +356,7 @@ Bitfield ParseBitfield(const pugi::xml_node& bitfield_node) {
     return bitfield;
 }
 
-//! Function used to parse a data field
+//! Function used to parse a data field node into a DataField object.
 DataField ParseDataField(const pugi::xml_node& data_field_node) {
     DataField data_field;
 
@@ -394,7 +395,7 @@ DataField ParseDataField(const pugi::xml_node& data_field_node) {
     return data_field;
 }
 
-//! Function used to parse a feature
+//! Function used to parse a feature node into a Feature object.
 Feature ParseFeature(const pugi::xml_node& feature_node) {
     Feature feature;
 
@@ -407,7 +408,7 @@ Feature ParseFeature(const pugi::xml_node& feature_node) {
     return feature;
 }
 
-//! Function used to parse a Matter event
+//! Function used to parse a event node into a Event object.
 Event ParseEvent(const pugi::xml_node& event_node) {
     Event event;
 
@@ -433,7 +434,7 @@ Event ParseEvent(const pugi::xml_node& event_node) {
     return event;
 }
 
-//! Function used to parse a Matter command
+//! Function used to parse a command node to a Command object.
 Command ParseCommand(const pugi::xml_node& command_node) {
     Command command;
 
@@ -456,7 +457,7 @@ Command ParseCommand(const pugi::xml_node& command_node) {
     return command;
 }
 
-//! Function used to parse a Matter attribute
+//! Function used to parse a attribute node into a Attribute object.
 Attribute ParseAttribute(const pugi::xml_node& attribute_node) {
     Attribute attribute;
 
@@ -486,9 +487,9 @@ Attribute ParseAttribute(const pugi::xml_node& attribute_node) {
 
 }
 
-//! Function used to parse globally defined custom data types.
-void ParseDataTypes(const pugi::xml_node& data_type_xml, Cluster& cluster) {
-    // Parse all data types based on enums.
+//! Function used to parse globally defined custom data type nodes into their respective objects.
+void ParseGlobalDataTypes(const pugi::xml_node& data_type_xml, Cluster& cluster) {
+    // Parse all data types based on structs.
     for (const auto& struct_node: data_type_xml.children("struct")) {
         std::list<DataField> struct_fields;
         for (const auto& field_node : struct_node.children("field")) {
@@ -516,7 +517,7 @@ void ParseDataTypes(const pugi::xml_node& data_type_xml, Cluster& cluster) {
     }
 }
 
-//! Function used to parse classification information.
+//! Function used to parse a cluster classification node into a ClusterClassification object.
 ClusterClassification ParseClusterClassification(const pugi::xml_node& classification_xml) {
     ClusterClassification cluster_classification;
 
@@ -547,7 +548,7 @@ ClusterClassification ParseClusterClassification(const pugi::xml_node& classific
     return cluster_classification;
 }
 
-//! Function used to parse clusters.
+//! Function used to parse a cluster node into a Cluster object.
 Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
     Cluster cluster;
     cluster.id = cluster_xml.attribute("id").as_int();
@@ -591,7 +592,7 @@ Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
 
     // Parse the globally defined custom data types
     if (!cluster_xml.child("dataTypes").empty()) {
-        ParseDataTypes(cluster_xml.child("dataTypes"), cluster);
+        ParseGlobalDataTypes(cluster_xml.child("dataTypes"), cluster);
     }
 
     // Iterate through all attributes and parse them individually
@@ -619,7 +620,7 @@ Cluster ParseCluster(const pugi::xml_node& cluster_xml) {
     return cluster;
 }
 
-//! Function used to parse a device type classification
+//! Function used to parse a device type classification node into a DeviceClassification object.
 DeviceClassification ParseDeviceClassification(const pugi::xml_node& classification_node)
 {
     DeviceClassification device_classification;
@@ -639,7 +640,7 @@ DeviceClassification ParseDeviceClassification(const pugi::xml_node& classificat
     return device_classification;
 }
 
-//! Function used to parse a device type definition.
+//! Function used to parse a device type node definition into a Device object.
 Device ParseDevice(const pugi::xml_node& device_xml) {
     Device device;
 
@@ -669,7 +670,7 @@ Device ParseDevice(const pugi::xml_node& device_xml) {
     return device;
 }
 
-//! Serializes a other quality object into a xml node and appends it to the parent node
+//! Function used to serialize a other quality object into a xml node and append it to the parent node.
 void SerializeOtherQuality(const OtherQuality& other_quality, pugi::xml_node& parent_node) {
     pugi::xml_node quality_node = parent_node.append_child("quality");
 
@@ -716,7 +717,7 @@ void SerializeOtherQuality(const OtherQuality& other_quality, pugi::xml_node& pa
     }
 }
 
-//! Serializes the given default value into its actual contained datatype
+//! Function used to serialize the given default value into its actual contained datatype.
 void SerializeDefaultType(const DefaultType& value, const char* attribute_name, pugi::xml_node& target_node) {
     if (std::holds_alternative<double>(value)) {
         target_node.append_attribute(attribute_name).set_value(std::get<double>(value));
@@ -733,7 +734,7 @@ void SerializeDefaultType(const DefaultType& value, const char* attribute_name, 
     }
 }
 
-//! Serializes the given numeric value into its actual contained datatype
+//! Function used to serialize the given numeric value into its actual contained datatype.
 void SerializeNumericType(const NumericType& value, const char* attribute_name, pugi::xml_node& target_node) {
     if (std::holds_alternative<double>(value)) {
         target_node.append_attribute(attribute_name).set_value(std::get<double>(value));
@@ -744,7 +745,7 @@ void SerializeNumericType(const NumericType& value, const char* attribute_name, 
     }
 }
 
-//! Serializes a constraint object into a xml node and appends it to the given parent node
+//! Function used to serialize a constraint object into a xml node and append it to the given parent node.
 void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_node) {
     // If the constraint is an entry constraint
     if (!constraint.entry_type.empty()) {
@@ -803,12 +804,11 @@ void SerializeConstraint(const Constraint& constraint, pugi::xml_node& parent_no
             constraint_node.append_attribute("type").set_value("maxCount");
             SerializeNumericType(constraint.max.value(), "value", constraint_node);
         }
-        // Character string constraints
     }
 }
 
-//! Serialize a matter conformance logical term into nested xml nodes
-//! This function is usually used in combination with SerializeConformance
+//! Function used to serialize a matter conformance logical term into nested xml nodes.
+//! This function is usually used in combination with SerializeConformance.
 void SerializeLogicalTerm(const nlohmann::json& condition, pugi::xml_node& parent_node)
 {
     if (condition.contains("orTerm")) {
@@ -846,7 +846,7 @@ void SerializeLogicalTerm(const nlohmann::json& condition, pugi::xml_node& paren
     }
 }
 
-//! Serializes a conformance object into a xml node and appends it to the given parent node
+//! Function used to serialize a conformance object into a xml node and append it to the given parent node.
 void SerializeConformance(const Conformance& conformance, pugi::xml_node& parent_node) {
     pugi::xml_node conformance_node;
     if (conformance.mandatory) {
@@ -876,7 +876,7 @@ void SerializeConformance(const Conformance& conformance, pugi::xml_node& parent
     }
 }
 
-//! Serializes a access object into a xml node and appends it to the given parent node
+//! Function used to serialize a access object into a xml node and append it to the given parent node.
 void SerializeAccess(const Access& access, pugi::xml_node& parent_node) {
     auto access_node = parent_node.append_child("access");
 
@@ -913,7 +913,7 @@ void SerializeAccess(const Access& access, pugi::xml_node& parent_node) {
     }
 }
 
-//! Serializes a data field object into a xml node and appends it to the given parent node
+//! Function used to serialize a data field object into a xml node and append it to the given parent node.
 void SerializeDataField(const DataField& data_field, pugi::xml_node& parent_node) {
     auto data_field_node = parent_node.append_child("field");
 
@@ -949,7 +949,7 @@ void SerializeDataField(const DataField& data_field, pugi::xml_node& parent_node
     }
 }
 
-//! Serializes a event object into a xml node and appends it to the given parent node
+//! Function used to serialize a event object into a xml node and append it to the given parent node.
 void SerializeEvent(const Event& event, pugi::xml_node& events_node) {
     auto event_node = events_node.append_child("event");
 
@@ -979,7 +979,7 @@ void SerializeEvent(const Event& event, pugi::xml_node& events_node) {
     }
 }
 
-//! Serializes a command object and into a xml node and appends it to the given parent node
+//! Function used to serialize a command object and into a xml node and append it to the given parent node.
 void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
     auto command_node = commands_node.append_child("command");
 
@@ -1010,7 +1010,7 @@ void SerializeCommand(const Command& command, pugi::xml_node& commands_node) {
     }
 }
 
-//! Serialize a attribute object into a xml node and appends it to the given parent node
+//! Function used to serialize a attribute object into a xml node and append it to the given parent node.
 void SerializeAttribute(const Attribute& attribute, pugi::xml_node& attributes_node) {
     auto attribute_node = attributes_node.append_child("attribute");
 
@@ -1046,7 +1046,7 @@ void SerializeAttribute(const Attribute& attribute, pugi::xml_node& attributes_n
     }
 }
 
-//! Serialize a enum item into a xml node
+//! Function used to serialize a enum item into a xml node.
 void SerializeItem(const Item& item, pugi::xml_node& enum_node) {
     auto item_node = enum_node.append_child("item");
 
@@ -1062,7 +1062,7 @@ void SerializeItem(const Item& item, pugi::xml_node& enum_node) {
     }
 }
 
-//! Serialize a bitfield into a xml node
+//! Function used to serialize a bitfield into a xml node.
 void SerializeBitfield(const Bitfield& bitfield, pugi::xml_node& bitmap_node) {
     auto bitfield_node = bitmap_node.append_child("bitfield");
 
@@ -1077,8 +1077,9 @@ void SerializeBitfield(const Bitfield& bitfield, pugi::xml_node& bitmap_node) {
     }
 }
 
-//! Serializes the dataType section of the given cluster object into xml nodes and appends them to the given parent node
-void SerializeDataTypes(const Cluster& cluster, pugi::xml_node& cluster_xml) {
+//! Function used to serialize the data type section of the given cluster object into xml nodes and append them to the
+//! given parent node. The data type section contains globally defined cluster data types.
+void SerializeGlobalDataTypes(const Cluster& cluster, pugi::xml_node& cluster_xml) {
     auto data_type_node = cluster_xml.append_child("dataTypes");
 
     // number
@@ -1108,7 +1109,7 @@ void SerializeDataTypes(const Cluster& cluster, pugi::xml_node& cluster_xml) {
     }
 }
 
-//! Serialize a feature map into a list of xml nodes
+//! Function used to serialize a feature map into a list of xml nodes.
 void SerializeFeatureMap(const std::list<matter::Feature>& features_map, pugi::xml_node& cluster_node)
 {
     auto features_node = cluster_node.append_child("features");
@@ -1128,7 +1129,7 @@ void SerializeFeatureMap(const std::list<matter::Feature>& features_map, pugi::x
     }
 }
 
-//! Serializes a cluster classification into a xml node and appends it to the given parent node
+//! Function used to serialize a cluster classification into a xml node and appends it to the given parent node.
 void SerializeClusterClassification(const ClusterClassification& cluster_classification, pugi::xml_node& cluster_node) {
     auto classification_node = cluster_node.append_child("classification");
 
@@ -1158,14 +1159,15 @@ void SerializeClusterClassification(const ClusterClassification& cluster_classif
     }
 }
 
-//! Serializes a cluster object into a xml document
+//! Function used to serialize a cluster object into a xml document.
 void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml)
 {
     // Create the cluster node
     auto cluster_node = cluster_xml.append_child("cluster");
-
+    // Set some meta information for the document
     cluster_node.append_attribute("xmlns:xsi").set_value("http://www.w3.org/2001/XMLSchema-instance");
     cluster_node.append_attribute("xsi:schemaLocation").set_value("types types.xsd cluster cluster.xsd");
+
     cluster_node.append_attribute("id").set_value(IntToHex(cluster.id).c_str());
     cluster_node.append_attribute("name").set_value(cluster.name.c_str());
     cluster_node.append_attribute("revision").set_value(cluster.revision);
@@ -1194,7 +1196,6 @@ void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml)
         cluster_alias_node.append_attribute("name").set_value(cluster_alias.second.c_str());
     }
 
-    // Serialize the classification information
     if (cluster.classification.has_value()) {
         SerializeClusterClassification(cluster.classification.value(), cluster_node);
     }
@@ -1204,7 +1205,8 @@ void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml)
     }
 
     // Serialize the custom data types
-    SerializeDataTypes(cluster, cluster_node);
+    // These are a list of globally defined data types
+    SerializeGlobalDataTypes(cluster, cluster_node);
 
     if (!cluster.attributes.empty()) {
         // Iterate through all attributes and serialize them individually
@@ -1234,7 +1236,8 @@ void SerializeCluster(const Cluster &cluster, pugi::xml_document& cluster_xml)
     }
 }
 
-//! Serializes a device type classification object into a xml node and appends it to the given parent node
+//! Function used to serialize a device type classification object into a xml node and appends it to the given parent
+//! node.
 void SerializeDeviceClassification(const DeviceClassification& device_classification, pugi::xml_node& device_node) {
     auto classification_node = device_node.append_child("classification");
 
@@ -1251,13 +1254,14 @@ void SerializeDeviceClassification(const DeviceClassification& device_classifica
     }
 }
 
-//! Serializes a device object into a xml document
+//! Function used to serialize a device type object into a xml document.
 void SerializeDevice(const Device& device, pugi::xml_document& device_xml)
 {
     auto device_node = device_xml.append_child("deviceType");
-
+    // Set some meta information for the document
     device_node.append_attribute("xmlns:xsi").set_value("http://www.w3.org/2001/XMLSchema-instance");
     device_node.append_attribute("xsi:schemaLocation").set_value("types types.xsd devicetype devicetype.xsd");
+
     device_node.append_attribute("id").set_value(IntToHex(device.id).c_str());
     device_node.append_attribute("name").set_value(device.name.c_str());
     device_node.append_attribute("revision").set_value(device.revision);
@@ -1286,9 +1290,10 @@ void SerializeDevice(const Device& device, pugi::xml_document& device_xml)
         SerializeDeviceClassification(device.classification.value(), device_node);
     }
 
-    device_node.append_child("conditions");
+    // Iterate through all conditions and serialize them individually
+    auto condition_node = device_node.append_child("conditions");
     for (const auto& condition : device.conditions) {
-        device_node.child("conditions").append_child("condition").append_attribute("name").set_value(condition.c_str());
+        condition_node.append_child("condition").append_attribute("name").set_value(condition.c_str());
     }
 
     // Iterate through all clusters and serialize them individually
@@ -1300,6 +1305,7 @@ void SerializeDevice(const Device& device, pugi::xml_document& device_xml)
         if (!cluster.side.empty()) {
             cluster_node.append_attribute("side").set_value(cluster.side.c_str());
         } else {
+            // If no side is given, we default to server
             cluster_node.append_attribute("side").set_value("server");
         }
         if (cluster.conformance.has_value()) {
