@@ -48,7 +48,8 @@ static std::map<std::string, std::list<matter::Bitfield>> global_bitmap_map;
 //! This map is used to resolve the elements outsourced into the map
 static json reference_map;
 
-//! Function used to check, if the given pointer is part of a sdfRequired element
+//! Function used to check, if the given pointer is part of a sdfRequired element.
+//! This function works with a JSON pointer as well as the name of the structure.
 bool CheckForRequired(const std::string& json_pointer) {
     // Check if the JSON pointer itself is contained in the list
     if (contains(sdf_required_list, json_pointer)) {
@@ -62,10 +63,9 @@ bool CheckForRequired(const std::string& json_pointer) {
     }
 }
 
-//! Generically typed for now as the mapping will later contain different types
-//! @brief Imports given key value combination from the SDF Mapping file
-//! @param name Name of the target field.
-//! @return true if the mapping contained the key, false otherwise
+//! Function used to import a key value pair from the sdf-mapping for a given JSON pointer.
+//! The result is generically typed and will be written into the input parameter.
+//! The function returns true, if a value was imported and false otherwise.
 template <typename T> bool ImportFromMapping(const std::string& json_pointer, const std::string& field, T& input) {
     if (reference_map.contains(json_pointer)) {
         if (reference_map.at(json_pointer).contains(field)) {
@@ -76,7 +76,7 @@ template <typename T> bool ImportFromMapping(const std::string& json_pointer, co
     return false;
 }
 
-//! Function used to map the sdf variable type onto the Matter default type
+//! Function used to map a sdf VariableType onto the Matter DefaultType
 std::optional<matter::DefaultType> MapSdfDefaultValue(const sdf::VariableType& variable_type) {
     if (std::holds_alternative<uint64_t>(variable_type)) {
         matter::DefaultType default_type;
@@ -101,18 +101,19 @@ std::optional<matter::DefaultType> MapSdfDefaultValue(const sdf::VariableType& v
     } else if (std::holds_alternative<std::list<sdf::ArrayItem>>(variable_type)) {
         // Currently they do not seem to be really compatible with each other
         matter::DefaultType default_type;
-        //default_type = to_string(std::get<std::list<sdf::ArrayItem>>(variable_type));
         return default_type;
     } else if (std::holds_alternative<std::optional<std::monostate>>(variable_type)) {
         matter::DefaultType default_type;
         default_type = std::nullopt;
         return default_type;
     }
-
+    // In case that there was no mapping possible, we return the null option
     return std::nullopt;
 }
 
-//! Imports the access information for the current object from the mapping
+//! Function used to import the access information for the current object from the mapping.
+//! This function will try to import information for the access object from mapping for the given JSON pointer.
+//! If none is available, it will return the null option.
 std::optional<matter::Access> ImportAccessFromMapping(const std::string& json_pointer) {
     json access_json;
     ImportFromMapping(json_pointer, "access", access_json);
@@ -144,14 +145,20 @@ std::optional<matter::Access> ImportAccessFromMapping(const std::string& json_po
         access_json.at("writePrivilege").get_to(access.write_privilege);
     }
 
-    if (access_json.contains("invokePrivilege"))
+    if (access_json.contains("invokePrivilege")) {
         access_json.at("invokePrivilege").get_to(access.invoke_privilege);
-    if (access_json.contains("timed"))
+    }
+
+    if (access_json.contains("timed")) {
         access_json.at("timed").get_to(access.timed);
+    }
+
     return access;
 }
 
-//! Import the other qualities information for the current object for the mapping
+//! Import the other qualities information for the current object for the mapping.
+//! This function will try to import information for the other quality object from mapping for the given JSON pointer.
+//! If none is available, it will return the null option.
 std::optional<matter::OtherQuality> ImportOtherQualityFromMapping(const std::string& json_pointer) {
     json other_quality_json;
     ImportFromMapping(json_pointer, "quality", other_quality_json);
@@ -206,12 +213,13 @@ std::optional<matter::OtherQuality> ImportOtherQualityFromMapping(const std::str
     return other_quality;
 }
 
-//! Function used to generate a Matter conformance
-//! The conformance is either imported from the mapping or determined via the sdfRequired and required qualities
+//! Function used to generate a Matter conformance.
+//! The conformance is either imported from the mapping or determined via the sdfRequired and required qualities.
 matter::Conformance GenerateMatterConformance(const std::list<std::string>& sdf_required) {
     matter::Conformance conformance;
     json conformance_json;
 
+    // Try to import the conformance from the mapping
     if (ImportFromMapping(current_given_name_node->GeneratePointer(), "mandatoryConform", conformance_json)) {
         conformance.mandatory = true;
         conformance.condition = conformance_json;
@@ -267,11 +275,12 @@ matter::Conformance GenerateMatterConformance(const std::list<std::string>& sdf_
     return conformance;
 }
 
-//! Function used to generate a Matter conformance based on the given conformance JSON
-//! The conformance is either imported from the mapping or determined via the sdfRequired and required qualities
+//! Function used to generate a Matter conformance based on the given conformance JSON.
+//! The conformance is either imported from the mapping or determined via the sdfRequired and required qualities.
 matter::Conformance GenerateMatterConformance(const std::list<std::string>& sdf_required, json& conformance_json) {
     matter::Conformance conformance;
 
+    // Try to get the conformance from the given json
     if (conformance_json.contains("mandatoryConform")) {
         conformance.mandatory = true;
         conformance.condition = conformance_json;
@@ -328,8 +337,10 @@ matter::Conformance GenerateMatterConformance(const std::list<std::string>& sdf_
     return conformance;
 }
 
-//! Function used to check if the variant's integer value is equal to another variant's integer value
+//! Function used to check if the variant's integer value is equal to another variant's integer value.
+//! This function is used in combination with the MapIntegerType function to determine if two numeric values are equal.
 bool CheckVariantEquals(const std::variant<double, int64_t, uint64_t>& variant, std::variant<int64_t, uint64_t> value) {
+    // The double type is currently ignored as it is not used for the MapIntegerType function
     if (std::holds_alternative<int64_t>(variant)) {
         if (std::holds_alternative<int64_t>(value)) {
             if (std::get<int64_t>(value) == std::get<int64_t>(variant))
@@ -356,7 +367,9 @@ bool CheckVariantEquals(const std::variant<double, int64_t, uint64_t>& variant, 
     return false;
 }
 
-//! Function used to check if the variant's integer value is within the given borders
+//! Function used to check if the variant's integer value is within the given borders.
+//! This function is used in combination with the MapIntegerType function to determine if a numeric value is within the
+//! borders of a certain data type.
 bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant,
                          std::variant<int64_t, uint64_t> lower_bound,
                          std::variant<int64_t, uint64_t> upper_bound) {
@@ -420,7 +433,10 @@ bool CheckVariantBorders(const std::variant<double, int64_t, uint64_t>& variant,
     return false;
 }
 
-//! Function used to map a integer type data quality onto a Matter type as well as a Matter constraint
+//! Function used to map a integer type data quality onto a Matter type as well as a Matter constraint.
+//! This function tests the given data quality against the borders of the Matter integer types.
+//! It also determines, if a constraint should be generated in addition to the data type.
+//! The function returns the name of the determined integer type.
 std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constraint& constraint) {
     if (data_quality.const_.has_value()) {
         constraint.type = "allowed";
@@ -761,7 +777,7 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
     return "int64";
 }
 
-//! Helper function used to map a JsoItem object onto a data quality
+//! Helper function used to map a JsoItem object onto a data quality.
 //! This function gets used to ensure that the items quality can be used in combination with all functions that use
 //! data qualities as their input
 sdf::DataQuality MapJsoItemToSdfDataQuality(const sdf::JsoItem& jso_item) {
@@ -784,8 +800,8 @@ sdf::DataQuality MapJsoItemToSdfDataQuality(const sdf::JsoItem& jso_item) {
     return data_quality;
 }
 
-//! Function used to merge the data qualities of the second argument into the data qualities of the first argument
-//! Used in combination with sdfChoice to fill the options with all their information
+//! Function used to merge the data qualities of the second argument into the data qualities of the first argument.
+//! Used in combination with sdfChoice to fill the options with all their information.
 void MergeDataQualities(sdf::DataQuality& data_quality, const sdf::DataQuality& overwrite_data_quality) {
     if (!overwrite_data_quality.type.empty()) {
         data_quality.type = overwrite_data_quality.type;
@@ -838,15 +854,18 @@ void MergeDataQualities(sdf::DataQuality& data_quality, const sdf::DataQuality& 
     }
 }
 
-//! Function used to generate a Matter enum from the sdf enum data quality
-//! This function returns the name of the generated enum as a value
-std::string MapSdfEnum(const sdf::DataQuality& data_quality)
+//! Function used to generate a Matter enum from the sdf enum data quality.
+//! The function generates a global Matter enum and adds it to the list of enums.
+//! This function returns the name of the generated enum as a value.
+std::string MapSdfEnumQuality(const sdf::DataQuality& data_quality)
 {
     std::list<matter::Item> matter_enum;
     int i = 0;
+    // Iterate through all strings in the enum and map them to a Matter enum field
     for (const auto& sdf_item : data_quality.enum_) {
         matter::Item matter_item;
         matter::Conformance conformance;
+        // Set the conformance to the default value of mandatory
         conformance.mandatory = true;
         matter_item.value = i;
         matter_item.name = sdf_item;
@@ -854,6 +873,7 @@ std::string MapSdfEnum(const sdf::DataQuality& data_quality)
         matter_enum.push_back(matter_item);
         i++;
     }
+    // Generate a custom enum name and add the enum to the global map of enums
     i = 0;
     std::string enum_name = "CustomEnum";
     while (true) {
@@ -865,11 +885,17 @@ std::string MapSdfEnum(const sdf::DataQuality& data_quality)
     }
 }
 
+//! This function is used to map data qualities to a global Matter enum.
+//! Before using this function, compatibility with the Matter enum data type has to be checked with the
+//! CheckEnumCompatible function. The resulting enum gets added to the global list of enums.
+//! The function returns the name of the structure for referencing.
 std::string MapToMatterEnum(const sdf::DataQuality& data_quality) {
     std::list<matter::Item> matter_enum;
     int i = 0;
+    // Iterate through all sdfChoices and map them to a Matter enum field
     for (const auto& sdf_choice_pair : data_quality.sdf_choice) {
         matter::Item matter_item;
+        // Get the actual value from the const quality
         if (sdf_choice_pair.second.const_.has_value()) {
             if (std::holds_alternative<uint64_t>(sdf_choice_pair.second.const_.value())) {
                 matter_item.value = static_cast<int>(std::get<uint64_t>(sdf_choice_pair.second.const_.value()));
@@ -890,18 +916,31 @@ std::string MapToMatterEnum(const sdf::DataQuality& data_quality) {
         matter_enum.push_back(matter_item);
 
     }
-    i = 0;
-    std::string enum_name = "CustomEnum";
-    while (true) {
-        if (global_enum_map.count(enum_name + std::to_string(i)) == 0) {
-            global_enum_map[enum_name + std::to_string(i)] = matter_enum;
-            return enum_name + std::to_string(i);
+    // If the data qualities contain a sdfRef field, the name of the enum will be the name of the referenced structure
+    // This is used to ensure that for round-tripping the original name of the structure gets set
+    if (!data_quality.sdf_ref.empty()) {
+        std::string enum_name = GetLastPartAfterSlash(data_quality.sdf_ref);
+        global_enum_map[enum_name] = matter_enum;
+        return enum_name;
+    }
+    // Otherwise we generate a new custom name
+    else {
+        i = 0;
+        std::string enum_name = "CustomEnum";
+        while (true) {
+            if (global_enum_map.count(enum_name + std::to_string(i)) == 0) {
+                global_enum_map[enum_name + std::to_string(i)] = matter_enum;
+                return enum_name + std::to_string(i);
+            }
+            i++;
         }
-        i++;
     }
 }
 
-//! Function used to check if the given data qualities are compatible with the enum data type
+//! Function used to check if the given data qualities are compatible with the enum data type.
+//! For compatibility the data qualities have to have the type integer and have to have sdfChoice elements containing
+//! const values.
+//! This function returns true, if the data qualities are compatible.
 bool CheckEnumCompatible(const sdf::DataQuality& data_quality) {
     if (data_quality.type == "integer" and !data_quality.sdf_choice.empty()) {
         for (const auto& sdf_choice_pair : data_quality.sdf_choice) {
@@ -914,9 +953,10 @@ bool CheckEnumCompatible(const sdf::DataQuality& data_quality) {
     return false;
 }
 
-//! Function used to map a data quality onto a Matter Bitmap
+//! Function used to map a data quality onto a Matter Bitmap.
 //! Before this function gets called, compatibility with the Bitmap should be checked with the CheckBitmapCompatible
-//! function
+//! function.
+//! This function returns the name of the generated structure for referencing.
 std::string MapToMatterBitmap(const sdf::DataQuality& data_quality) {
     std::list<matter::Bitfield> bitmap;
     int i = 0;
@@ -925,8 +965,8 @@ std::string MapToMatterBitmap(const sdf::DataQuality& data_quality) {
     if (!data_quality.sdf_ref.empty()) {
         // Import additional information from the mapping
         ImportFromMapping(data_quality.sdf_ref, "bitfield", bitfield_json);
-        std::cout << bitfield_json << std::endl;
     }
+    // Map every sdfChoice onto a bitmap bitfield
     for (const auto& sdf_choice : data_quality.items.value().sdf_choice) {
         matter::Bitfield bitfield;
         bitfield.bit = i;
@@ -934,9 +974,9 @@ std::string MapToMatterBitmap(const sdf::DataQuality& data_quality) {
         matter::Conformance conformance;
         conformance.mandatory = true;
         bitfield.conformance = conformance;
+        // If additional information can be imported from the mapping, this will be set here
         if (!bitfield_json.is_null()) {
             for (const auto& array_field : bitfield_json) {
-                std::cout << "ARRAY FIELD" << array_field << std::endl;
                 if (array_field.contains("name") and array_field.at("name") == sdf_choice.first) {
                     //bitfield.conformance = GenerateMatterConformance(array_field);
                     if (array_field.contains("bit")) {
@@ -947,17 +987,20 @@ std::string MapToMatterBitmap(const sdf::DataQuality& data_quality) {
                     }
                 }
             }
-
         }
 
         bitmap.push_back(bitfield);
         i++;
     }
+    // If the data qualities contain a sdfRef field, the name of the enum will be the name of the referenced structure
+    // This is used to ensure that for round-tripping the original name of the structure gets set
     if (!data_quality.sdf_ref.empty()) {
         std::string bitmap_name = GetLastPartAfterSlash(data_quality.sdf_ref);
         global_bitmap_map[bitmap_name] = bitmap;
         return bitmap_name;
-    } else {
+    }
+    // Otherwise we generate a new custom name
+    else {
         i = 0;
         std::string bitmap_name = "CustomBitmap";
         while (true) {
@@ -970,7 +1013,13 @@ std::string MapToMatterBitmap(const sdf::DataQuality& data_quality) {
     }
 }
 
-//! Function used to check if the given data qualities can be turned into a bitmap
+//! Function used to check if the given data qualities can be turned into a bitmap.
+//! This required the following conditions:
+//! - type quality has value array
+//! - uniqueItems is true
+//! - items quality has a value
+//! - items quality contains sdfChoices
+//! If these are true, the function will return true.
 bool CheckBitmapCompatible(const sdf::DataQuality& data_quality) {
     if (data_quality.items.has_value() and
     data_quality.unique_items.has_value() and
@@ -981,11 +1030,11 @@ bool CheckBitmapCompatible(const sdf::DataQuality& data_quality) {
     return false;
 }
 
-//! Function prototype for MapSdfDataType
-std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint);
+//! Function prototype for MapSdfDataQualities.
+std::string MapSdfDataQualities(const sdf::DataQuality& data_quality, matter::Constraint& constraint);
 
-//! Function used to map a object type data quality onto a global Matter struct
-//! The function returns the name of the created struct for referencing it
+//! Function used to map a object type data quality onto a global Matter struct.
+//! The function returns the name of the created struct for referencing it.
 std::string MapSdfObjectType(const sdf::DataQuality& data_quality) {
     int i = 0;
     matter::Struct matter_struct;
@@ -996,27 +1045,26 @@ std::string MapSdfObjectType(const sdf::DataQuality& data_quality) {
         ImportFromMapping(data_quality.sdf_ref, "field", field_json);
     }
     if (!data_quality.properties.empty()) {
+        // If the quality properties has a value, we map every contained data quality to its own data field
         for (const auto &data_quality_pair : data_quality.properties) {
             matter::DataField field;
             field.id = i;
             field.name = data_quality_pair.first;
             field.summary = data_quality_pair.second.description;
             matter::Constraint constraint;
-            field.type = MapSdfDataType(data_quality_pair.second, constraint);
+            field.type = MapSdfDataQualities(data_quality_pair.second, constraint);
             field.constraint = constraint;
             // Check if there are information that can be retrieved from the mapping
             if (!field_json.is_null()) {
                 for (const auto &data_field_json : field_json) {
                     if (data_field_json["name"] == data_quality_pair.first) {
-                        //field.conformance = GenerateMatterConformance(data_field_json);
-                        //field.quality = ImportOtherQualityFromMapping();
-                        //field.access
                         if (data_field_json.contains("id")) {
                             data_field_json.at("id").get_to(field.id);
                         }
                     }
                 }
             }
+            // If no conformance is set, we generate one by using the sdfRequired quality
             if (!field.conformance.has_value()) {
                 if (contains(data_quality_pair.second.required, data_quality_pair.first)) {
                     matter::Conformance conformance;
@@ -1032,6 +1080,7 @@ std::string MapSdfObjectType(const sdf::DataQuality& data_quality) {
             if (data_quality_pair.second.default_.has_value()) {
                 field.default_ = MapSdfDefaultValue(data_quality_pair.second.default_.value());
             }
+            // If the quality nullable has a value, we set it to the other qualities object
             if (data_quality_pair.second.nullable.has_value()) {
                 if (field.quality.has_value()) {
                     field.quality.value().nullable = data_quality_pair.second.nullable;
@@ -1044,11 +1093,15 @@ std::string MapSdfObjectType(const sdf::DataQuality& data_quality) {
             i++;
             matter_struct.push_back(field);
         }
+        // If the data qualities contain a sdfRef field, the name of the enum will be the name of the referenced structure
+        // This is used to ensure that for round-tripping the original name of the structure gets set
         if (!data_quality.sdf_ref.empty()) {
             std::string struct_name = GetLastPartAfterSlash(data_quality.sdf_ref);
             global_struct_map[struct_name] = matter_struct;
             return struct_name;
-        } else {
+        }
+        // Otherwise we generate a new custom name
+        else {
             i = 0;
             std::string struct_name = "CustomStruct";
             while (true) {
@@ -1065,8 +1118,11 @@ std::string MapSdfObjectType(const sdf::DataQuality& data_quality) {
     }
 }
 
-//! Function used to determine a Matter type based on the information of the given data quality
-std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constraint& constraint){
+//! Function used to determine a Matter type based on the information of the given data quality.
+//! This function also determines the values for the constraints of the data type.
+//! It returns the name of the determined Matter data type.
+std::string MapSdfDataQualities(const sdf::DataQuality& data_quality, matter::Constraint& constraint){
+    // Number type data qualities
     if (data_quality.type == "number") {
         if (data_quality.const_.has_value()) {
             constraint.type = "allowed";
@@ -1090,7 +1146,9 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
         } else {
             return "double";
         }
-    } else if (data_quality.type == "string") {
+    }
+    // String type data qualities
+    else if (data_quality.type == "string") {
         if (data_quality.min_length.has_value()) {
             if (data_quality.max_length.has_value()) {
                 constraint.type = "lengthBetween";
@@ -1109,9 +1167,13 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
         } else {
             return "string";
         }
-    } else if (data_quality.type == "boolean") {
+    }
+    // Boolean type data qualities
+    else if (data_quality.type == "boolean") {
         return "bool";
-    } else if (data_quality.type == "integer") {
+    }
+    // Integer type data qualities
+    else if (data_quality.type == "integer") {
         // Check if the data qualities are compatible with the Matter Enum type
         if (CheckEnumCompatible(data_quality)) {
             return MapToMatterEnum(data_quality);
@@ -1170,8 +1232,11 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
                 return "systime-ms";
             }
         }
+        // If the data qualities match none of the above, they get mapped to a basic Matter integer type
         return MapIntegerType(data_quality, constraint);
-    } else if (data_quality.type == "array") {
+    }
+    // Array type data qualities
+    else if (data_quality.type == "array") {
         // Check if the data qualities are compatible with the Matter Bitmap type
         if (CheckBitmapCompatible(data_quality)) {
             return MapToMatterBitmap(data_quality);
@@ -1193,17 +1258,19 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
         // If the data quality has items, generate an entry constraint
         if (data_quality.items.has_value()) {
             auto* entry_constraint = new matter::Constraint();
-            constraint.entry_type = MapSdfDataType(MapJsoItemToSdfDataQuality(data_quality.items.value()),
-                                                   *entry_constraint);
+            constraint.entry_type = MapSdfDataQualities(MapJsoItemToSdfDataQuality(data_quality.items.value()),
+                                                        *entry_constraint);
             constraint.entry_constraint = entry_constraint;
         }
         return "list";
-    } else if (data_quality.type == "object") {
+    }
+    // Object type data qualities
+    else if (data_quality.type == "object") {
         return MapSdfObjectType(data_quality);
     }
     // Check if the enum quality has a value
     if (!data_quality.enum_.empty()) {
-        return MapSdfEnum(data_quality);
+        return MapSdfEnumQuality(data_quality);
     }
 
     // This case should only ever happen if the data quality has no type
@@ -1211,20 +1278,23 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
     return "";
 }
 
-//! Function used to map sdfInputData or a sdfOutputData onto a Matter data field
+//! Function used to map sdfInputData or a sdfOutputData onto a Matter data field.
 matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality) {
     matter::DataField data_field;
 
     data_field.summary = data_quality.description;
     data_field.name = data_quality.label;
+    // If the data quality is nullable, map this to the other quality object
     if (data_quality.nullable.has_value()) {
         matter::OtherQuality quality;
         quality.nullable = data_quality.nullable;
         data_field.quality = quality;
     }
+    // Get a Matter data type and constraints from the data qualities
     matter::Constraint constraint;
-    data_field.type = MapSdfDataType(data_quality, constraint);
+    data_field.type = MapSdfDataQualities(data_quality, constraint);
     data_field.constraint = constraint;
+
     if (data_quality.default_.has_value()) {
         data_field.default_ = MapSdfDefaultValue(data_quality.default_.value());
     }
@@ -1232,7 +1302,9 @@ matter::DataField MapSdfInputOutputData(const sdf::DataQuality& data_quality) {
     return data_field;
 }
 
-//! Function used to map a sdfChoice onto a list of exclusive data fields
+//! Function used to map a sdfChoice onto a list of exclusive data fields.
+//! This function is used to create a list of exclusive data fields using the Matter choice conformance.
+//! It returns a list with all possible options for a data field.
 std::list<matter::DataField> MapSdfChoice(const sdf::DataQuality& data_quality) {
     std::list<matter::DataField> data_field_list;
 
@@ -1251,7 +1323,9 @@ std::list<matter::DataField> MapSdfChoice(const sdf::DataQuality& data_quality) 
     return data_field_list;
 }
 
-//! Function used to map a sdfEvent onto a Matter event
+//! Function used to map a sdfEvent onto a Matter event.
+//! This function also maps the sdfOutputData to a list of Matter data fields.
+//! The function returns the created Matter event.
 matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event_pair) {
     matter::Event event;
     auto* sdf_event_reference = new ReferenceTreeNode(sdf_event_pair.first);
@@ -1262,6 +1336,8 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
     event.name = sdf_event_pair.second.label;
     event.summary = sdf_event_pair.second.description;
     event.conformance = GenerateMatterConformance(sdf_event_pair.second.sdf_required);
+
+    // Check if the sdfEvent has a value for sdfOutputData
     if (sdf_event_pair.second.sdf_output_data.has_value()) {
         // Check if sdfOutputData contains a sdfChoice
         if (!sdf_event_pair.second.sdf_output_data.value().sdf_choice.empty() and
@@ -1272,7 +1348,8 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
         // In this case each data quality in properties gets mapped to its own data field
         else if (sdf_event_pair.second.sdf_output_data.value().type == "object") {
             u_int32_t i = 0;
-            for (const auto& data_quality_pair : sdf_event_pair.second.sdf_output_data.value().properties) {
+            for (const auto& data_quality_pair :
+            sdf_event_pair.second.sdf_output_data.value().properties) {
                 matter::DataField field = MapSdfInputOutputData(data_quality_pair.second);
                 field.id = i;
                 i++;
@@ -1290,7 +1367,9 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
     return event;
 }
 
-//! Function used to map a sdfAction onto a client and optionally onto a server command
+//! Function used to map a sdfAction onto a client and optionally onto a server command.
+//! The function determines of a server command is needed based on the sdfOutputData quality.
+//! The function return a pair of a client command and an optional server command.
 std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const std::pair<std::string,
                                                                         sdf::SdfAction>& sdf_action_pair) {
     matter::Command client_command;
@@ -1307,12 +1386,15 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     std::optional<matter::Command> optional_server_command;
     // Check if the sdfOutputData has a value
     if (sdf_action_pair.second.sdf_output_data.has_value()) {
+        // Check if sdfOutputData can be mapped to a simple status type
         if (sdf_action_pair.second.sdf_output_data.value().minimum.has_value() and
         sdf_action_pair.second.sdf_output_data.value().maximum.has_value() and
         CheckVariantEquals(sdf_action_pair.second.sdf_output_data.value().minimum.value(), 0) and
             CheckVariantEquals(sdf_action_pair.second.sdf_output_data.value().maximum.value(), MATTER_U_INT_16_MAX)) {
                 client_command.response = "Y";
-        } else {
+        }
+        // Otherwise, we need to map sdfOutputData to a list of Matter data fields
+        else {
             matter::Command server_command;
             ImportFromMapping(sdf_action_reference->GeneratePointer(), "id", server_command.id);
             server_command.name = sdf_action_pair.second.label + "Response";
@@ -1330,7 +1412,8 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
             // Otherwise, if object is used as a type, the elements of the object have to be mapped individually
             else if (sdf_action_pair.second.sdf_output_data.value().type == "object") {
                 uint32_t id = 0;
-                for (const auto &quality_pair : sdf_action_pair.second.sdf_output_data.value().properties) {
+                for (const auto &quality_pair :
+                sdf_action_pair.second.sdf_output_data.value().properties) {
                     matter::DataField field = MapSdfInputOutputData(quality_pair.second);
                     field.id = id;
                     // If no label is given, set the quality name
@@ -1350,7 +1433,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
                     id++;
                 }
             }
-            // Otherwise sdfOutputData gets mapped to a single data field
+            // Otherwise, sdfOutputData gets mapped to a single data field
             else  {
                 matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_output_data.value());
                 json conformance_json;
@@ -1364,7 +1447,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
             optional_server_command = server_command;
         }
     }
-    // Otherwise the client command does not have a response value
+    // Otherwise, the client command does not have a response value
     else {
         client_command.response = "N";
     }
@@ -1399,7 +1482,9 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
                 client_command.command_fields.push_back(field);
                 id++;
             }
-        } else {
+        }
+        // Otherwise, sdfInputData gets mapped to a single data field
+        else {
             matter::DataField field = MapSdfInputOutputData(sdf_action_pair.second.sdf_input_data.value());
             json conformance_json;
             if (ImportFromMapping(sdf_action_reference->GeneratePointer(), "field", conformance_json)) {
@@ -1414,7 +1499,8 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     return {client_command, optional_server_command};
 }
 
-//! Function used to map a sdfProperty onto a Matter attribute
+//! Function used to map a sdfProperty onto a Matter attribute.
+//! The function returns the generated Matter attribute.
 matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>& sdf_property_pair) {
     matter::Attribute attribute;
     auto* sdf_property_reference = new ReferenceTreeNode(sdf_property_pair.first);
@@ -1458,7 +1544,7 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
 
     // Get the Matter type as well as the constraints from the data qualities of the sdfProperty
     matter::Constraint constraint;
-    attribute.type = MapSdfDataType(sdf_property_pair.second, constraint);
+    attribute.type = MapSdfDataQualities(sdf_property_pair.second, constraint);
     // Check if the mapping contains a constraint
     // This check is currently specifically for the constraint with type "MS" as this gets exported to the
     // mapping when converting Matter to sdf
@@ -1480,8 +1566,8 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     return attribute;
 }
 
-//! Function used to map a sdfChoice onto multiple attributes
-//! Each of the resulting attributes gets a choice conformance
+//! Function used to map a sdfChoice onto multiple attributes.
+//! Each of the resulting attributes gets a choice conformance to make them into exclusive options.
 std::list<matter::Attribute> MapSdfChoice(const std::pair<std::string, sdf::SdfProperty>& sdf_property_pair) {
     std::list<matter::Attribute> attribute_list;
 
@@ -1502,8 +1588,8 @@ std::list<matter::Attribute> MapSdfChoice(const std::pair<std::string, sdf::SdfP
     return attribute_list;
 }
 
-//! Function used to generate a feature map based on the information given by the sdf-mapping
-//! This function returns an empty feature map if the sdf-mapping does not contain information in this regard
+//! Function used to generate a feature map based on the information given by the sdf-mapping.
+//! This function returns an empty feature map if the sdf-mapping does not contain information in this regard.
 std::list<matter::Feature> GenerateFeatureMap() {
     std::list<matter::Feature> feature_map;
     json feature_map_json;
@@ -1565,9 +1651,9 @@ std::list<matter::Feature> GenerateFeatureMap() {
     return feature_map;
 }
 
-//! Function used to generate a cluster classification based on the information given by the sdf-mapping
+//! Function used to generate a cluster classification based on the information given by the sdf-mapping.
 //! This function returns an empty classification if the mapping does not contain any information about the Cluster
-//! classification
+//! classification.
 matter::ClusterClassification GenerateClusterClassification() {
     matter::ClusterClassification cluster_classification;
     json cluster_classification_json;
@@ -1599,7 +1685,8 @@ matter::ClusterClassification GenerateClusterClassification() {
     return cluster_classification;
 }
 
-//! Function used to map a sdfObject onto a Matter cluster
+//! Function used to map a sdfObject onto a Matter cluster.
+//! The function returns the generated Matter cluster.
 matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_object_pair) {
     matter::Cluster cluster;
     auto* sdf_object_reference = new ReferenceTreeNode(sdf_object_pair.first);
@@ -1608,6 +1695,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
 
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "id", cluster.id);
 
+    // Prefer the label, but alternatively set the name to the name of the structure
     if (sdf_object_pair.second.label.empty()) {
         cluster.name = sdf_object_pair.first;
     } else {
@@ -1718,18 +1806,12 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
         global_struct_map.clear();
     }
 
-    for (const auto& sdf_data_elem : sdf_object_pair.second.sdf_data) {
-        auto* given_sdf_data_reference = new ReferenceTreeNode(sdf_data_elem.first);
-        sdf_data_reference->AddChild(given_sdf_data_reference);
-        current_given_name_node = given_sdf_data_reference;
-    }
-
     return cluster;
 }
 
-//! Function used to generate a device type classification based on the information given by sdf-mapping
+//! Function used to generate a device type classification based on the information given by sdf-mapping.
 //! The function returns an empty classification if the mapping contains no information regarding the device type
-//! classification
+//! classification.
 matter::DeviceClassification GenerateDeviceClassification()
 {
     matter::DeviceClassification device_classification;
@@ -1751,9 +1833,9 @@ matter::DeviceClassification GenerateDeviceClassification()
     return device_classification;
 }
 
-//! Function used to map a sdfThing onto a Matter device type
+//! Function used to map a sdfThing onto a Matter device type.
 //! This function will also create a additional Cluster if the sdfThing contains either sdfProperties, sdfActions or
-//! sdfEvents
+//! sdfEvents.
 matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thing_pair)
 {
     matter::Device device;
@@ -1843,8 +1925,8 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     return device;
 }
 
-//! Function used to map a sdf-model and a sdf-thing onto a device type as well as cluster definitions
-//! If the sdf-model does not contain a sdfThing, no device type gets created
+//! Function used to map a sdf-model and a sdf-thing onto a device type as well as cluster definitions.
+//! If the sdf-model does not contain a sdfThing, no device type gets created.
 int MapSdfToMatter(const sdf::SdfModel& sdf_model, const sdf::SdfMapping& sdf_mapping,
                    std::optional<matter::Device>& optional_device, std::list<matter::Cluster>& cluster_list) {
     // Make the mapping a global variable
