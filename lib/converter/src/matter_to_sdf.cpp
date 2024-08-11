@@ -14,7 +14,6 @@
  *  limitations under the License.
  */
 
-#include <iostream>
 #include <set>
 #include <limits>
 #include "matter_to_sdf.h"
@@ -43,8 +42,8 @@ static std::string sdf_data_location;
 
 namespace matter {
 
-//! Function used to convert a conformance object into a json structure
-//! This function gets called indirectly by the json library
+//! Function used to convert a conformance object into a json structure.
+//! This function gets called indirectly by the json library.
 void to_json(json& j, const Conformance& conformance) {
     if (conformance.mandatory) {
         j = json{{"mandatoryConform", conformance.condition}};
@@ -82,14 +81,16 @@ void to_json(json& j, const Conformance& conformance) {
             }
         }
         j = json{{"otherwiseConform", otherwise_json}};
-    } else {
+    }
+    // If the conformance is an empty object, an empty json object gets created
+    else {
         j = json::object();
     }
 }
 } // matter
 
-//! This function is used to map Matter other qualities onto an sdfProperty
-//! The remaining information gets exported to the sdf-mapping
+//! This function is used to map Matter other qualities onto an sdfProperty.
+//! The remaining information gets exported to the sdf-mapping.
 void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty& sdf_property) {
     json quality_json;
 
@@ -142,8 +143,8 @@ void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::SdfProperty
     }
 }
 
-//! This function is used to map Matter other qualities onto data qualities
-//! The remaining information gets exported to the sdf-mapping
+//! This function is used to map Matter other qualities onto data qualities.
+//! The remaining information gets exported to the sdf-mapping.
 void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::DataQuality& data_quality) {
     json quality_json;
 
@@ -196,12 +197,16 @@ void MapOtherQuality(const matter::OtherQuality& other_quality, sdf::DataQuality
     }
 }
 
-//! Function used to evaluate the given condition
-//! This function is used in combination with Matter conformance's
+//! Function used to evaluate the given condition.
+//! This function is used in combination with Matter conformance's.
+//! The function is recursive and traverses the given condition that way to evaluate it.
 bool EvaluateConformanceCondition(const json& condition) {
     if (condition.empty()) {
+        // If the conformance is not bound to a condition, it is true
         return true;
-    } else if (condition.contains("andTerm")) {
+    }
+    // Logical AND
+    else if (condition.contains("andTerm")) {
         // Return true, if all the contained expressions evaluate to true
         // Returns false otherwise
         for (auto& item : condition.at("andTerm")) {
@@ -210,7 +215,9 @@ bool EvaluateConformanceCondition(const json& condition) {
             }
         }
         return true;
-    } else if (condition.contains("orTerm")) {
+    }
+    // Logical OR
+    else if (condition.contains("orTerm")) {
         // Returns true, if any one of the contained expressions evaluate to true
         // Returns false otherwise
         for (auto &item: condition.at("orTerm")) {
@@ -219,7 +226,9 @@ bool EvaluateConformanceCondition(const json& condition) {
             }
         }
         return false;
-    } else if (condition.contains("xorTerm")) {
+    }
+    // Logical XOR
+    else if (condition.contains("xorTerm")) {
         // Returns true, if just one of the contained expressions evaluates to true
         // Returns false otherwise
         bool evaluated_one = false;
@@ -233,36 +242,42 @@ bool EvaluateConformanceCondition(const json& condition) {
             }
             return evaluated_one;
         }
-    } else if (condition.contains("notTerm")) {
+    }
+    // Logical NOT
+    else if (condition.contains("notTerm")) {
         return !EvaluateConformanceCondition(condition.at("notTerm"));
-    } else if (condition.contains("feature")) {
-        std::cout << "Reached" << condition.at("feature") << std::endl;
+    }
+    // Feature
+    else if (condition.contains("feature")) {
         if (supported_features.find(condition.at("feature").at("name")) != supported_features.end()) {
-            std::cout << "Feature" << condition.at("feature") << "supported" << std::endl;
             return true;
         }
-    } else if (condition.contains("condition")) {
+    }
+    // Condition
+    else if (condition.contains("condition")) {
         // The only condition that this converter can evaluate
         if (condition.at("condition").at("name") == "Matter") {
             return true;
         } else {
             return false;
         }
-    } else if (condition.contains("attribute")) {
-        std::cout << "Reached" << condition.at("attribute") << std::endl;
+    }
+    // Attribute
+    else if (condition.contains("attribute")) {
+        // The attribute condition can not really be evaluated as it's defined by existing in a certain table
         return false;
     }
 
     return false;
 }
 
-//! Function used to check if a conformance is either
+//! Function used to check if a conformance is either:
 //! - Provisional
 //! - Deprecated
 //! - Disallowed
-//! Function additionally checks the condition
-//! Returns false if any of the above are true
-//! Otherwise, the function returns true to indicate that the element to this conformance is allowed for mapping
+//! Function additionally checks the condition.
+//! Returns false if any of the above are true.
+//! Otherwise, the function returns true to indicate that the element to this conformance is allowed for mapping.
 bool CheckElementAllowedConformance(const matter::Conformance& conformance) {
     if (conformance.provisional or conformance.deprecated or conformance.disallowed) {
         if (EvaluateConformanceCondition(conformance.condition)) {
@@ -278,7 +293,8 @@ bool CheckElementAllowedConformance(const matter::Conformance& conformance) {
     return true;
 }
 
-//! Overloaded function to check if the conformance even has a value
+//! Overloaded function to check if the conformance even has a value.
+//! If not, then the element is not forbidden and can be mapped.
 bool CheckElementAllowedConformance(const std::optional<matter::Conformance>& conformance) {
     if (conformance.has_value()) {
         return CheckElementAllowedConformance(conformance.value());
@@ -286,7 +302,7 @@ bool CheckElementAllowedConformance(const std::optional<matter::Conformance>& co
     return true;
 }
 
-//! Function used to map the default type from Matter onto the variable type of sdf
+//! Function used to map the DefaultType from Matter onto the VariableType of sdf.
 std::optional<sdf::VariableType> MapMatterDefaultType(const matter::DefaultType& default_type) {
     sdf::VariableType variable_type;
 
@@ -313,7 +329,8 @@ std::optional<sdf::VariableType> MapMatterDefaultType(const matter::DefaultType&
     return variable_type;
 }
 
-//! Function used to map a given matter type onto a data quality
+//! Function used to map a given matter type onto a set of data qualities.
+//! Depending on the given Matter data type, equivalent data qualities get set to represent this type.
 void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_quality) {
     // Base Matter data types
     // Boolean data type
@@ -609,15 +626,12 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         sdf::DataQuality debug_priority;
         debug_priority.label = "DEBUG";
         debug_priority.const_ = 0;
-        debug_priority.description = "Information for engineering debugging/troubleshooting";
         sdf::DataQuality info_priority;
         info_priority.label = "INFO";
         info_priority.const_ = 1;
-        info_priority.description = "Information that either drives customer facing features or provides insights into device functions that are used to drive analytics use cases";
         sdf::DataQuality critical_priority;
         critical_priority.label = "CRITICAL";
         critical_priority.const_ = 2;
-        critical_priority.description = "Information or notification that impacts safety, a critical function, or ongoing reliable operation of the node or application supported on an endpoint";
         data_quality.sdf_choice["DEBUG"] = debug_priority;
         data_quality.sdf_choice["INFO"] = info_priority;
         data_quality.sdf_choice["CRITICAL"] = critical_priority;
@@ -835,35 +849,42 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
         data_quality.minimum = 0;
         data_quality.maximum = MATTER_U_INT_16_MAX;
     }
-    // Otherwise, the type is a custom type defined in the data type section
+    // Otherwise, the type is a custom type defined as a global Matter type
     else {
         data_quality.sdf_ref = sdf_data_location + matter_type;
     }
 }
 
-//! Function used to map a Matter bitmap onto a sdfData element
-std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::string, std::list<matter::Bitfield>>& bitmap_pair) {
+//! Function used to map a Matter bitmap onto a sdfData element.
+//! This Enum gets mapped to the sdfData section of the current Cluster.
+std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::string,
+                                                         std::list<matter::Bitfield>>& bitmap_pair) {
+    // Add the bitmap to the reference tree
     auto* bitmap_reference = new ReferenceTreeNode(bitmap_pair.first);
     current_quality_name_node->AddChild(bitmap_reference);
     current_given_name_node = bitmap_reference;
 
     sdf::DataQuality data_quality;
+    // Structure used to export information to the mapping
     json bitmap_json;
     data_quality.type = "array";
     data_quality.unique_items = true;
     sdf::JsoItem item;
     item.type = "integer";
-
+    // Iterate through all bitfields and map them individually
     for (const auto& bitfield : bitmap_pair.second) {
         if (CheckElementAllowedConformance(bitfield.conformance)) {
             sdf::DataQuality sdf_choice_data_quality;
             json bitfield_json;
+
             if (bitfield.conformance.has_value()) {
+                // Export the conformance to the mapping
                 bitfield_json.merge_patch(bitfield.conformance.value());
             }
             sdf_choice_data_quality.const_ = bitfield.bit;
             sdf_choice_data_quality.label = bitfield.name;
             sdf_choice_data_quality.description = bitfield.summary;
+
             bitfield_json["bit"] = bitfield.bit;
             item.sdf_choice[bitfield.name] = sdf_choice_data_quality;
             bitmap_json.push_back(bitfield_json);
@@ -871,20 +892,26 @@ std::pair<std::string, sdf::DataQuality> MapMatterBitmap(const std::pair<std::st
     }
 
     data_quality.items = item;
+    // Export the additional information to the mapping
     current_given_name_node->AddAttribute("bitfield", bitmap_json);
     return {bitmap_pair.first, data_quality};
 }
 
-//! Function used to map a Matter enum onto a sdfData element
-std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::string, std::list<matter::Item>>& enum_pair) {
+//! Function used to map a Matter enum onto a sdfData element.
+//! This Bitmap gets mapped to the sdfData section of the current Cluster.
+std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::string,
+                                                       std::list<matter::Item>>& enum_pair) {
+    // Add the enum to the reference tree
     auto* enum_reference = new ReferenceTreeNode(enum_pair.first);
     current_quality_name_node->AddChild(enum_reference);
     current_given_name_node = enum_reference;
 
     sdf::DataQuality data_quality;
     data_quality.type = "integer";
-    json enum_json;
 
+    // Structure used to export information to the mapping
+    json enum_json;
+    // Iterate through all enum fields and map them individually
     for (const auto& item : enum_pair.second) {
         sdf::DataQuality sdf_choice_data_quality;
         sdf_choice_data_quality.const_ = item.value;
@@ -900,13 +927,16 @@ std::pair<std::string, sdf::DataQuality> MapMatterEnum(const std::pair<std::stri
         data_quality.sdf_choice[item.name] = sdf_choice_data_quality;
     }
 
+    // Export the additional information to the mapping
     current_given_name_node->AddAttribute("item", enum_json);
 
     return {enum_pair.first, data_quality};
 }
 
-//! Function used to map a Matter struct onto a sdfData element
+//! Function used to map a Matter Struct onto a sdfData element.
+//! This Struct gets mapped to the sdfData section of the current Cluster.
 std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::string, matter::Struct>& struct_pair) {
+    // Add the struct to the reference tree
     auto* struct_node = new ReferenceTreeNode(struct_pair.first);
     current_quality_name_node->AddChild(struct_node);
     current_given_name_node = struct_node;
@@ -914,18 +944,25 @@ std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::st
     sdf::DataQuality data_quality;
     data_quality.type = "object";
 
+    // Structure used to export information to the mapping
     json struct_json;
+    // Iterate through all fields of the struct
     for (const auto& struct_field : struct_pair.second) {
         if (CheckElementAllowedConformance(struct_field.conformance)) {
             sdf::DataQuality struct_field_data_quality;
             json field_json;
             field_json["name"] = struct_field.name;
             field_json["id"] = struct_field.id;
+
             struct_field_data_quality.label = struct_field.name;
             struct_field_data_quality.description = struct_field.summary;
+            // Map the Matter type to a set of data qualities
             MapMatterType(struct_field.type, struct_field_data_quality);
+
             data_quality.properties[struct_field.name] = struct_field_data_quality;
+
             if (struct_field.conformance.has_value()) {
+                // Evaluate the conformance and also export it to the mapping
                 field_json.merge_patch(struct_field.conformance.value());
                 if (struct_field.conformance.value().mandatory) {
                     if (EvaluateConformanceCondition(struct_field.conformance.value().condition)) {
@@ -936,6 +973,7 @@ std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::st
             struct_json.push_back(field_json);
         }
     }
+    // If some information got added to the json, we can export this to the mapping
     if (!struct_json.is_null()) {
         current_given_name_node->AddAttribute("field", struct_json);
     }
@@ -943,7 +981,7 @@ std::pair<std::string, sdf::DataQuality> MapMatterStruct(const std::pair<std::st
     return {struct_pair.first, data_quality};
 }
 
-//! Helper function used to map data qualities onto an JsoItem object
+//! Helper function used to map data qualities onto an JsoItem object.
 sdf::JsoItem DataQualityToJsoItem(const sdf::DataQuality& data_quality) {
     sdf::JsoItem jso_item;
 
@@ -964,13 +1002,18 @@ sdf::JsoItem DataQualityToJsoItem(const sdf::DataQuality& data_quality) {
     return jso_item;
 }
 
-//! Function used to map a Matter constraint onto a data quality
+//! Function used to map a Matter constraint onto a set of data qualities.
+//! This function should be invoked after the mapping of the Matter data type to ensure that the correct boundaries
+//! get set.
 void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality& data_quality) {
+    // Description constraint
     if (constraint.type == "desc") {
         json constraint_json;
         constraint_json["type"] = "desc";
         current_given_name_node->AddAttribute("constraint", constraint_json);
-    } else if (constraint.type == "allowed") {
+    }
+    // Numeric type constraints
+    else if (constraint.type == "allowed") {
         data_quality.const_ = MapMatterDefaultType(constraint.value.value());
     } else if (constraint.type == "between") {
         data_quality.minimum = constraint.min.value();
@@ -979,7 +1022,9 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
         data_quality.minimum = constraint.min.value();
     } else if (constraint.type == "max") {
         data_quality.maximum = constraint.max.value();
-    } else if (constraint.type == "lengthBetween") {
+    }
+    // Byte-string size constraints
+    else if (constraint.type == "lengthBetween") {
         if (std::holds_alternative<int64_t>(constraint.min.value())) {
             data_quality.min_length = std::get<int64_t>(constraint.min.value());
         }
@@ -1010,7 +1055,9 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
         if (std::holds_alternative<uint64_t>(constraint.max.value())) {
             data_quality.max_length = std::get<uint64_t>(constraint.max.value());
         }
-    } else if (constraint.type == "countBetween") {
+    }
+    // Array size constraints
+    else if (constraint.type == "countBetween") {
         if (std::holds_alternative<int64_t>(constraint.min.value())) {
             data_quality.min_items = std::get<int64_t>(constraint.min.value());
         }
@@ -1042,7 +1089,9 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
         if (std::holds_alternative<uint64_t>(constraint.max.value())) {
             data_quality.max_items = std::get<uint64_t>(constraint.max.value());
         }
-    } else if (!constraint.entry_type.empty()) {
+    }
+    // Array entry constraint
+    else if (!constraint.entry_type.empty()) {
         sdf::DataQuality entry_quality;
         MapMatterType(constraint.entry_type, entry_quality);
         if (constraint.entry_constraint != nullptr) {
@@ -1050,11 +1099,10 @@ void MapMatterConstraint(const matter::Constraint& constraint, sdf::DataQuality&
         }
         data_quality.items = DataQualityToJsoItem(entry_quality);
     }
-    // char constraints
 }
 
-//! Function used to map a Matter access
-//! This structure gets completely exported to the sdf-mapping
+//! Function used to map a Matter access.
+//! This structure gets completely exported to the sdf-mapping.
 void MapMatterAccess(const matter::Access& access) {
     json access_json;
     if (access.read.has_value()) {
@@ -1092,8 +1140,8 @@ void MapMatterAccess(const matter::Access& access) {
     current_given_name_node->AddAttribute("access", access_json);
 }
 
-//! Function used to map a Matter access onto a readable and writeable of a sdfProperty
-//! The remaining information gets exported to the sdf-mapping
+//! Function used to map a Matter access onto a readable and writeable of a sdfProperty.
+//! The remaining information gets exported to the sdf-mapping.
 void MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdf_property) {
     json access_json;
     if (access.read.has_value()) {
@@ -1131,15 +1179,17 @@ void MapMatterAccess(const matter::Access& access, sdf::SdfProperty& sdf_propert
     current_given_name_node->AddAttribute("access", access_json);
 }
 
-//! Function used to map a Matter conformance
-//! If the conformance is mandatory, the current element gets added to the list of required elements
-//! The function also exports the conformance onto the sdf-mapping
-//! This function also returns the result of the evaluated condition
+//! Function used to map a Matter conformance.
+//! If the conformance is mandatory, the current element gets added to the list of required elements.
+//! The function also exports the conformance onto the sdf-mapping.
+//! This function also returns the result of the evaluated condition.
 bool MapMatterConformance(const matter::Conformance& conformance) {
+    // If the conformance is mandatory, add the current structure to the global list of required elements
     if (conformance.mandatory and EvaluateConformanceCondition(conformance.condition)) {
         sdf_required_list.push_back(current_given_name_node->GeneratePointer());
     }
 
+    // Export the Matter conformance to the mapping
     if (conformance.mandatory) {
         current_given_name_node->AddAttribute("mandatoryConform", conformance.condition);
     } else if (conformance.optional) {
@@ -1180,22 +1230,31 @@ bool MapMatterConformance(const matter::Conformance& conformance) {
     return EvaluateConformanceCondition(conformance.condition);
 }
 
-//! Function used to map a list of Matter data fields onto a data quality
+//! Function used to map a list of Matter data fields onto a set data qualities.
+//! The function returns the created set of data qualities.
 sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_field_list) {
     sdf::DataQuality data_quality;
-    if (data_field_list.empty()) {}
+    if (data_field_list.empty()) {
+        // If the list of data fields is empty, an empty data quality gets returned
+    }
+    // Check if the list contains a single element and is also not deprecated, etc.
+    // In this case we map the data field to a set of data qualities not with the type object
     else if (data_field_list.size() <= 1 and CheckElementAllowedConformance(data_field_list.front().conformance)) {
+        // Structure used to export certain informations
         json conformance_json;
         conformance_json["id"] = data_field_list.front().id;
         conformance_json["name"] = data_field_list.front().name;
 
         data_quality.label = data_field_list.front().name;
+
         if (data_field_list.front().access.has_value()) {
             MapMatterAccess(data_field_list.front().access.value());
         }
 
         data_quality.description = data_field_list.front().summary;
+        // Map the Matter data type to a set of data qualities
         MapMatterType(data_field_list.front().type, data_quality);
+
         if (data_field_list.front().default_.has_value()) {
             data_quality.default_ = MapMatterDefaultType(data_field_list.front().default_.value());
         }
@@ -1213,25 +1272,35 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
 
         }
 
+        // If some information got added to the json, we can export this to the mapping
         if (!conformance_json.is_null()) {
             current_given_name_node->AddAttribute("field", conformance_json);
         }
-    } else {
+    }
+    // If the list contains multiple data fields, we map each of them to its own data quality for the propertied quality
+    else {
+        // Structure used for exporting information to the mapping
         json conformance_json;
         data_quality.type = "object";
+        // Iterate trough all data fields
         for (const auto& field : data_field_list) {
             if (CheckElementAllowedConformance(field.conformance)) {
+                // Structure also used for exporting information to the mapping
                 json field_json;
                 field_json["id"] = field.id;
                 field_json["name"] = field.name;
+
                 sdf::DataQuality data_quality_properties;
                 data_quality_properties.label = field.name;
+
                 if (field.access.has_value()) {
                     MapMatterAccess(field.access.value());
                 }
 
                 data_quality_properties.description = field.summary;
+                // Map the Matter data type to a set of data qualities
                 MapMatterType(field.type, data_quality_properties);
+
                 if (field.default_.has_value()) {
                     data_quality_properties.default_ = MapMatterDefaultType(field.default_.value());
                 }
@@ -1245,7 +1314,9 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
                 }
 
                 data_quality.properties[field.name] = data_quality_properties;
+
                 if (field.conformance.has_value()) {
+                    // Evaluate the conformance and also export it to the mapping
                     field_json.merge_patch(field.conformance.value());
                     if (field.conformance.value().mandatory
                         and EvaluateConformanceCondition(field.conformance.value().condition)) {
@@ -1255,6 +1326,7 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
                 conformance_json.push_back(field_json);
             }
         }
+        // If some information got added to the json, we can export this to the mapping
         if (!conformance_json.is_null()) {
             current_given_name_node->AddAttribute("field", conformance_json);
         }
@@ -1262,7 +1334,8 @@ sdf::DataQuality MapMatterDataField(const std::list<matter::DataField>& data_fie
     return data_quality;
 }
 
-//! Function used to map a Matter event onto a sdfEvent
+//! Function used to map a Matter event onto a sdfEvent.
+//! The function returns the created event.
 sdf::SdfEvent MapMatterEvent(const matter::Event& event) {
     sdf::SdfEvent sdf_event;
     // Append the event node to the tree
@@ -1291,8 +1364,8 @@ sdf::SdfEvent MapMatterEvent(const matter::Event& event) {
     return sdf_event;
 }
 
-//! Function used to map a Matter client command onto a sdfAction
-//! This list of server commands is used to map the response of the command onto the sdfOutputData
+//! Function used to map a Matter client command onto a sdfAction.
+//! This list of server commands is used to map the response of the command onto the sdfOutputData.
 sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std::unordered_map<std::string,
                                 matter::Command>& server_commands) {
     sdf::SdfAction sdf_action;
@@ -1338,7 +1411,8 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
     return sdf_action;
 }
 
-//! Function used to map a Matter attribute onto a sdfProperty
+//! Function used to map a Matter attribute onto a sdfProperty.
+//! The function returns the created sdfProperty.
 sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute) {
     sdf::SdfProperty sdf_property;
     // Append the attribute node to the tree
@@ -1378,10 +1452,10 @@ sdf::SdfProperty MapMatterAttribute(const matter::Attribute& attribute) {
     return sdf_property;
 }
 
-//! Function used to map the Matter feature map
+//! Function used to map the Matter feature map.
 //! This function servers two purposes.
-//! Firstly, evaluates for each feature, if it is supported and adds it to the global list of supported features
-//! Secondly, it generates a JSON structure and exports this structure to the sdf-mapping
+//! Firstly, evaluates for each feature, if it is supported and adds it to the global list of supported features.
+//! Secondly, it generates a JSON structure and exports this structure to the sdf-mapping.
 void MapFeatureMap(const std::list<matter::Feature>& feature_map) {
     // Evaluate the features while also exporting them to the mapping
     json feature_map_json;
@@ -1394,8 +1468,10 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map) {
         feature_json["summary"] = feature.summary;
 
         if (feature.conformance.has_value()) {
+            // Export the conformance to the mapping
             feature_json.merge_patch(feature.conformance.value());
 
+            // Check if the feature is supported
             bool condition = EvaluateConformanceCondition(feature.conformance.value().condition);
             if (feature.conformance.value().mandatory and condition) {
                 supported_features.insert(feature.code);
@@ -1403,13 +1479,14 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map) {
         }
         feature_map_json["feature"].push_back(feature_json);
     }
+    // If the feature map is not empty, export it to the mapping
     if (!feature_map_json.is_null()) {
         current_given_name_node->AddAttribute("features", feature_map_json);
     }
 }
 
-//! Function used to map the cluster classification
-//! This structure gets completely exported to the sdf-mapping
+//! Function used to map the cluster classification.
+//! This structure gets completely exported to the sdf-mapping.
 void MapClusterClassification(const matter::ClusterClassification& cluster_classification) {
     json cluster_classification_json;
 
@@ -1440,7 +1517,8 @@ void MapClusterClassification(const matter::ClusterClassification& cluster_class
     current_given_name_node->AddAttribute("classification", cluster_classification_json);
 }
 
-//! Function used to map a Matter cluster onto a sdfObject
+//! Function used to map a Matter cluster onto a sdfObject.
+//! The function returns the created sdfObject.
 sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
     sdf::SdfObject sdf_object;
     ReferenceTreeNode* cluster_reference;
@@ -1567,7 +1645,7 @@ sdf::SdfObject MapMatterCluster(const matter::Cluster& cluster) {
 }
 
 //! Generate a sdf-model or sdf-mapping information block based on information of either
-//! a Matter device type or a Matter cluster
+//! a Matter device type or a Matter cluster.
 sdf::InformationBlock GenerateInformationBlock(const std::variant<matter::Device, matter::Cluster>& input) {
     sdf::InformationBlock information_block;
     if (std::holds_alternative<matter::Device>(input)) {
@@ -1580,8 +1658,8 @@ sdf::InformationBlock GenerateInformationBlock(const std::variant<matter::Device
     return information_block;
 }
 
-//! Function used to map the device type classification
-//! This structure gets completely exported to the sdf-mapping
+//! Function used to map the device type classification.
+//! This structure gets completely exported to the sdf-mapping.
 void MapDeviceClassification(const matter::DeviceClassification& device_classification) {
     json device_classification_json;
 
@@ -1600,9 +1678,9 @@ void MapDeviceClassification(const matter::DeviceClassification& device_classifi
     current_given_name_node->AddAttribute("classification", device_classification_json);
 }
 
-//! Function used to map a Matter device type onto a sdfThing
+//! Function used to map a Matter device type onto a sdfThing.
 //! This function generates a sdfThing based on the given device type definition while also obtaining additional
-//! information via the sdf-mapping
+//! information via the sdf-mapping.
 sdf::SdfThing MapMatterDevice(const matter::Device& device) {
     sdf::SdfThing sdf_thing;
     // Append a new sdf_object node to the tree
@@ -1677,9 +1755,9 @@ sdf::SdfThing MapMatterDevice(const matter::Device& device) {
     return sdf_thing;
 }
 
-//! Function used to merge a derived cluster with its base
+//! Function used to merge a derived cluster with its base.
 //! This function searches for the base cluster of the given derived cluster in the list of clusters and merges the
-//! elements of the base cluster into the elements of the derived cluster
+//! elements of the base cluster into the elements of the derived cluster.
 void MergeDerivedCluster(matter::Cluster derived_cluster, const std::list<matter::Cluster>& cluster_list) {
     std::string base_cluster = derived_cluster.classification.value().base_cluster;
     // Search for the base cluster
@@ -1705,8 +1783,8 @@ void MergeDerivedCluster(matter::Cluster derived_cluster, const std::list<matter
     }
 }
 
-//! Function used to check, if a Matter cluster is derived
-//! Returns true if the cluster is derived and false otherwise
+//! Function used to check, if a Matter cluster is derived.
+//! Returns true if the cluster is derived and false otherwise.
 bool CheckIfDerived(const matter::Cluster& cluster) {
     if (cluster.classification.has_value()) {
         if (cluster.classification.value().hierarchy == "derived") {
@@ -1719,10 +1797,10 @@ bool CheckIfDerived(const matter::Cluster& cluster) {
     }
 }
 
-//! Function used to merge device and cluster specifications together
-//! This function takes the device type definition as well as a list of all clusters
+//! Function used to merge device and cluster specifications together.
+//! This function takes the device type definition as well as a list of all clusters.
 //! It merges the cluster definitions from the list of clusters into their respective spot in the device type definition
-//! while optionally overwriting their elements
+//! while optionally overwriting their elements.
 void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>& cluster_list) {
     for (auto& device_cluster : device.clusters) {
         for (const auto& cluster: cluster_list) {
@@ -1825,7 +1903,7 @@ void MergeDeviceCluster(matter::Device& device, const std::list<matter::Cluster>
 }
 
 //! Main mapping function used to map an optional device type as well as a list of clusters onto a sdf-model and a
-//! sdf-mapping
+//! sdf-mapping.
 int MapMatterToSdf(const std::optional<matter::Device>& optional_device, const std::list<matter::Cluster>& cluster_list,
                    sdf::SdfModel& sdf_model, sdf::SdfMapping& sdf_mapping) {
     // Create a new ReferenceTree
