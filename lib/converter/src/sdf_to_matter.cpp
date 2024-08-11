@@ -28,29 +28,25 @@ static ReferenceTreeNode* current_quality_name_node = nullptr;
 //! for example the `OnOff` node, not a top level sdf element
 static ReferenceTreeNode* current_given_name_node = nullptr;
 
-static ReferenceTreeNode* current_cluster_name_node = nullptr;
-
 //! List containing required sdf elements
 //! This list gets filled while mapping and afterward appended to the corresponding sdfModel
 static std::list<std::string> sdf_required_list;
 
 //! Map containing enums
 //! This map is used when the sdf enum quality gets translated into a Matter enum
-std::map<std::string, std::list<matter::Item>> global_enum_map;
+static std::map<std::string, std::list<matter::Item>> global_enum_map;
 
 //! Map containing structs
 //! This map is used when an object type data quality gets translated into a global struct
-std::map<std::string, matter::Struct> global_struct_map;
+static std::map<std::string, matter::Struct> global_struct_map;
 
 //! Map containing bitmaps
 //! This map is used when a bitfield compatible set of data qualities gets translated
-std::map<std::string, std::list<matter::Bitfield>> global_bitmap_map;
-
-std::string sdf_data_location;
+static std::map<std::string, std::list<matter::Bitfield>> global_bitmap_map;
 
 //! Map containing the elements of the sdf mapping
 //! This map is used to resolve the elements outsourced into the map
-json reference_map;
+static json reference_map;
 
 //! Function used to check, if the given pointer is part of a sdfRequired element
 bool CheckForRequired(const std::string& json_pointer) {
@@ -58,7 +54,7 @@ bool CheckForRequired(const std::string& json_pointer) {
     if (contains(sdf_required_list, json_pointer)) {
         return true;
     }
-    // Check if the given name of the structure is part of the mao
+    // Check if the given name of the structure is part of the map
     else if (contains(sdf_required_list, GetLastPartAfterSlash(json_pointer))) {
         return true;
     } else {
@@ -766,6 +762,8 @@ std::string MapIntegerType(const sdf::DataQuality& data_quality, matter::Constra
 }
 
 //! Helper function used to map a JsoItem object onto a data quality
+//! This function gets used to ensure that the items quality can be used in combination with all functions that use
+//! data qualities as their input
 sdf::DataQuality MapJsoItemToSdfDataQuality(const sdf::JsoItem& jso_item) {
     sdf::DataQuality data_quality;
 
@@ -871,17 +869,26 @@ std::string MapToMatterEnum(const sdf::DataQuality& data_quality) {
     std::list<matter::Item> matter_enum;
     int i = 0;
     for (const auto& sdf_choice_pair : data_quality.sdf_choice) {
-        if (sdf_choice_pair.second.const_.has_value()) {
-            if (std::holds_alternative<uint64_t>(sdf_choice_pair.second.const_.value()));
-        }
         matter::Item matter_item;
+        if (sdf_choice_pair.second.const_.has_value()) {
+            if (std::holds_alternative<uint64_t>(sdf_choice_pair.second.const_.value())) {
+                matter_item.value = static_cast<int>(std::get<uint64_t>(sdf_choice_pair.second.const_.value()));
+            } else if (std::holds_alternative<int64_t>(sdf_choice_pair.second.const_.value())) {
+                matter_item.value = static_cast<int>(std::get<int64_t>(sdf_choice_pair.second.const_.value()));
+            } else if (std::holds_alternative<double>(sdf_choice_pair.second.const_.value())) {
+                matter_item.value = static_cast<int>(std::get<double>(sdf_choice_pair.second.const_.value()));
+            }
+        } else {
+            matter_item.value = i;
+            i++;
+        }
+
         matter::Conformance conformance;
         conformance.mandatory = true;
         matter_item.conformance = conformance;
-        matter_item.value = i;
         matter_item.name = sdf_choice_pair.first;
         matter_enum.push_back(matter_item);
-        i++;
+
     }
     i = 0;
     std::string enum_name = "CustomEnum";
@@ -896,7 +903,7 @@ std::string MapToMatterEnum(const sdf::DataQuality& data_quality) {
 
 //! Function used to check if the given data qualities are compatible with the enum data type
 bool CheckEnumCompatible(const sdf::DataQuality& data_quality) {
-    if (data_quality.type == "Integer" and !data_quality.sdf_choice.empty()) {
+    if (data_quality.type == "integer" and !data_quality.sdf_choice.empty()) {
         for (const auto& sdf_choice_pair : data_quality.sdf_choice) {
             if (!sdf_choice_pair.second.const_.has_value()) {
                 return false;
@@ -907,6 +914,9 @@ bool CheckEnumCompatible(const sdf::DataQuality& data_quality) {
     return false;
 }
 
+//! Function used to map a data quality onto a Matter Bitmap
+//! Before this function gets called, compatibility with the Bitmap should be checked with the CheckBitmapCompatible
+//! function
 std::string MapToMatterBitmap(const sdf::DataQuality& data_quality) {
     std::list<matter::Bitfield> bitmap;
     int i = 0;
@@ -960,7 +970,7 @@ std::string MapToMatterBitmap(const sdf::DataQuality& data_quality) {
     }
 }
 
-//! Function used if the given array can be turned into a bitmap
+//! Function used to check if the given data qualities can be turned into a bitmap
 bool CheckBitmapCompatible(const sdf::DataQuality& data_quality) {
     if (data_quality.items.has_value() and
     data_quality.unique_items.has_value() and
@@ -1081,31 +1091,31 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
             return "double";
         }
     } else if (data_quality.type == "string") {
-        if (!data_quality.enum_.empty()) {
-            return MapSdfEnum(data_quality);
-        } else {
-            if (data_quality.min_length.has_value()) {
-                if (data_quality.max_length.has_value()) {
-                    constraint.type = "lengthBetween";
-                    constraint.min = data_quality.min_length.value();
-                    constraint.max = data_quality.max_length.value();
-                } else {
-                    constraint.type = "minLength";
-                    constraint.min = data_quality.min_length.value();
-                }
-            } else if (data_quality.max_length.has_value()) {
-                constraint.type = "maxLength";
+        if (data_quality.min_length.has_value()) {
+            if (data_quality.max_length.has_value()) {
+                constraint.type = "lengthBetween";
+                constraint.min = data_quality.min_length.value();
                 constraint.max = data_quality.max_length.value();
-            }
-            if (data_quality.sdf_type == "byte-string") {
-                return "octstr";
             } else {
-                return "string";
+                constraint.type = "minLength";
+                constraint.min = data_quality.min_length.value();
             }
+        } else if (data_quality.max_length.has_value()) {
+            constraint.type = "maxLength";
+            constraint.max = data_quality.max_length.value();
+        }
+        if (data_quality.sdf_type == "byte-string") {
+            return "octstr";
+        } else {
+            return "string";
         }
     } else if (data_quality.type == "boolean") {
         return "bool";
     } else if (data_quality.type == "integer") {
+        // Check if the data qualities are compatible with the Matter Enum type
+        if (CheckEnumCompatible(data_quality)) {
+            return MapToMatterEnum(data_quality);
+        }
         if (!data_quality.unit.empty()) {
             // If the data quality has a unit, we try to match it with a compatible Matter type
             if (data_quality.unit == "/100") {
@@ -1162,6 +1172,7 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
         }
         return MapIntegerType(data_quality, constraint);
     } else if (data_quality.type == "array") {
+        // Check if the data qualities are compatible with the Matter Bitmap type
         if (CheckBitmapCompatible(data_quality)) {
             return MapToMatterBitmap(data_quality);
         }
@@ -1189,6 +1200,10 @@ std::string MapSdfDataType(const sdf::DataQuality& data_quality, matter::Constra
         return "list";
     } else if (data_quality.type == "object") {
         return MapSdfObjectType(data_quality);
+    }
+    // Check if the enum quality has a value
+    if (!data_quality.enum_.empty()) {
+        return MapSdfEnum(data_quality);
     }
 
     // This case should only ever happen if the data quality has no type
@@ -1249,7 +1264,8 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
     event.conformance = GenerateMatterConformance(sdf_event_pair.second.sdf_required);
     if (sdf_event_pair.second.sdf_output_data.has_value()) {
         // Check if sdfOutputData contains a sdfChoice
-        if (!sdf_event_pair.second.sdf_output_data.value().sdf_choice.empty()) {
+        if (!sdf_event_pair.second.sdf_output_data.value().sdf_choice.empty() and
+        !CheckEnumCompatible(sdf_event_pair.second.sdf_output_data.value())) {
             event.data = MapSdfChoice(sdf_event_pair.second.sdf_output_data.value());
         }
         // Otherwise check if the type sdfOutputData is object
@@ -1307,7 +1323,8 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
             client_command.response = server_command.name;
 
             // Check if sdfOutputData contains a sdfChoice
-            if (!sdf_action_pair.second.sdf_output_data.value().sdf_choice.empty()) {
+            if (!sdf_action_pair.second.sdf_output_data.value().sdf_choice.empty() and
+            !CheckEnumCompatible(sdf_action_pair.second.sdf_output_data.value())) {
                 server_command.command_fields = MapSdfChoice(sdf_action_pair.second.sdf_output_data.value());
             }
             // Otherwise, if object is used as a type, the elements of the object have to be mapped individually
@@ -1355,7 +1372,8 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
     // Check if sdfInputData has a value
     if (sdf_action_pair.second.sdf_input_data.has_value()) {
         // Check if sdfInputData contains a sdfChoice
-        if (!sdf_action_pair.second.sdf_input_data.value().sdf_choice.empty()) {
+        if (!sdf_action_pair.second.sdf_input_data.value().sdf_choice.empty() and
+        !CheckEnumCompatible(sdf_action_pair.second.sdf_input_data.value())) {
             client_command.command_fields = MapSdfChoice(sdf_action_pair.second.sdf_input_data.value());
         }
         // Otherwise, if object is used as a type, the elements of the object have to be mapped individually
@@ -1386,7 +1404,7 @@ std::pair<matter::Command, std::optional<matter::Command>> MapSdfAction(const st
             json conformance_json;
             if (ImportFromMapping(sdf_action_reference->GeneratePointer(), "field", conformance_json)) {
                 field.conformance = GenerateMatterConformance(
-                    sdf_action_pair.second.sdf_input_data.value().sdf_required,conformance_json);
+                    sdf_action_pair.second.sdf_input_data.value().sdf_required, conformance_json);
             }
             field.id = 0;
             client_command.command_fields.push_back(field);
@@ -1408,11 +1426,13 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     attribute.summary = sdf_property_pair.second.description;
     attribute.conformance = GenerateMatterConformance(sdf_property_pair.second.sdf_required);
 
+    // Import access and also map read and write
     attribute.access = ImportAccessFromMapping(sdf_property_reference->GeneratePointer());
     if (attribute.access.has_value()) {
         attribute.access.value().read = sdf_property_pair.second.readable;
         attribute.access.value().write = sdf_property_pair.second.writable;
     } else {
+        // Check if either read or write have values, otherwise no access has to be created
         if (sdf_property_pair.second.readable.has_value() or sdf_property_pair.second.writable.has_value()) {
             matter::Access access;
             access.read = sdf_property_pair.second.readable;
@@ -1421,11 +1441,13 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
         }
     }
 
+    // Import the other qualities and also map nullable and observable
     attribute.quality = ImportOtherQualityFromMapping(sdf_property_reference->GeneratePointer());
     if (attribute.quality.has_value()) {
         attribute.quality.value().nullable = sdf_property_pair.second.nullable;
         attribute.quality.value().reportable = sdf_property_pair.second.observable;
     } else {
+        // Check if either observable or nullable have values, otherwise no other quality needs to be created
         if (sdf_property_pair.second.observable.has_value() or sdf_property_pair.second.nullable.has_value()) {
             matter::OtherQuality quality;
             quality.nullable = sdf_property_pair.second.nullable;
@@ -1434,8 +1456,12 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
         }
     }
 
+    // Get the Matter type as well as the constraints from the data qualities of the sdfProperty
     matter::Constraint constraint;
     attribute.type = MapSdfDataType(sdf_property_pair.second, constraint);
+    // Check if the mapping contains a constraint
+    // This check is currently specifically for the constraint with type "MS" as this gets exported to the
+    // mapping when converting Matter to sdf
     json desc_json;
     if (ImportFromMapping(current_given_name_node->GeneratePointer(), "constraint", desc_json)) {
         if (desc_json.contains("type")) {
@@ -1446,9 +1472,10 @@ matter::Attribute MapSdfProperty(const std::pair<std::string, sdf::SdfProperty>&
     attribute.constraint = constraint;
     if (sdf_property_pair.second.default_.has_value()) {
         attribute.default_ = MapSdfDefaultValue(sdf_property_pair.second.default_.value());
-    } else {
-        ImportFromMapping(current_given_name_node->GeneratePointer(), "default", attribute.default_);
     }
+    // Try to import default from the mapping, this is specifically meant for the default type "MS"
+    // Note that this will overwrite the default value specified in the sdf-model
+    ImportFromMapping(current_given_name_node->GeneratePointer(), "default", attribute.default_);
 
     return attribute;
 }
@@ -1476,6 +1503,7 @@ std::list<matter::Attribute> MapSdfChoice(const std::pair<std::string, sdf::SdfP
 }
 
 //! Function used to generate a feature map based on the information given by the sdf-mapping
+//! This function returns an empty feature map if the sdf-mapping does not contain information in this regard
 std::list<matter::Feature> GenerateFeatureMap() {
     std::list<matter::Feature> feature_map;
     json feature_map_json;
@@ -1538,6 +1566,8 @@ std::list<matter::Feature> GenerateFeatureMap() {
 }
 
 //! Function used to generate a cluster classification based on the information given by the sdf-mapping
+//! This function returns an empty classification if the mapping does not contain any information about the Cluster
+//! classification
 matter::ClusterClassification GenerateClusterClassification() {
     matter::ClusterClassification cluster_classification;
     json cluster_classification_json;
@@ -1592,6 +1622,8 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     cluster.conformance = GenerateMatterConformance(sdf_object_pair.second.sdf_required);
     cluster.summary = sdf_object_pair.second.description;
     ImportFromMapping(sdf_object_reference->GeneratePointer(), "side", cluster.side);
+    // Try to import the current revision from the mapping
+    // Alternatively the revision will be set to 1
     if (!ImportFromMapping(sdf_object_reference->GeneratePointer(), "revision", cluster.revision)) {
         cluster.revision = 1;
     }
@@ -1628,10 +1660,12 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     auto* sdf_property_reference = new ReferenceTreeNode("sdfProperty");
     sdf_object_reference->AddChild(sdf_property_reference);
     current_quality_name_node = sdf_property_reference;
+
     for (const auto& sdf_property_pair : sdf_object_pair.second.sdf_property) {
         // Check if the sdfProperty contains a sdfChoice
         // If yes, multiple exclusive attributes will be generated
-        if (!sdf_property_pair.second.sdf_choice.empty()) {
+        if (!sdf_property_pair.second.sdf_choice.empty() and
+        !CheckEnumCompatible(sdf_property_pair.second)) {
             std::list<matter::Attribute> mapped_properties = MapSdfChoice(sdf_property_pair);
             cluster.attributes.insert(cluster.attributes.end(), mapped_properties.begin(), mapped_properties.end());
         } else {
@@ -1643,9 +1677,11 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     auto* sdf_action_reference = new ReferenceTreeNode("sdfAction");
     sdf_object_reference->AddChild(sdf_action_reference);
     current_quality_name_node = sdf_action_reference;
+
     for (const auto& sdf_action_pair : sdf_object_pair.second.sdf_action) {
         std::pair<matter::Command, std::optional<matter::Command>> command_pair = MapSdfAction(sdf_action_pair);
         cluster.client_commands.push_back(command_pair.first);
+        // Check if a server command was generated and if yes, add it to the list of server commands
         if (command_pair.second.has_value()) {
             cluster.server_commands[command_pair.second.value().name] = command_pair.second.value();
         }
@@ -1655,6 +1691,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     auto* sdf_event_reference = new ReferenceTreeNode("sdfEvent");
     sdf_object_reference->AddChild(sdf_event_reference);
     current_quality_name_node = sdf_event_reference;
+
     for (const auto& sdf_event_pair : sdf_object_pair.second.sdf_event) {
         cluster.events.push_back(MapSdfEvent(sdf_event_pair));
     }
@@ -1685,13 +1722,14 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
         auto* given_sdf_data_reference = new ReferenceTreeNode(sdf_data_elem.first);
         sdf_data_reference->AddChild(given_sdf_data_reference);
         current_given_name_node = given_sdf_data_reference;
-
     }
 
     return cluster;
 }
 
 //! Function used to generate a device type classification based on the information given by sdf-mapping
+//! The function returns an empty classification if the mapping contains no information regarding the device type
+//! classification
 matter::DeviceClassification GenerateDeviceClassification()
 {
     matter::DeviceClassification device_classification;
@@ -1714,6 +1752,8 @@ matter::DeviceClassification GenerateDeviceClassification()
 }
 
 //! Function used to map a sdfThing onto a Matter device type
+//! This function will also create a additional Cluster if the sdfThing contains either sdfProperties, sdfActions or
+//! sdfEvents
 matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thing_pair)
 {
     matter::Device device;
@@ -1724,16 +1764,20 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     // Import the ID from the mapping
     ImportFromMapping(sdf_thing_reference->GeneratePointer(), "id", device.id);
     device.name = sdf_thing_pair.second.label;
+    device.summary = sdf_thing_pair.second.description;
+
+    // If the sdfRequired quality contains values we add them to the global list of required elements
     if (!sdf_thing_pair.second.sdf_required.empty()) {
         sdf_required_list.insert(sdf_required_list.end(),
                                  sdf_thing_pair.second.sdf_required.begin(),
                                  sdf_thing_pair.second.sdf_required.end());
     }
-    device.summary = sdf_thing_pair.second.description;
+
     // Import the revision as well as the revision history from the mapping
     if (!ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revision", device.revision)) {
         device.revision = 1;
     }
+
     json revision_history_json;
     if (ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revisionHistory", revision_history_json)) {
         for (const auto& item : revision_history_json.at("revision")) {
@@ -1792,6 +1836,7 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
             sdf_thing_reference->AddChild(current_quality_name_node);
             cluster.events.push_back(MapSdfEvent(sdf_event_pair));
         }
+
         device.clusters.push_back(cluster);
     }
 
@@ -1799,14 +1844,17 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
 }
 
 //! Function used to map a sdf-model and a sdf-thing onto a device type as well as cluster definitions
+//! If the sdf-model does not contain a sdfThing, no device type gets created
 int MapSdfToMatter(const sdf::SdfModel& sdf_model, const sdf::SdfMapping& sdf_mapping,
                    std::optional<matter::Device>& optional_device, std::list<matter::Cluster>& cluster_list) {
     // Make the mapping a global variable
+    // This will be used to import information from the mapping
     if (!sdf_mapping.map.empty()) {
         reference_map = sdf_mapping.map;
     }
 
-    // Initialize a reference tree used to resolve json references
+    // Initialize a reference tree used to generate json pointer
+    // This is used in combination with the mapping
     ReferenceTree reference_tree;
     // Check if the model contains either sdfThings or sdfObject at the top level
     if (!sdf_model.sdf_thing.empty()){
@@ -1818,17 +1866,20 @@ int MapSdfToMatter(const sdf::SdfModel& sdf_model, const sdf::SdfMapping& sdf_ma
                 cluster_list = optional_device.value().clusters;
             }
         }
-    }
-    else if (!sdf_model.sdf_object.empty()){
+    } else if (!sdf_model.sdf_object.empty()){
         // Make sure, that optional_device is empty, as there is no sdfThing present
         optional_device.reset();
+        // Add sdfObject to the reference tree
         current_quality_name_node = new ReferenceTreeNode("sdfObject");
         reference_tree.root->AddChild(current_quality_name_node);
         // Iterate through all sdfObjects and add them to the list of clusters, after mapping them
         for (const auto& sdf_object_pair : sdf_model.sdf_object) {
-            matter::Cluster cluster = MapSdfObject(sdf_object_pair);
-            cluster_list.push_back(cluster);
+            cluster_list.push_back(MapSdfObject(sdf_object_pair));
         }
+    }
+    // If the sdf-model contains neither a sdfThing nor a sdfObject, the device type gets emptied
+    else {
+        optional_device.reset();
     }
 
     return 0;
