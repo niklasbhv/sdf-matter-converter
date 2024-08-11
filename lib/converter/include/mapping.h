@@ -30,7 +30,8 @@
 #include <list>
 #include "sdf.h"
 
-//! Function to escape JSON Pointer according to section 3 of RFC6901
+//! Function to escape JSON Pointer according to section 3 of RFC 6901
+//! This function replaces the character `~` with `~0` and `/` with `~1`
 inline std::string EscapeJsonPointer(const std::string& input) {
     std::string result = input;
     std::size_t pos = 0;
@@ -97,7 +98,8 @@ public:
     }
 
     //! Function used to generate the complete map section of a sdf-mapping based on the contents of the tree
-    std::unordered_map<std::string, std::unordered_map<std::string, sdf::MappingValue>> GenerateMapping(ReferenceTreeNode* node) {
+    std::unordered_map<std::string, std::unordered_map<std::string, sdf::MappingValue>> GenerateMapping(
+        ReferenceTreeNode* node) {
         std::unordered_map<std::string, std::unordered_map<std::string, sdf::MappingValue>> map;
         ReferenceTreeNode* current = node;
         for (const auto& child : current->children) {
@@ -122,11 +124,17 @@ public:
 };
 
 //! Helper function used to determine of a list of strings contains a certain string
+//! @param list The list to search through
+//! @param str The string to search for
+//! @return True if the list contains the string, false otherwise
 static bool contains(const std::list<std::string>& list, const std::string& str) {
     return std::find(list.begin(), list.end(), str) != list.end();
 }
 
 //! Helper function used to check if a int and a uint are equal
+//! @param a The int64_t
+//! @param b The uint64_t
+//! True if the values are equal, false otherwise
 inline bool equals(int64_t a, uint64_t b) {
     if (a < 0) {
         // A negative int64_t is always less than any uint64_t
@@ -136,7 +144,10 @@ inline bool equals(int64_t a, uint64_t b) {
     return ua == b;
 }
 
-//! Helper function used to check if a int and a uint are equal
+//! Helper function used to check if a uint64_t and a int64_t are equal
+//! @param a The uint64_t
+//! @param b The int64_t
+//! True if the values are equal, false otherwise
 inline bool equals(uint64_t a, int64_t b) {
     // Check if the int64_t value is negative
     if (b < 0) {
@@ -148,7 +159,10 @@ inline bool equals(uint64_t a, int64_t b) {
     return a == ub;
 }
 
-//! Helper function used to compare a int and a uint
+//! Helper function used to compare a int64_t and a uint64_t
+//! @param a The int64_t
+//! @param b The uint64_t
+//! @return True if the int64_t is smaller or equal to the uint64_t, false otherwise
 inline bool compare(int64_t a, uint64_t b) {
     // Check if the int64_t value is negative
     if (a < 0) {
@@ -160,7 +174,10 @@ inline bool compare(int64_t a, uint64_t b) {
     return ua <= b;
 }
 
-//! Helper function used to compare a int and a uint
+//! Helper function used to compare a uint64_t and a int64_t
+//! @param a The uint64_t
+//! @param b The int64_t
+//! @return True if the uint64_t is smaller or equal to the int64_t, false otherwise
 inline bool compare(uint64_t a, int64_t b) {
     // Check if the int64_t value is negative
     if (b < 0) {
@@ -173,6 +190,8 @@ inline bool compare(uint64_t a, int64_t b) {
 }
 
 //! Helper function used to get the remaining string after a slash
+//! @param str Input string
+//! @return Remaining string after the slash or the original string, if no slash was found
 inline std::string GetLastPartAfterSlash(const std::string& str) {
     size_t pos = str.find_last_of('/');
     if (pos != std::string::npos) {
