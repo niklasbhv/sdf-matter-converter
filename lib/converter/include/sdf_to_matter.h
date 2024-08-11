@@ -34,6 +34,7 @@
 //! @brief Map a sdf-model and sdf-mapping to a matter object.
 //!
 //! This function maps a sdf-model and sdf-mapping onto a matter device and a list of clusters.
+//! If the sdf-model does not contain a sdfThing, the given device type will get cleared.
 //!
 //! @param sdf_model The input sdf-model.
 //! @param sdf_mapping The input sdf-mapping.
