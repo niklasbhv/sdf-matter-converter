@@ -38,7 +38,7 @@ int LoadJsonFile(const char* path, nlohmann::ordered_json& json_file)
     return 0;
 }
 
-
+//! Function used to validate a json file against a json schema
 int ValidateSdf(const char* path, const char* schema_path)
 {
     //Load the json file as well as the schema_path
@@ -66,13 +66,16 @@ int ValidateSdf(const char* path, const char* schema_path)
     return 0;
 }
 
+//! Function used to validate a xml file against a xsd schema
 int ValidateMatter(const char* path, const char* schema_path) {
+    // Try to load the xml file
     xmlDocPtr doc = xmlReadFile(path, NULL, 0);
     if (doc == nullptr) {
         std::cerr << "Failed to parse " << path << std::endl;
         return false;
     }
 
+    // Create a new schema parser context from the xsd schema file
     xmlSchemaParserCtxtPtr parser_ctxt = xmlSchemaNewParserCtxt(schema_path);
     if (parser_ctxt == nullptr) {
         std::cerr << "Could not create XML Schema parser context for " << schema_path << std::endl;
@@ -80,6 +83,7 @@ int ValidateMatter(const char* path, const char* schema_path) {
         return false;
     }
 
+    // Create a new schema from the schema parser context
     xmlSchemaPtr schema = xmlSchemaParse(parser_ctxt);
     if (schema == nullptr) {
         std::cerr << "Failed to parse XML Schema " << schema << std::endl;
@@ -88,6 +92,7 @@ int ValidateMatter(const char* path, const char* schema_path) {
         return false;
     }
 
+    // Create a new schema validation context
     xmlSchemaValidCtxtPtr valid_ctxt = xmlSchemaNewValidCtxt(schema);
     if (valid_ctxt == nullptr) {
         std::cerr << "Could not create XML Schema validation context" << std::endl;
@@ -97,6 +102,7 @@ int ValidateMatter(const char* path, const char* schema_path) {
         return false;
     }
 
+    // Validate the file against the schema using the validation context
     int ret = xmlSchemaValidateDoc(valid_ctxt, doc);
     if (ret == 0) {
         std::cout << "The XML file is valid against the schema." << std::endl;
@@ -106,6 +112,7 @@ int ValidateMatter(const char* path, const char* schema_path) {
         std::cerr << "Validation generated an internal error." << std::endl;
     }
 
+    // Cleanup
     xmlSchemaFreeValidCtxt(valid_ctxt);
     xmlSchemaFree(schema);
     xmlSchemaFreeParserCtxt(parser_ctxt);
