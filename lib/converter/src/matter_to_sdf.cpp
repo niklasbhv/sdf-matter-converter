@@ -43,7 +43,8 @@ static std::string sdf_data_location;
 
 namespace matter {
 
-//! Function used to convert a conformance object into a JSON structure
+//! Function used to convert a conformance object into a json structure
+//! This function gets called indirectly by the json library
 void to_json(json& j, const Conformance& conformance) {
     if (conformance.mandatory) {
         j = json{{"mandatoryConform", conformance.condition}};
@@ -296,6 +297,7 @@ std::optional<sdf::VariableType> MapMatterDefaultType(const matter::DefaultType&
     } else if (std::holds_alternative<uint64_t>(default_type)) {
         variable_type = std::get<uint64_t>(default_type);
     } else if (std::holds_alternative<std::string>(default_type)) {
+        // If the default is "MS" we export that value to the mapping and leave the default value empty
         if (std::get<std::string>(default_type) == "MS") {
             current_given_name_node->AddAttribute("default", std::get<std::string>(default_type));
             return std::nullopt;
@@ -1397,7 +1399,6 @@ void MapFeatureMap(const std::list<matter::Feature>& feature_map) {
             bool condition = EvaluateConformanceCondition(feature.conformance.value().condition);
             if (feature.conformance.value().mandatory and condition) {
                 supported_features.insert(feature.code);
-                std::cout << "Supported Feature: " << feature.code << std::endl;
             }
         }
         feature_map_json["feature"].push_back(feature_json);
