@@ -26,8 +26,8 @@
 using json = nlohmann::ordered_json;
 using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
 
-// Helper function that generates sdf-model and sdf-mapping filenames
-// Generates filenames of the format "path/to/file[-model|-mapping].json"
+//! Helper function that generates sdf-model and sdf-mapping filenames
+//! Generates filenames of the format "path/to/file[-model|-mapping].json"
 void GenerateSdfFilenames(const std::string& input, std::string& sdf_model_name, std::string& sdf_mapping_name){
     auto last_dot = input.find_last_of('.');
 
@@ -40,8 +40,8 @@ void GenerateSdfFilenames(const std::string& input, std::string& sdf_model_name,
     sdf_mapping_name.append(input.substr(last_dot));
 }
 
-// Helper function that generates device and cluster filenames
-// Generates filenames of the format "path/to/file[-device|-cluster].xml"
+//! Helper function that generates device and cluster filenames
+//! Generates filenames of the format "path/to/file[-device|-cluster].xml"
 void GenerateMatterFilenames(const std::string& input, std::string& device_xml_name, std::string& cluster_xml_name){
     auto last_dot = input.find_last_of('.');
 
@@ -54,9 +54,12 @@ void GenerateMatterFilenames(const std::string& input, std::string& device_xml_n
     cluster_xml_name.append(input.substr(last_dot));
 }
 
+//! Main function
 int main(int argc, char *argv[]) {
+    // Define the program name
     argparse::ArgumentParser program("sdf-matter-converter");
 
+    // Define the set of possible arguments
     program.add_argument("--matter-to-sdf")
             .help("Convert from Matter to SDF")
             .default_value(false);
@@ -102,15 +105,20 @@ int main(int argc, char *argv[]) {
         std::exit(1);
     }
 
+    // Check if the conversion direction is matter to sdf
     if (program.is_used("--matter-to-sdf")) {
+        // Check if the result should be validated
         bool validate = program.is_used("-validate");
+
+        // Check if the path to a device type definition was given
         std::string path_device_xml;
         if (program.is_used("-device-xml")) {
             path_device_xml = program.get<std::string>("-device-xml");
         }
+
+        // Check if the path to one or more cluster definitions was given
         if (program.is_used("-cluster-xml")) {
             auto path_cluster_xml = program.get<std::string>("-cluster-xml");
-
             std::list<pugi::xml_document> cluster_xml_list;
             // Check if the given path points onto a folder or a file
             json sdf_model;
@@ -129,14 +137,16 @@ int main(int argc, char *argv[]) {
                 LoadXmlFile(path_cluster_xml.c_str(), cluster_xml);
                 cluster_xml_list.push_back(std::move(cluster_xml));
             }
-            // If a device-xml was loaded, convert both of the files
+            // If a device type definition was loaded, convert both of the files
             if (!path_device_xml.empty()) {
                 std::cout << "Loading Device XML" << std::endl;
                 pugi::xml_document device_xml;
                 LoadXmlFile(path_device_xml.c_str(), device_xml);
                 std::cout << "Converting Matter to SDF" << std::endl;
                 ConvertMatterToSdf(std::move(device_xml), cluster_xml_list, sdf_model, sdf_mapping);
-            } else {
+            }
+            // Otherwise we just convert the list of clusters
+            else {
                 std::cout << "Converting Matter to SDF" << std::endl;
                 ConvertMatterToSdf(std::nullopt, cluster_xml_list, sdf_model, sdf_mapping);
             }
@@ -145,14 +155,15 @@ int main(int argc, char *argv[]) {
             if (program.is_used("--roundtrip")) {
                 std::cout << "Round-tripping flag was set!" << std::endl;
                 std::cout << "Converting SDF to Matter..." << std::endl;
-                pugi::xml_document round_trip_device_xml;
+
                 std::optional<pugi::xml_document> optional_device_xml;
                 cluster_xml_list.clear();
-                std::list<pugi::xml_document> round_trip_cluster_xml_list;
 
+                // Convert SDF back to the Matter data model
                 ConvertSdfToMatter(sdf_model, sdf_mapping, optional_device_xml, cluster_xml_list);
                 std::cout << "Successfully converted SDF to Matter!" << std::endl;
 
+                // Generate the output file path
                 std::string path_output_device_xml;
                 std::string path_output_cluster_xml;
                 GenerateMatterFilenames(program.get<std::string>("-output"), path_output_device_xml,
@@ -175,8 +186,10 @@ int main(int argc, char *argv[]) {
                 std::cout << "Saving Cluster XML..." << std::endl;
                 int counter = 0;
                 for (const auto &cluster_xml: cluster_xml_list) {
+                    // Generate a filename for each cluster by numbering them
                     std::string path = path_output_cluster_xml + "_" + std::to_string(counter) + ".xml";
                     SaveXmlFile(path.c_str(), cluster_xml);
+                    // If the validation flag was set we try to validate the xml against a xsd schema
                     if (validate) {
                         if (ValidateMatter(path.c_str(), program.get<std::string>("-validate").c_str())) {
                             std::cout << "Cluster XML" << path << "valid!..." << std::endl;
@@ -189,7 +202,9 @@ int main(int argc, char *argv[]) {
 
                 std::cout << "Successfully saved Cluster XML!" << std::endl;
 
-            } else {
+            }
+            // If the round-tripping flag was not set, we can just save the result
+            else {
                 // Generate filenames for SDF based on the -output parameter
                 std::string path_sdf_model;
                 std::string path_sdf_mapping;
@@ -217,11 +232,13 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
+        // If no path to one or more cluster definitions is given we exit the program
         else {
             std::cerr << "No valid combination of input parameters used" << std::endl;
             std::exit(1);
         }
     }
+    // Check if the conversion direction is sdf to matter
     else if(program.is_used("--sdf-to-matter")) {
         bool validate = program.is_used("-validate");
         if (!(program.is_used("-sdf-model") and program.is_used("-sdf-mapping"))) {
@@ -243,13 +260,15 @@ int main(int argc, char *argv[]) {
         std::optional<pugi::xml_document> optional_device_xml;
         std::list<pugi::xml_document> cluster_xml_list;
         ConvertSdfToMatter(sdf_model_json, sdf_mapping_json, optional_device_xml, cluster_xml_list);
+
+        // Check if the round-tripping flag was set
         if (program.is_used("--roundtrip")) {
             std::cout << "Round-tripping flag was set!" << std::endl;
             std::cout << "Converting Matter to SDF..." << std::endl;
             sdf_model_json.clear();
             sdf_mapping_json.clear();
 
-
+            // Convert the Matter data model back to SDF
             ConvertMatterToSdf(optional_device_xml, cluster_xml_list, sdf_model_json, sdf_mapping_json);
             std::cout << "Successfully converted Matter to SDF!" << std::endl;
 
@@ -299,6 +318,7 @@ int main(int argc, char *argv[]) {
             std::cout << "Saving Cluster XML..." << std::endl;
             int counter = 0;
             for (const auto& cluster_xml : cluster_xml_list) {
+                // Generate a filename for each cluster by numbering them
                 std::string path = path_cluster_xml + "_" + std::to_string(counter) + ".xml";
                 SaveXmlFile(path.c_str(), cluster_xml);
                 if (validate) {
