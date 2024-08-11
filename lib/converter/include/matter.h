@@ -63,6 +63,9 @@
 
 //! Helper function used to filter multiple spaces from a string
 //! This is meant for summary fields as these often contain linebreaks that result in multiple spaces between words
+//!
+//! @param input The string to remove spaces from
+//! @return The input but without multiple spaces
 inline std::string FilterMultipleSpaces(const std::string& input) {
     std::string result;
     bool in_spaces = false;
@@ -83,6 +86,9 @@ inline std::string FilterMultipleSpaces(const std::string& input) {
 }
 
 //! Helper function used to convert a integer into a hexadecimal representation
+//!
+//! @param num The number to convert to a hex
+//! @return The resulting hex prefixed by `0x`
 inline std::string IntToHex(u_int32_t num) {
     std::string hex_str;
     while (num > 0) {
