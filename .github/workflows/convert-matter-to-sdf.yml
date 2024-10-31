@@ -3,6 +3,8 @@ name: Convert the Matter Data model to SDF
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
