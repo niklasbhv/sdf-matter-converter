@@ -37,7 +37,7 @@ jobs:
           folder_path="${{ github.workspace }}/matter/data_model/master/device_types"
           for file in "$folder_path"/*; do
             if [ -f "$file" ]; then
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster "${{ github.workspace }}/matter/data_model/master/clusters" -o "./converted.json"
+              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/master/clusters" -o "./converted.json"
               echo "Processing $file"
               # You can add more processing logic here, such as running a script on each file
             fi
