@@ -51,8 +51,8 @@ jobs:
         shell: Powershell
         run: |
           (New-Object System.Net.WebClient).DownloadFile("http://xmlsoft.org/sources/win32/64bit/libxml2-2.9.3-win32-x86_64.7z","libxml2-2.9.3-win32-x86_64.7z");
-          Expand-Archive .\libxml2-2.9.3-win32-x86_64.7z .;
-           echo "$((Get-Item .).FullName)/bin/libxml2.dll" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          7z .\libxml2-2.9.3-win32-x86_64.7z .;
+          echo "$((Get-Item .).FullName)/bin/libxml2.dll" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Set reusable strings
         # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
         id: strings
