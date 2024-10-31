@@ -33,4 +33,4 @@ jobs:
       - name: Pull Matter files
         run: git clone --depth=1 https://github.com/project-chip/connectedhomeip.git ${{ github.workspace }}/matter
       - name: Convert Matter "files
-        run: ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "${{ github.workspace }}/matter/data_model/master/device_types" -cluster-xml "${{ github.workspace }}/matter/data_model/master/clusters"S
+        run: ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "${{ github.workspace }}/matter/data_model/master/device_types" -cluster-xml "${{ github.workspace }}/matter/data_model/master/clusters" -o "./converted.json"
