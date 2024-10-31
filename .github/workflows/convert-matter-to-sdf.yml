@@ -42,3 +42,8 @@ jobs:
               # You can add more processing logic here, such as running a script on each file
             fi
           done
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Converted Matter files
+          path: {{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter/*.json
