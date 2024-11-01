@@ -1,0 +1,50 @@
+name: Convert SDF to the Matter Data model
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set reusable strings
+        # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+      - name: Configure CMake
+        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+        run: >
+          cmake -B ${{ steps.strings.outputs.build-output-dir }}
+          -DCMAKE_CXX_COMPILER=g++
+          -DCMAKE_C_COMPILER=gcc
+          -DCMAKE_BUILD_TYPE=Release
+          -S ${{ github.workspace }}
+      - name: Build
+        # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
+      - name: Pull SDF files
+        run: git clone --depth=1 https://github.com/one-data-model/playground.git ${{ github.workspace }}/sdf
+      - name: Convert SDF files
+        run: |
+          mkdir ${{ github.workspace }}/converted/
+          touch ${{ github.workspace }}/empty_mapping.json
+          folder_path="${{ github.workspace }}/sdf/sdfObject"
+          for file in "$folder_path"/*; do
+            if [[ -f "$file" && "${file##*.}" != "xml" ]]; then
+              echo "Processing $file"
+              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --sdf-to-matter -sdf-model "$file" -sdf-mapping "${{ github.workspace }}/empty_mapping.json" -o "${{ github.workspace }}/converted/$(basename "$file" | cut -f 1 -d '.').xml"
+              echo "Saving file to ${{ github.workspace }}/converted/$(basename "$file" | cut -f 1 -d '.').xml"
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Converted SDF files
+          path: ${{ github.workspace }}/converted/*.xml
