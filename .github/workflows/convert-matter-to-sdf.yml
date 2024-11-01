@@ -36,6 +36,7 @@ jobs:
           rm ${{ github.workspace }}/matter/data_model/master/clusters/cluster_ids.json
       - name: Convert Matter files
         run: |
+          mkdir ${{ github.workspace }}/converted/
           folder_path="${{ github.workspace }}/matter/data_model/master/device_types"
           for file in "$folder_path"/*; do
             if [[ -f "$file" && "${file##*.}" != "json" ]]; then
