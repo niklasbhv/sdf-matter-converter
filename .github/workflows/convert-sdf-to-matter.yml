@@ -30,7 +30,21 @@ jobs:
       - name: Build
         # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
         run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
-      - name: Pull Matter files
+      - name: Pull SDF files
         run: git clone --depth=1 https://github.com/one-data-model/playground.git ${{ github.workspace }}/sdf
-      - name: Convert Matter "files
-        run: ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --sdf-to-matter -sdf-model "${{ github.workspace }}/sdf/sdfObject/sdfobject-weight.sdf.json" -sdf-mapping "${{ github.workspace }}/sdf/sdfObject/sdfobject-weight.sdf.json" -o "./converted.json"
+      - name: Convert SDF files
+        run: |
+          mkdir ${{ github.workspace }}/converted/
+          touch ${{ github.workspace }}/empty_mapping.json
+          folder_path="${{ github.workspace }}/sdf/sdfObject"
+          for file in "$folder_path"/*; do
+            if [[ -f "$file" && "${file##*.}" != "xml" ]]; then
+              echo "Processing $file"
+              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --sdf-to-matter -sdf-model "$file" -sdf-mapping "${{ github.workspace }}/empty_mapping.json" -o "${{ github.workspace }}/converted/$(basename "$file" | cut -f 1 -d '.').xml"
+              echo "Saving file to ${{ github.workspace }}/converted/$(basename "$file" | cut -f 1 -d '.').xml"
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Converted SDF files
+          path: ${{ github.workspace }}/converted/*.xml
