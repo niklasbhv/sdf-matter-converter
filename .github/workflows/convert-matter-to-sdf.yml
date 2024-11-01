@@ -48,5 +48,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: Converted Matter files
-          path: '**/*.json'
-          #path: ${{ github.workspace }}/converted/*.json
+          path: ${{ github.workspace }}/converted/*.json
