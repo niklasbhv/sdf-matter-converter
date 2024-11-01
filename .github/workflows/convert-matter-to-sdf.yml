@@ -44,5 +44,5 @@ jobs:
           done
       - uses: actions/upload-artifact@v4
         with:
-          name: Converted_Matter_files
-          path: {{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter/*.json
+          name: Converted Matter files
+          path: ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter/*.json
