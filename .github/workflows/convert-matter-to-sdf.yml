@@ -31,14 +31,17 @@ jobs:
         # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
         run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
       - name: Pull Matter files
-        run: git clone --depth=1 https://github.com/project-chip/connectedhomeip.git ${{ github.workspace }}/matter
+        run: | 
+          git clone --depth=1 https://github.com/project-chip/connectedhomeip.git ${{ github.workspace }}/matter
+          rm ${{ github.workspace }}/matter/data_model/master/clusters/cluster_ids.json
       - name: Convert Matter "files
         run: |
           folder_path="${{ github.workspace }}/matter/data_model/master/device_types"
           for file in "$folder_path"/*; do
             if [[ -f "$file" && "${file##*.}" != "json" ]]; then
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/master/clusters" -o "./converted/$(basename "$file" | cut -f 1 -d '.').json"
               echo "Processing $file"
+              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/master/clusters" -o "./converted/$(basename "$file" | cut -f 1 -d '.').json"
+              echo "Saving file to ./converted/$(basename "$file" | cut -f 1 -d '.').json"
               # You can add more processing logic here, such as running a script on each file
             fi
           done
