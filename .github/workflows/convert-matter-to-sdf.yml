@@ -36,27 +36,27 @@ jobs:
           rm ${{ github.workspace }}/matter/data_model/master/clusters/cluster_ids.json
       - name: Convert Matter files for Matter 1.3
         run: |
-          mkdir ${{ github.workspace }}/converted/
+          mkdir ${{ github.workspace }}/converted/1.3/
           folder_path="${{ github.workspace }}/matter/data_model/1.3/device_types"
           for file in "$folder_path"/*; do
             if [[ -f "$file" && "${file##*.}" != "json" ]]; then
               echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/master/clusters" -o "${{ github.workspace }}/converted/1.3/$(basename "$file" | cut -f 1 -d '.').json"
+              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.3/clusters" -o "${{ github.workspace }}/converted/1.3/$(basename "$file" | cut -f 1 -d '.').json"
             fi
           done
       - name: Convert Matter files for Matter 1.4
         run: |
-          mkdir ${{ github.workspace }}/converted/
+          mkdir ${{ github.workspace }}/converted/1.4/
           folder_path="${{ github.workspace }}/matter/data_model/1.4/device_types"
           for file in "$folder_path"/*; do
             if [[ -f "$file" && "${file##*.}" != "json" ]]; then
               echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/master/clusters" -o "${{ github.workspace }}/converted/1.4/$(basename "$file" | cut -f 1 -d '.').json"
+              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.4/clusters" -o "${{ github.workspace }}/converted/1.4/$(basename "$file" | cut -f 1 -d '.').json"
             fi
           done
       - name: Convert Matter files for Master
         run: |
-          mkdir ${{ github.workspace }}/converted/
+          mkdir ${{ github.workspace }}/converted/master/
           folder_path="${{ github.workspace }}/matter/data_model/master/device_types"
           for file in "$folder_path"/*; do
             if [[ -f "$file" && "${file##*.}" != "json" ]]; then
