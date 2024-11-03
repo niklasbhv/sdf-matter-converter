@@ -1,4 +1,4 @@
-name: Convert the Matter Data model to SDF
+name: Convert the Matter data model to SDF
 
 on:
   push:
@@ -68,4 +68,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: Converted Matter files
-          path: ${{ github.workspace }}/converted/*.json
+          path: ${{ github.workspace }}/converted/**/*.json

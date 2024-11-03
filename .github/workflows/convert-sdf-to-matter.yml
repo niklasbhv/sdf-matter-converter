@@ -1,4 +1,4 @@
-name: Convert SDF to the Matter Data model
+name: Convert SDF to the Matter data model
 
 on:
   push:
