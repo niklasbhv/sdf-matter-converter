@@ -51,7 +51,7 @@ jobs:
           for file in "$folder_path"/*; do
             if [[ -f "$file" && "${file##*.}" != "json" ]]; then
               echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.4/clusters" -o "${{ github.workspace }}/converted/1.4/$(basename "$file" | cut -f 1 -d '.').json"
+              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.4.2/clusters" -o "${{ github.workspace }}/converted/1.4.2/$(basename "$file" | cut -f 1 -d '.').json"
             fi
           done
       - name: Convert Matter files for Matter 1.5.1
@@ -61,7 +61,7 @@ jobs:
           for file in "$folder_path"/*; do
             if [[ -f "$file" && "${file##*.}" != "json" ]]; then
               echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.4/clusters" -o "${{ github.workspace }}/converted/1.4/$(basename "$file" | cut -f 1 -d '.').json"
+              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.5.1/clusters" -o "${{ github.workspace }}/converted/1.5.1/$(basename "$file" | cut -f 1 -d '.').json"
             fi
           done
       - name: Convert Matter files for Matter 1.6
@@ -71,7 +71,7 @@ jobs:
           for file in "$folder_path"/*; do
             if [[ -f "$file" && "${file##*.}" != "json" ]]; then
               echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.4/clusters" -o "${{ github.workspace }}/converted/1.4/$(basename "$file" | cut -f 1 -d '.').json"
+              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.6/clusters" -o "${{ github.workspace }}/converted/1.6/$(basename "$file" | cut -f 1 -d '.').json"
             fi
           done
       - uses: actions/upload-artifact@v4
