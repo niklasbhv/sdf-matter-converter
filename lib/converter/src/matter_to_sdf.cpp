@@ -1405,7 +1405,21 @@ sdf::SdfAction MapMatterCommand(const matter::Command& client_command, const std
     }
     // Otherwise, the client client_command has a reference to a server client_command
     else {
-        sdf_action.sdf_output_data = MapMatterDataField(server_commands.at(client_command.response).command_fields);
+        // Filter whitespaces to establish backwards compatibility with Matter 1.2 and below data models
+        std::string client_command_response = client_command.response;
+        client_command_response.erase(
+            std::remove_if(
+                client_command_response.begin(),
+                client_command_response.end(),
+                ::isspace),
+            client_command_response.end());
+
+        // Check if the server client_command exists
+        if (server_commands.find(client_command_response) != server_commands.end()) {
+            sdf_action.sdf_output_data = MapMatterDataField(server_commands.at(client_command_response).command_fields);
+        } else {
+            std::cerr << "Response Command: " << client_command_response << " not found for Client Command: " << client_command.name << std::endl;
+        }
     }
 
     return sdf_action;
