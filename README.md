@@ -34,8 +34,12 @@ sudo apt-get install libxml2-dev
 Using CMake inside the sdf-matter-converter directory:
 
 ```
-cmake .
-cmake --build .
+make build
+```
+or simply
+
+```
+make
 ```
 
 Before building, check that all prerequisites are fulfilled.

@@ -1,4 +1,8 @@
+build:
+	cmake -S . -B ./build && cmake --build ./build
+
 clean:
-	rm *.o converter
+	rm -rf ./build
+
 documentation:
 	doxygen Doxyfile
