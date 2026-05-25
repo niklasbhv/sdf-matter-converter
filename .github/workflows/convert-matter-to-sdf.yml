@@ -44,16 +44,16 @@ jobs:
       #        ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.0/clusters" -o "${{ github.workspace }}/converted/1.0/$(basename "$file" | cut -f 1 -d '.').json"
       #      fi
       #    done
-      - name: Convert Matter files for Matter 1.1
-        run: |
-          mkdir ${{ github.workspace }}/converted/1.1/
-          folder_path="${{ github.workspace }}/matter/data_model/1.1/device_types"
-          for file in "$folder_path"/*; do
-            if [[ -f "$file" && "${file##*.}" != "json" ]]; then
-              echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.1/clusters" -o "${{ github.workspace }}/converted/1.1/$(basename "$file" | cut -f 1 -d '.').json"
-            fi
-          done
+      #- name: Convert Matter files for Matter 1.1
+      #  run: |
+      #    mkdir ${{ github.workspace }}/converted/1.1/
+      #    folder_path="${{ github.workspace }}/matter/data_model/1.1/device_types"
+      #    for file in "$folder_path"/*; do
+      #      if [[ -f "$file" && "${file##*.}" != "json" ]]; then
+      #        echo "Processing $file"
+      #        ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.1/clusters" -o "${{ github.workspace }}/converted/1.1/$(basename "$file" | cut -f 1 -d '.').json"
+      #      fi
+      #    done
       - name: Convert Matter files for Matter 1.2
         run: |
           mkdir ${{ github.workspace }}/converted/1.2/
