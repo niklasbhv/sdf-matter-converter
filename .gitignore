@@ -33,22 +33,14 @@
 *.app
 
 # CMake Debug Build
-
 /cmake-build-debug
 
 # IDE specific folders
-
 /.idea
 /.vs
 
-# Documentation folder
-
+# Documentation built output
 /doc/*
-_deps/
-CPM_modules/
-CMakeCache.txt
-cmake_install.cmake
-CPackConfig.cmake
-CPackSourceConfig.cmake
-cpm-package-lock.cmake
 
+# CMake build output
+build
