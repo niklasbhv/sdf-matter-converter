@@ -62,7 +62,16 @@ static inline int SaveJsonFile(const char* path, const nlohmann::ordered_json& j
 {
     try {
         std::ofstream f(path);
+        if (!f.is_open()) {
+            std::cerr << "Failed to open JSON file for writing: " << path << std::endl;
+            return -1;
+        }
         f << json_file.dump(4);
+        f.close();
+        if (f.fail()) {
+            std::cerr << "Failed to write JSON file: " << path << std::endl;
+            return -1;
+        }
     }
     catch (const std::exception& err) {
         std::cerr << "Failed to save JSON file: " << path << std::endl;
@@ -98,7 +107,11 @@ static inline int LoadXmlFile(const char* path, pugi::xml_document& xml_file)
 //! @return 0 on success, negative on failure.
 static inline int SaveXmlFile(const char* path, const pugi::xml_document& xml_file)
 {
-    return xml_file.save_file(path);
+    if (!xml_file.save_file(path)) {
+        std::cerr << "Failed to save XML file: " << path << std::endl;
+        return -1;
+    }
+    return 0;
 }
 
 #endif //SDF_MATTER_CONVERTER_MAIN_H
