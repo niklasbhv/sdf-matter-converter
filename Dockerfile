@@ -14,6 +14,6 @@ RUN apt-get update && \
 
 COPY . /app
 
-RUN cmake . && cmake --build .
+RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
 
-ENTRYPOINT ["./sdf_matter_converter"]
+ENTRYPOINT ["/app/build/sdf_matter_converter"]

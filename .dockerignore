@@ -1,0 +1,9 @@
+# Build output and local test data, the image builds and clones its own
+build
+cmake-build-*
+test
+doc
+.git
+.github
+.idea
+.vs
