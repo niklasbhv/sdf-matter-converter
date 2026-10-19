@@ -516,7 +516,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     else if (matter_type == "epoch-us") {
         data_quality.type = "integer";
         data_quality.minimum = 0;
-        data_quality.maximum = std::numeric_limits<u_int64_t>::max();
+        data_quality.maximum = std::numeric_limits<uint64_t>::max();
         data_quality.unit = "us";
     }
     // Epoch time in seconds data type
@@ -548,7 +548,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     else if (matter_type == "systime-us") {
         data_quality.type = "integer";
         data_quality.minimum = 0;
-        data_quality.maximum = std::numeric_limits<u_int64_t>::max();
+        data_quality.maximum = std::numeric_limits<uint64_t>::max();
         data_quality.unit = "us";
     }
     // System time in milliseconds
@@ -556,7 +556,7 @@ void MapMatterType(const std::string& matter_type, sdf::DataQuality& data_qualit
     else if (matter_type == "systime-ms") {
         data_quality.type = "integer";
         data_quality.minimum = 0;
-        data_quality.maximum = std::numeric_limits<u_int64_t>::max();
+        data_quality.maximum = std::numeric_limits<uint64_t>::max();
         data_quality.unit = "ms";
     }
     // Elapsed time in seconds data type

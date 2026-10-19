@@ -346,7 +346,7 @@ bool CheckVariantEquals(const std::variant<double, int64_t, uint64_t>& variant, 
             if (std::get<int64_t>(value) == std::get<int64_t>(variant))
                 return true;
         }
-        else if (std::holds_alternative<u_int64_t>(value)) {
+        else if (std::holds_alternative<uint64_t>(value)) {
             if (equals(std::get<uint64_t>(value), std::get<int64_t>(variant))) {
                 return true;
             }
@@ -1347,7 +1347,7 @@ matter::Event MapSdfEvent(const std::pair<std::string, sdf::SdfEvent>& sdf_event
         // Otherwise check if the type sdfOutputData is object
         // In this case each data quality in properties gets mapped to its own data field
         else if (sdf_event_pair.second.sdf_output_data.value().type == "object") {
-            u_int32_t i = 0;
+            uint32_t i = 0;
             for (const auto& data_quality_pair :
             sdf_event_pair.second.sdf_output_data.value().properties) {
                 matter::DataField field = MapSdfInputOutputData(data_quality_pair.second);
@@ -1720,7 +1720,7 @@ matter::Cluster MapSdfObject(const std::pair<std::string, sdf::SdfObject>& sdf_o
     json revision_history_json;
     if (ImportFromMapping(sdf_object_reference->GeneratePointer(), "revisionHistory", revision_history_json)) {
         for (const auto& item : revision_history_json.at("revision")) {
-            u_int8_t revision;
+            uint8_t revision;
             item.at("revision").get_to(revision);
             std::string summary;
             item.at("summary").get_to(summary);
@@ -1863,7 +1863,7 @@ matter::Device MapSdfThing(const std::pair<std::string, sdf::SdfThing>& sdf_thin
     json revision_history_json;
     if (ImportFromMapping(sdf_thing_reference->GeneratePointer(), "revisionHistory", revision_history_json)) {
         for (const auto& item : revision_history_json.at("revision")) {
-            u_int8_t revision;
+            uint8_t revision;
             item.at("revision").get_to(revision);
             std::string summary;
             item.at("summary").get_to(summary);

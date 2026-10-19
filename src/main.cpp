@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
                 std::cout << "Loading and Parsing every Cluster XML of the given path" << std::endl;
                 for (const auto &dir_entry: recursive_directory_iterator(path_cluster_xml)) {
                     pugi::xml_document cluster_xml;
-                    LoadXmlFile(dir_entry.path().c_str(), cluster_xml);
+                    LoadXmlFile(dir_entry.path().string().c_str(), cluster_xml);
                     cluster_xml_list.push_back(std::move(cluster_xml));
                 }
             } else {

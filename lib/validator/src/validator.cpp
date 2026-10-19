@@ -24,7 +24,7 @@ using nlohmann::ordered_json;
 using nlohmann::json_schema::json_validator;
 
 //! Function used to load a JSON file from the given path
-int LoadJsonFile(const char* path, nlohmann::ordered_json& json_file)
+static int LoadJsonFile(const char* path, nlohmann::ordered_json& json_file)
 {
     try {
         std::ifstream f(path);

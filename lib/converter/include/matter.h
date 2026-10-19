@@ -25,6 +25,7 @@
 #ifndef SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MATTER_H_
 #define SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MATTER_H_
 
+#include <cstdint>
 #include <string>
 #include <map>
 #include <unordered_map>
@@ -89,7 +90,7 @@ inline std::string FilterMultipleSpaces(const std::string& input) {
 //!
 //! @param num The number to convert to a hex
 //! @return The resulting hex prefixed by `0x`
-inline std::string IntToHex(u_int32_t num) {
+inline std::string IntToHex(uint32_t num) {
     std::string hex_str;
     while (num > 0) {
         uint32_t remainder = num % 16;
@@ -118,7 +119,7 @@ typedef std::variant<double, int64_t, uint64_t> NumericType;
 
 //!Type used to store revision information.
 //!Maps a revision id onto a summary of changes.
-typedef std::map<u_int8_t, std::string> Revision;
+typedef std::map<uint8_t, std::string> Revision;
 
 //! Struct which represents the quality column.
 struct OtherQuality {
@@ -216,7 +217,7 @@ struct Access {
 //! Struct which represents the common data.
 struct CommonQuality {
     //! Unique identifier.
-    u_int32_t id;
+    uint32_t id;
     //! CamelCase name of the element.
     std::string name;
     //! Defines dependencies.
@@ -261,7 +262,7 @@ typedef std::list<DataField> Struct;
 //! Struct which represents FeatureMap Attribute.
 //! Used to define optional features.
 struct Feature {
-    u_int8_t bit;
+    uint8_t bit;
     std::optional<Conformance> conformance;
     //! Capitalized, short code
     std::string code;
