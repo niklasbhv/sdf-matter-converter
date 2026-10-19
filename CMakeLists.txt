@@ -17,6 +17,13 @@ add_executable(sdf_matter_converter src/main.cpp src/main.h)
 
 target_link_libraries(sdf_matter_converter validator converter nlohmann_json::nlohmann_json pugixml::pugixml argparse::argparse)
 
+# MSVC only accepts the alternative operator tokens (and, or, not) in conformance mode
+if(MSVC)
+    foreach(target converter validator sdf_matter_converter)
+        target_compile_options(${target} PRIVATE /permissive- /utf-8 /bigobj)
+    endforeach()
+endif()
+
 # Smoke tests for the command line tool
 enable_testing()
 add_subdirectory(tests)

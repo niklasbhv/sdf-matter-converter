@@ -26,8 +26,10 @@
 #ifndef SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MAPPING_H_
 #define SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_MAPPING_H_
 
+#include <algorithm>
 #include <iostream>
 #include <list>
+#include <vector>
 #include "sdf.h"
 
 //! Function to escape JSON Pointer according to section 3 of RFC 6901

@@ -14,7 +14,6 @@ jobs:
       # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations.
       fail-fast: false
 
-      # Windows is not part of the matrix, as the code base has not been ported to MSVC yet.
       matrix:
         build_type: [Release]
         include:
@@ -27,6 +26,9 @@ jobs:
           - os: macos-latest
             c_compiler: clang
             cpp_compiler: clang++
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
 
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +38,14 @@ jobs:
         shell: bash
         run: |
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+      - name: Install libxml2 for Windows
+        if: runner.os == 'Windows'
+        # Use the vcpkg installation that is part of the Windows runner image
+        # CMake picks up the toolchain file from the environment
+        shell: bash
+        run: |
+          vcpkg install libxml2:x64-windows
+          echo "CMAKE_TOOLCHAIN_FILE=$(cygpath -m "$VCPKG_INSTALLATION_ROOT")/scripts/buildsystems/vcpkg.cmake" >> "$GITHUB_ENV"
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
