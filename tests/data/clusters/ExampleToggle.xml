@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<!--
+Minimal, hand-written cluster definition in the Matter data model format.
+Used as a fixture for the converter smoke tests.
+-->
+<cluster id="0xFFF1FC01" name="Example Toggle Cluster" revision="2">
+  <revisionHistory>
+    <revision revision="1" summary="Initial revision"/>
+    <revision revision="2" summary="Added the Dimming feature"/>
+  </revisionHistory>
+  <clusterIds>
+    <clusterId id="0xFFF1FC01" name="Example Toggle"/>
+  </clusterIds>
+  <classification hierarchy="base" role="application" picsCode="EXTG" scope="Endpoint"/>
+  <features>
+    <feature bit="0" code="DIM" name="Dimming" summary="Supports a brightness level.">
+      <optionalConform/>
+    </feature>
+  </features>
+  <dataTypes>
+    <enum name="StartUpStateEnum">
+      <item value="0" name="Off" summary="Start in the off state">
+        <mandatoryConform/>
+      </item>
+      <item value="1" name="On" summary="Start in the on state">
+        <mandatoryConform/>
+      </item>
+      <item value="2" name="Previous" summary="Restore the previous state">
+        <mandatoryConform/>
+      </item>
+    </enum>
+    <bitmap name="OptionsBitmap">
+      <bitfield name="ExecuteIfOff" bit="0" summary="Execute commands while off">
+        <mandatoryConform/>
+      </bitfield>
+    </bitmap>
+    <struct name="LevelRangeStruct">
+      <field id="0" name="MinLevel" type="uint8">
+        <mandatoryConform/>
+      </field>
+      <field id="1" name="MaxLevel" type="uint8">
+        <mandatoryConform/>
+      </field>
+    </struct>
+  </dataTypes>
+  <attributes>
+    <attribute id="0x0000" name="State" type="bool" default="false">
+      <access read="true" readPrivilege="view"/>
+      <quality persistence="nonVolatile"/>
+      <mandatoryConform/>
+    </attribute>
+    <attribute id="0x0001" name="Level" type="uint8" default="0">
+      <access read="true" write="true" readPrivilege="view" writePrivilege="operate"/>
+      <quality nullable="true"/>
+      <mandatoryConform>
+        <feature name="DIM"/>
+      </mandatoryConform>
+      <constraint>
+        <between>
+          <from value="0"/>
+          <to value="254"/>
+        </between>
+      </constraint>
+    </attribute>
+    <attribute id="0x0002" name="StartUpState" type="StartUpStateEnum" default="0">
+      <access read="true" write="true" readPrivilege="view" writePrivilege="manage"/>
+      <optionalConform/>
+    </attribute>
+    <attribute id="0x0003" name="Options" type="OptionsBitmap" default="0">
+      <access read="true" write="true" readPrivilege="view" writePrivilege="operate"/>
+      <optionalConform/>
+    </attribute>
+    <attribute id="0x0004" name="LevelRange" type="LevelRangeStruct">
+      <access read="true" readPrivilege="view"/>
+      <optionalConform>
+        <feature name="DIM"/>
+      </optionalConform>
+    </attribute>
+  </attributes>
+  <commands>
+    <command id="0x00" name="Toggle" direction="commandToServer" response="Y">
+      <access invokePrivilege="operate"/>
+      <mandatoryConform/>
+    </command>
+    <command id="0x01" name="MoveToLevel" direction="commandToServer" response="Y">
+      <access invokePrivilege="operate"/>
+      <mandatoryConform>
+        <feature name="DIM"/>
+      </mandatoryConform>
+      <field id="0" name="Level" type="uint8">
+        <mandatoryConform/>
+        <constraint>
+          <max value="254"/>
+        </constraint>
+      </field>
+      <field id="1" name="TransitionTime" type="uint16">
+        <quality nullable="true"/>
+        <mandatoryConform/>
+      </field>
+    </command>
+  </commands>
+  <events>
+    <event id="0x00" name="StateChanged" priority="info">
+      <access readPrivilege="view"/>
+      <optionalConform/>
+      <field id="0" name="NewState" type="bool">
+        <mandatoryConform/>
+      </field>
+    </event>
+  </events>
+</cluster>

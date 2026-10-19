@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["main"]
 
+env:
+  # Keep in sync with MATTER_ALL_SUPPORTED_VERSIONS in the Makefile
+  MATTER_VERSIONS: "1.0 1.1 1.2 1.3 1.4 1.4.1 1.4.2 1.5 1.5.1 1.6"
+
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -28,81 +32,24 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release
           -S ${{ github.workspace }}
       - name: Build
-        # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
         run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
       - name: Pull Matter files
+        run: git clone --depth=1 https://github.com/project-chip/connectedhomeip.git ${{ github.workspace }}/matter
+      - name: Convert Matter files
         run: |
-          git clone --depth=1 https://github.com/project-chip/connectedhomeip.git ${{ github.workspace }}/matter
-          mkdir ${{ github.workspace }}/converted/
-      - name: Convert Matter files for Matter 1.0
-        run: |
-          mkdir ${{ github.workspace }}/converted/1.0/
-          folder_path="${{ github.workspace }}/matter/data_model/1.0/device_types"
-          for file in "$folder_path"/*; do
-            if [[ -f "$file" && "${file##*.}" != "json" ]]; then
-              echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.0/clusters" -o "${{ github.workspace }}/converted/1.0/$(basename "$file" | cut -f 1 -d '.').json"
+          for version in $MATTER_VERSIONS; do
+            echo "::group::Matter $version"
+            data_model="${{ github.workspace }}/matter/data_model/$version"
+            if [[ ! -d "$data_model" ]]; then
+              echo "::error::Matter data model $version not found"
+              exit 1
             fi
-          done
-      - name: Convert Matter files for Matter 1.1
-        run: |
-          mkdir ${{ github.workspace }}/converted/1.1/
-          folder_path="${{ github.workspace }}/matter/data_model/1.1/device_types"
-          for file in "$folder_path"/*; do
-            if [[ -f "$file" && "${file##*.}" != "json" ]]; then
+            mkdir -p "${{ github.workspace }}/converted/$version"
+            for file in "$data_model"/device_types/*.xml; do
               echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.1/clusters" -o "${{ github.workspace }}/converted/1.1/$(basename "$file" | cut -f 1 -d '.').json"
-            fi
-          done
-      - name: Convert Matter files for Matter 1.2
-        run: |
-          mkdir ${{ github.workspace }}/converted/1.2/
-          folder_path="${{ github.workspace }}/matter/data_model/1.2/device_types"
-          for file in "$folder_path"/*; do
-            if [[ -f "$file" && "${file##*.}" != "json" ]]; then
-              echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.2/clusters" -o "${{ github.workspace }}/converted/1.2/$(basename "$file" | cut -f 1 -d '.').json"
-            fi
-          done
-      - name: Convert Matter files for Matter 1.3
-        run: |
-          mkdir ${{ github.workspace }}/converted/1.3/
-          folder_path="${{ github.workspace }}/matter/data_model/1.3/device_types"
-          for file in "$folder_path"/*; do
-            if [[ -f "$file" && "${file##*.}" != "json" ]]; then
-              echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.3/clusters" -o "${{ github.workspace }}/converted/1.3/$(basename "$file" | cut -f 1 -d '.').json"
-            fi
-          done
-      - name: Convert Matter files for Matter 1.4.2
-        run: |
-          mkdir ${{ github.workspace }}/converted/1.4.2/
-          folder_path="${{ github.workspace }}/matter/data_model/1.4.2/device_types"
-          for file in "$folder_path"/*; do
-            if [[ -f "$file" && "${file##*.}" != "json" ]]; then
-              echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.4.2/clusters" -o "${{ github.workspace }}/converted/1.4.2/$(basename "$file" | cut -f 1 -d '.').json"
-            fi
-          done
-      - name: Convert Matter files for Matter 1.5.1
-        run: |
-          mkdir ${{ github.workspace }}/converted/1.5.1/
-          folder_path="${{ github.workspace }}/matter/data_model/1.5.1/device_types"
-          for file in "$folder_path"/*; do
-            if [[ -f "$file" && "${file##*.}" != "json" ]]; then
-              echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.5.1/clusters" -o "${{ github.workspace }}/converted/1.5.1/$(basename "$file" | cut -f 1 -d '.').json"
-            fi
-          done
-      - name: Convert Matter files for Matter 1.6
-        run: |
-          mkdir ${{ github.workspace }}/converted/1.6/
-          folder_path="${{ github.workspace }}/matter/data_model/1.6/device_types"
-          for file in "$folder_path"/*; do
-            if [[ -f "$file" && "${file##*.}" != "json" ]]; then
-              echo "Processing $file"
-              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "${{ github.workspace }}/matter/data_model/1.6/clusters" -o "${{ github.workspace }}/converted/1.6/$(basename "$file" | cut -f 1 -d '.').json"
-            fi
+              ${{ steps.strings.outputs.build-output-dir }}/sdf_matter_converter --matter-to-sdf -device-xml "$file" -cluster-xml "$data_model/clusters" -o "${{ github.workspace }}/converted/$version/$(basename "$file" .xml).json"
+            done
+            echo "::endgroup::"
           done
       - uses: actions/upload-artifact@v4
         with:

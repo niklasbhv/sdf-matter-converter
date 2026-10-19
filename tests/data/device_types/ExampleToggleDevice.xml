@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+Minimal, hand-written device type definition in the Matter data model format.
+Used as a fixture for the converter smoke tests.
+-->
+<deviceType id="0xFFF10001" name="Example Toggle Device" revision="1">
+  <revisionHistory>
+    <revision revision="1" summary="Initial revision"/>
+  </revisionHistory>
+  <classification class="simple" scope="endpoint"/>
+  <clusters>
+    <cluster id="0xFFF1FC01" name="Example Toggle" side="server">
+      <mandatoryConform/>
+      <features>
+        <feature code="DIM" name="Dimming">
+          <mandatoryConform/>
+        </feature>
+      </features>
+    </cluster>
+  </clusters>
+</deviceType>
