@@ -26,6 +26,7 @@
 #ifndef SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_SDF_H_
 #define SDF_MATTER_CONVERTER_LIB_CONVERTER_INCLUDE_SDF_H_
 
+#include <cstdint>
 #include <string>
 #include <map>
 #include <unordered_map>
@@ -231,8 +232,8 @@ struct SdfObject : CommonQuality {
     std::unordered_map<std::string, SdfEvent> sdf_event;
     SdfData sdf_data;
     //! Array definition qualities
-    std::optional<uint> min_items;
-    std::optional<uint> max_items;
+    std::optional<uint64_t> min_items;
+    std::optional<uint64_t> max_items;
 };
 
 //! Struct which contains sdfThing information.
@@ -244,8 +245,8 @@ struct SdfThing : CommonQuality{
     std::unordered_map<std::string, SdfEvent> sdf_event;
     SdfData sdf_data;
     //! Array definition qualities
-    std::optional<uint> min_items;
-    std::optional<uint> max_items;
+    std::optional<uint64_t> min_items;
+    std::optional<uint64_t> max_items;
 };
 
 //! Struct which contains namespace block information.
