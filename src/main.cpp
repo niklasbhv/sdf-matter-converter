@@ -171,7 +171,9 @@ int main(int argc, char *argv[]) {
 
                 if (optional_device_xml.has_value()) {
                     std::cout << "Saving Device XML..." << std::endl;
-                    SaveXmlFile(path_output_device_xml.c_str(), optional_device_xml.value());
+                    if (SaveXmlFile(path_output_device_xml.c_str(), optional_device_xml.value()) != 0) {
+                        std::exit(1);
+                    }
                     std::cout << "Successfully saved Device XML!" << std::endl;
                     if (validate) {
                         if (ValidateMatter(path_device_xml.c_str(), program.get<std::string>("-validate").c_str()) ==
@@ -188,7 +190,9 @@ int main(int argc, char *argv[]) {
                 for (const auto &cluster_xml: cluster_xml_list) {
                     // Generate a filename for each cluster by numbering them
                     std::string path = path_output_cluster_xml + "_" + std::to_string(counter) + ".xml";
-                    SaveXmlFile(path.c_str(), cluster_xml);
+                    if (SaveXmlFile(path.c_str(), cluster_xml) != 0) {
+                        std::exit(1);
+                    }
                     // If the validation flag was set we try to validate the xml against a xsd schema
                     if (validate) {
                         if (ValidateMatter(path.c_str(), program.get<std::string>("-validate").c_str())) {
@@ -211,7 +215,9 @@ int main(int argc, char *argv[]) {
                 GenerateSdfFilenames(program.get<std::string>("-output"), path_sdf_model, path_sdf_mapping);
 
                 std::cout << "Saving JSON files...." << std::endl;
-                SaveJsonFile(path_sdf_model.c_str(), sdf_model);
+                if (SaveJsonFile(path_sdf_model.c_str(), sdf_model) != 0) {
+                    std::exit(1);
+                }
                 std::cout << "Successfully saved SDF-Model!" << std::endl;
                 if (validate) {
                     if (ValidateSdf(path_sdf_model.c_str(), program.get<std::string>("-validate").c_str()) == 0) {
@@ -221,7 +227,9 @@ int main(int argc, char *argv[]) {
                     }
                 }
 
-                SaveJsonFile(path_sdf_mapping.c_str(), sdf_mapping);
+                if (SaveJsonFile(path_sdf_mapping.c_str(), sdf_mapping) != 0) {
+                    std::exit(1);
+                }
                 std::cout << "Successfully saved SDF-Mapping!" << std::endl;
                 if (validate) {
                     if (ValidateSdf(path_sdf_mapping.c_str(), program.get<std::string>("-validate").c_str()) == 0) {
@@ -275,10 +283,12 @@ int main(int argc, char *argv[]) {
             // Generate filenames for SDF based on the -output parameter
             std::string path_output_sdf_model;
             std::string path_output_sdf_mapping;
-            GenerateSdfFilenames(program.get<std::string>("-output"), path_sdf_model, path_sdf_mapping);
+            GenerateSdfFilenames(program.get<std::string>("-output"), path_output_sdf_model, path_output_sdf_mapping);
 
             std::cout << "Saving JSON files...." << std::endl;
-            SaveJsonFile(path_output_sdf_model.c_str(), sdf_model_json);
+            if (SaveJsonFile(path_output_sdf_model.c_str(), sdf_model_json) != 0) {
+                std::exit(1);
+            }
             std::cout << "Successfully saved SDF-Model!" << std::endl;
             if (validate) {
                 if (ValidateSdf(path_output_sdf_model.c_str(), program.get<std::string>("-validate").c_str()) == 0) {
@@ -288,7 +298,9 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            SaveJsonFile(path_output_sdf_mapping.c_str(), sdf_mapping_json);
+            if (SaveJsonFile(path_output_sdf_mapping.c_str(), sdf_mapping_json) != 0) {
+                std::exit(1);
+            }
             std::cout << "Successfully saved SDF-Mapping!" << std::endl;
             if (validate) {
                 if (ValidateSdf(path_output_sdf_mapping.c_str(), program.get<std::string>("-validate").c_str()) == 0) {
@@ -305,7 +317,9 @@ int main(int argc, char *argv[]) {
 
             if (optional_device_xml.has_value()) {
                 std::cout << "Saving Device XML..." << std::endl;
-                SaveXmlFile(path_device_xml.c_str(), optional_device_xml.value());
+                if (SaveXmlFile(path_device_xml.c_str(), optional_device_xml.value()) != 0) {
+                    std::exit(1);
+                }
                 if (validate) {
                     if (ValidateMatter(path_device_xml.c_str(), program.get<std::string>("-validate").c_str()) == 0) {
                         std::cout << "Device XML valid!..." << std::endl;
@@ -320,7 +334,9 @@ int main(int argc, char *argv[]) {
             for (const auto& cluster_xml : cluster_xml_list) {
                 // Generate a filename for each cluster by numbering them
                 std::string path = path_cluster_xml + "_" + std::to_string(counter) + ".xml";
-                SaveXmlFile(path.c_str(), cluster_xml);
+                if (SaveXmlFile(path.c_str(), cluster_xml) != 0) {
+                    std::exit(1);
+                }
                 if (validate) {
                     if (ValidateMatter(path.c_str(), program.get<std::string>("-validate").c_str())) {
                         std::cout << "Cluster XML" << path << "valid!..." << std::endl;
